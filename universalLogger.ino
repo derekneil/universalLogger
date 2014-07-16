@@ -37,7 +37,7 @@ char loadCellReading[] = {' ','0','0','0','0','0'};
 int loadCellReadingInt = 0;
 int loadCellReadingIndex = 0;
 
-int maxPeakForce = -999;
+int minMaxForce = -999;
 
 #define LOCK 1
 #define UNLOCK 0
@@ -51,14 +51,14 @@ int currentPeakForce = -998;
 const int array2minSize = 60;
 int array2minPeakForce[array2minSize] = {0};
 int array2minIndex = 0;
-int avg2minPeakForce = 0;
+int avgShortTermForce = 0;
 
 const int array2hrSize = 60;
 int array2hrPeakForce[array2hrSize] = {0};
 int array2hrIndex = 0;
-int avg2hrPeakForce = 0;
-float avgPeakForce = 0;
-int peaksCounted = 0;
+int avgLongtermForce = 0;
+float avgForce = 0;
+int cycles = 0;
 
 #define STATIC 0
 #define DYNAMIC 1
@@ -359,23 +359,23 @@ void updatePeaks(char newLoadCellReading[]) {
       }
       arrayForce[i] = -998;
     }
-    peaksCounted++;
-    rePrint(158, TXTROW1, 6, peaksCounted);
+    cycles++;
+    rePrint(158, TXTROW1, 6, cycles);
     
     rePrint(292, TXTROW2, 4, currentPeakForce);
     
     // -- update max and avgPeaks --
-    if (currentPeakForce > maxPeakForce) {
-      maxPeakForce = currentPeakForce;
+    if (currentPeakForce > minMaxForce) {
+      minMaxForce = currentPeakForce;
       
-      char maxPeakForceString[5];
-      sprintf(maxPeakForceString,"%4d", maxPeakForce);
-      rePrint(30, TXTROW3, 4, maxPeakForceString);
+      char minMaxForceString[5];
+      sprintf(minMaxForceString,"%4d", minMaxForce);
+      rePrint(30, TXTROW3, 4, minMaxForceString);
     }
-    avgPeakForce = (avgPeakForce*(peaksCounted-1) + currentPeakForce) / peaksCounted;
-    char avgPeakForceString[5];
-    sprintf(avgPeakForceString,"%4.0f", avgPeakForce);
-    rePrint(30, TXTROW2, 4, avgPeakForceString);
+    avgForce = (avgForce*(cycles-1) + currentPeakForce) / cycles;
+    char avgForceString[5];
+    sprintf(avgForceString,"%4.0f", avgForce);
+    rePrint(30, TXTROW2, 4, avgForceString);
     
     // -- save peak value -- 
     int bumped2min = array2minPeakForce[array2minIndex];
@@ -391,24 +391,24 @@ void updatePeaks(char newLoadCellReading[]) {
       array2minIndex=0;
 
       int nonZero = 0;
-      avg2minPeakForce = 0;
+      avgShortTermForce = 0;
       for (int i=0; i<array2minSize; i++) {
         if(array2minPeakForce[i] > 0) {
           nonZero++; 
-          avg2minPeakForce += array2minPeakForce[i];
+          avgShortTermForce += array2minPeakForce[i];
         }
       }
       if (nonZero > 0) { 
-        avg2minPeakForce /= nonZero;
+        avgShortTermForce /= nonZero;
       }
       
-      char avg2minPeakForceString[9];
-      sprintf(avg2minPeakForceString,"%4d", avg2minPeakForce);
-      rePrint(280, TXTROW1, 4, avg2minPeakForceString);
+      char avgShortTermForceString[9];
+      sprintf(avgShortTermForceString,"%4d", avgShortTermForce);
+      rePrint(280, TXTROW1, 4, avgShortTermForceString);
       
       // -- save short term peak avg --
       int bumped2hr = array2hrPeakForce[array2hrIndex];
-      array2hrPeakForce[array2hrIndex] = avg2minPeakForce;      
+      array2hrPeakForce[array2hrIndex] = avgShortTermForce;      
 
       // -- redraw long term graph --
       redrawGraph(LEFTGRAPHPOS, array2hrPeakForce, array2hrIndex, array2hrSize, bumped2hr);
@@ -421,20 +421,20 @@ void updatePeaks(char newLoadCellReading[]) {
       }
       
       nonZero = 0;
-      avg2hrPeakForce = 0;
+      avgLongtermForce = 0;
       for (int i=0; i<array2hrSize; i++) {   
         if(array2hrPeakForce[i] > 0) {
           nonZero++;
-          avg2hrPeakForce += array2hrPeakForce[i];
+          avgLongtermForce += array2hrPeakForce[i];
         }
       }
       if (nonZero > 0) { 
-        avg2hrPeakForce /= nonZero;
+        avgLongtermForce /= nonZero;
       }
       
-      char avg2hrPeakForceString[9];
-      sprintf(avg2hrPeakForceString,"%4d", avg2hrPeakForce);
-      rePrint(66, TXTROW1, 4, avg2hrPeakForceString);
+      char avgLongtermForceString[9];
+      sprintf(avgLongtermForceString,"%4d", avgLongtermForce);
+      rePrint(66, TXTROW1, 4, avgLongtermForceString);
 
     }
     
@@ -444,16 +444,63 @@ void updatePeaks(char newLoadCellReading[]) {
 
 void logOutput(){
   
-  char logString[128];
-  sprintf(logString, "%04d/%02d/%02d %02d:%02d:%02d, %d, %d, %d, %d, %d, %d, %d, %f", year(), month(), day(), hour(), minute(), second(), micros(), peaksCounted, valProbe, loadCellReadingInt, maxPeakForce, avg2minPeakForce, avg2hrPeakForce, avgPeakForce);
   if (logging==true) {
+
+    char logString[128];
+
+    //initial datestamp for log entry
+    sprintf(logString, "%04d/%02d/%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second(), micros());
     
-    logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE);
-    logFile.println(logString);
-    logFile.close();
+    // linear probe
+    if (linearProbe) {
+      sprintf(logString, ", %d", valProbe);
+    }
+
+    // log number of cycles
+    if (cycles) {
+      sprintf(logString, ", %d", cycles);
+    }
+
+    // loadcell data
+    if (loadcell) {
+      sprintf(logString, ", %d, %d, %d, %d, %d, %d, %f", cycles, loadCellReadingInt, minMaxForce, avgShortTermForce, avgLongtermForce, avgForce);
+    }
+
+    if (analog1) {
+
+    }
+
+    if (analog2) {
+
+    }
+
+    if (digital1) {
+
+    }
+
+    if (digital2) {
+
+    }
+
+
+
+    //write to sd card
+    if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
+      logFile.println(logString);
+      logFile.close();
     #ifdef DEBUG
       Serial.println(logString);
     #endif
+    }
+    else {
+      rePrint(130, 0, 9, "log error");
+      delay(1000);
+      rePrint(130, 0, 9, "");
+      #ifdef DEBUG
+        Serial.println(F("...log file error"));
+      #endif
+      
+    }
   }
   
 }
@@ -471,7 +518,7 @@ void calibrate() {
 
   probe.write(0);
   
-  maxPeakForce = -999;
+  minMaxForce = -999;
   peakLock = LOCK;
   zeroArray(arrayForce, arrayForceSize, -998);
   peakLock = LOCK;
@@ -481,16 +528,16 @@ void calibrate() {
   
   zeroArray(array2minPeakForce, array2minSize, 0);
   array2minIndex = 0;
-  avg2minPeakForce = 0;
+  avgShortTermForce = 0;
   clearGraph(RIGHTGRAPHPOS);
 
   zeroArray(array2hrPeakForce, array2hrSize, 0);
   array2hrIndex = 0;
-  avg2hrPeakForce = 0;
+  avgLongtermForce = 0;
   clearGraph(LEFTGRAPHPOS);
   
-  avgPeakForce = 0;
-  peaksCounted = 0;
+  avgForce = 0;
+  cycles = 0;
   
   loadCellReadingState = DIGITS;
   loadCellReadingInt = 0;
