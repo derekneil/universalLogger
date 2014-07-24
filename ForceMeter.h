@@ -1,10 +1,15 @@
-#define LOADCELL Serial1
+#include "SensorInput.h"
+
+#ifndef LOADCELL
+	#define LOADCELL Serial1
+#endif
+
 #define DIGITS    1
 #define END       2
 #define COMPLETE  3
 
 class ForceMeter : public SensorInput {
-	private:
+	protected:
 		int loadCellReadingState = COMPLETE;
 		char loadCellReading[] = {' ','0','0','0','0','0'};
 		int loadCellReadingInt = 0;
@@ -12,19 +17,22 @@ class ForceMeter : public SensorInput {
 
 	public:
 
-		void init(){
-			LOADCELL.begin(19200, SERIAL_8N1_RXINV_TXINV);			
+		ForceMeter() : sensorInput{-1, -1}
+		{
+			LOADCELL.begin(19200, SERIAL_8N1_RXINV_TXINV);	
 		}
 
-		int pollForceMeter() {
+		int poll() {
 			if (LOADCELL.available() > 0) {
 
 				char incomingByte = LOADCELL.read();
 
 				// -- debugging bytes from loadcell --
+				//  #ifdef DEBUG
 				//    char temp[16];
 				//    sprintf(temp, "index %d, byte >%c<", loadCellReadingIndex, incomingByte);
 				//    Serial.println(temp);
+				//  #endif
 
 				// -- parseLoadCell incomingByte --
 				switch (incomingByte) {
@@ -68,12 +76,12 @@ class ForceMeter : public SensorInput {
 			}
 
 			return loadCellReadingInt = atoi(newLoadCellReading)
-
 		}
+
 		void reset() {
-			sensorInput->reset();
 			loadCellReadingState = DIGITS;
 			loadCellReadingInt = 0;
 			loadCellReadingIndex = 0;
+			SensorInput::reset();
 		}
 };

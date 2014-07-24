@@ -3,29 +3,21 @@
 
 // differential linear encoder supported by hardware interrupts
 class LinearEncoder : public SensorInput {
-	private: // -----------------------------------------------
-
-
-	public: // -----------------------------------------------
+	protected:
 		Encoder probe;
-		int pinA;
-		int pinB;
-		int loadCellReadingState = COMPLETE;
-		char loadCellReading[] = {' ','0','0','0','0','0'};
-		int loadCellReadingInt = 0;
-		int loadCellReadingIndex = 0;
+
+	public:
 		int value;
-		SensorInput *sensorInput;
-		void LinearEncoder(int pinA, int pinB){
-			this->pinA = pinA;
-			this->pinB = pinB;
+		
+		LinearEncoder(int pinA, int pinB) :
+		probe {pinA, pinB}, 
+		sensorInput {-1, -1}
+		{
+
 		}
-		void init() {
-			probe = new Encoder(pinB, pinA);
-			sensorInput = new SensorInput();
-		}
-		void pollProbe() {
-			sensorInput->add(probe.read());
+
+		int poll() {
+			return probe.read();
 
 			//TODO put this.... somewhere..
 			char probeString[6];
@@ -34,10 +26,7 @@ class LinearEncoder : public SensorInput {
 		}
 		void reset() {
 			calibrate();
-			sensorInput->reset();
-			loadCellReadingState = DIGITS;
-			loadCellReadingInt = 0;
-			loadCellReadingIndex = 0;
+			SensorInput::reset();
 		}
 		void calibrate() {
 			probe.write(0);

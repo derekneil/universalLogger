@@ -5,15 +5,13 @@
 #define GRAPHHIGHLIGHT 1
 #define GRAPH....
 
-class Graph {
-  private:
-    int x; // center
-    int y; // coordinates
-    int w;
-    int h;
-    int type;
+class Graph : Visualization{
+  protected:
+
   public:
-    Graph(int x, int y, int w, int h) {
+    Graph(int x, int y, int w, int h) :
+     {
+      Visualization{x,y,w,h}
       this->x = x;
       this->y = y;
       this->w = w;

@@ -18,32 +18,18 @@
     #define F(string_literal) string_literal
 #endif
 
-// #define DEBUG
-
 //colorLCD stuff
 // #define GRAPHHEIGHT 200
 // #define GRAPHWIDTH 120
 // #define RIGHTGRAPHPOS 199
 // #define LEFTGRAPHPOS 1
-#define TXTROW1 205
-#define TXTROW2 220
-#define TXTROW3 230
-#define CHARWIDTH 6
-#define CHARHEIGHT 8
+
 const int divider = 5; //= (max expected input ~1000 )/ GRAPHHEIGHT
 #define lcd_cs 10
 #define lcd_dc 9
 #define lcd_rst -1
-#define BACKGROUNDCOLOUR ILI9340_BLUE
-#define TEXTCOLOUR ILI9340_WHITE
-#define ERASECOLOUR ILI9340_BLUE
-#define BUTTONCOLOUR ILI9340_WHITE
-#define BUTTONPUSHEDCOLOUR ILI9340_MAGENTA
-#define BUTTONRADIUS 4
-#define SHADDOWCOLOUR ILI9340_BLACK
 const int shaddow = 2;
-#define SCREENWIDTH 320
-#define SCREENHEIGHT 240
+
 
 Adafruit_ILI9340 tft = Adafruit_ILI9340(lcd_cs, lcd_dc, lcd_rst);
 
@@ -113,7 +99,7 @@ void drawMenuScreen() {
 
 //-----------------------------------------------------------------------------
 
-void poll() {
+void pollSensors() {
 
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
@@ -127,7 +113,7 @@ void poll() {
       sensorInputs[i]->updateDataAndStats(newReading);
 
       //update graph
-      sensorInputs[i]->updateGraph();
+      sensorInputs[i]->updateViz();
     }
   }
 }
@@ -371,28 +357,28 @@ void setup() {
   tft.setTextSize(1);
   tft.setRotation(1);
 
-  #ifdef DEBUG
-    Serial.print("tft height: ");
-    Serial.print(tft.height());
-    if (tft.height()==SCREENHEIGHT) {
-      Serial.println(" as expected :)");
-    }
-    else {
-      Serial.print(" does not match ");
-      Serial.print(SCREENHEIGHT);
-      Serial.println(" DANGER!!!!");
-    }
-    Serial.print("tft width: ");
-    Serial.print(tft.width());
-        if (tft.width()==SCREENWIDTH) {
-      Serial.println(" as expected :)");
-    }
-    else {
-      Serial.print(" does not match ");
-      Serial.print(SCREENWIDTH);
-      Serial.println(" DANGER!!!!");
-    }
-  #endif
+  // #ifdef DEBUG
+  //   Serial.print("tft height: ");
+  //   Serial.print(tft.height());
+  //   if (tft.height()==SCREENHEIGHT) {
+  //     Serial.println(" as expected :)");
+  //   }
+  //   else {
+  //     Serial.print(" does not match ");
+  //     Serial.print(SCREENHEIGHT);
+  //     Serial.println(" DANGER!!!!");
+  //   }
+  //   Serial.print("tft width: ");
+  //   Serial.print(tft.width());
+  //       if (tft.width()==SCREENWIDTH) {
+  //     Serial.println(" as expected :)");
+  //   }
+  //   else {
+  //     Serial.print(" does not match ");
+  //     Serial.print(SCREENWIDTH);
+  //     Serial.println(" DANGER!!!!");
+  //   }
+  // #endif
 
   while(!ts.begin()){
     tft.println(F("Unable to start touchscreen."));
@@ -402,31 +388,30 @@ void setup() {
     delay(500);
   }
 
-  #ifdef DEBUG
-    Serial.println("Touchscreen started.");
-  #endif
+  // #ifdef DEBUG
+  //   Serial.println("Touchscreen started.");
+  // #endif
   
   SdFile::dateTimeCallback(dateTime);
   while (!sd.begin(sdCS, SPI_HALF_SPEED)) {
-    // tft.setCursor(5, 30);
     tft.println(F("Insert microSD card"));
     delay(500);
-    #ifdef DEBUG
-      Serial.println(F("Insert microSD card"));
-    #endif
+    // #ifdef DEBUG
+    //   Serial.println(F("Insert microSD card"));
+    // #endif
 
   }
 
   sensorInputs[4] = {
-    new ForceMeter(),
-    new LinearEncoder(), 
-    new SensorInput(), 
-    new SensorInput()
+    ForceMeter(0,1),
+    LinearEncoder(5,6), 
+    SensorInput(16, ANALOG), 
+    SensorInput(17, DIGITAL)
   };
 
+  // am i just creating these so that there's something to call isPushed on?
   setupMenuScreen();
-
-  setupSecondLevelMenuScreens(); //???????????????????
+  setupSecondLevelMenuScreens();
 
   drawMainScreen();
 
