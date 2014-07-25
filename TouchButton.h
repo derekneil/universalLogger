@@ -1,4 +1,8 @@
+#ifndef TOUCHBUTTON_H
+#define TOUCHBUTTON_H
+
 #include "Touch.h"
+#include "Display.h"
 
 #define CHARWIDTH 6
 #define CHARHEIGHT 8
@@ -16,67 +20,69 @@
 #define RADIUS 4
 #define SHADDOW ILI9340_BLACK
 
-class TouchButton : public Touch{
+class TouchButton : public TouchElement{
   protected:
-    char *label;
-    int shaddow;
-    int radius;
-    int colour;
-    int shaddowColour;
+    char *label = "";
+    int shaddow = 2;
+    int radius = 2;
+    int colour = BUTTONCOLOUR;
+    int shaddowColour = 0;
+
   public:
-    TouchButton(int x, int y, int w, int h, char* label, int shaddow) : Touch {x,y,w,h} 
+    TouchButton(int x, int y, int w, int h, char* label="") : TouchElement {x,y,w,h}
     {
-      this->label = label;
-      this->shaddow = shaddow;
+		#ifdef DEBUG
+		  Serial.print(F("TouchButton(...) "));
+		  Serial.println(F(label));
+		#endif
+		this->label = label;
     }
 
     void setLabel(char *newLabel) {
       #ifdef DEBUG
-        Serial.print(F("setLabel() "));
+        Serial.print(F("TouchButton::setLabel() "));
         Serial.print(F(label));
         Serial.print(F(" to "));
         Serial.println(F(newLabel));
       #endif
       this->label = newLabel;
     }
+
     void draw() {
       #ifdef DEBUG
-        Serial.print(F("draw() "));
+        Serial.print(F("TouchButton::draw() "));
         Serial.println(F(label));
       #endif
-      drawButton(x-w/2, y-h/2, w, h, label);
+      int startX = x-w/2;
+      int startY = y-h/2;
+      int r = 4;
+      Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
+      Display::device->drawFastHLine(x+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
+      Display::device->drawFastVLine(x -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
+      Display::device->drawCircleHelper(x+r -shaddow, startY+r -shaddow, r, 1, shaddowColour); //top left corner
+      Display::device->drawCircleHelper(x+w-r-1 -shaddow, startY+r -shaddow, r, 2, shaddowColour); //top right corner
+      Display::device->drawCircleHelper(x+r -shaddow, startY+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
+      Display::device->drawRoundRect(startX, startY, w, h, radius, colour);
+      int newY = startY + (h - CHARHEIGHT)/2;
+      int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
+      Display::device->setCursor(newX, newY);
+      Display::device->print(label);
     }
+
     void push() {
       #ifdef DEBUG
-        Serial.print(F("push() "));
+        Serial.print(F("TouchButton::push() "));
         Serial.println(F(label));
       #endif
-      pushButton(x-w/2, y-h/2, w, h, label);
-    }
-
-  private:
-    void drawButton(int x, int y, int w, int h, char* str) {
-      int r = 4;
-      tft.fillRect(x-shaddow, y-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
-      tft.drawFastHLine(x+r -shaddow, y -shaddow  , w-2*r, shaddowColour); // Top
-      tft.drawFastVLine(x -shaddow  , y+r -shaddow, h-2*r, shaddowColour); // Left
-      tft.drawCircleHelper(x+r -shaddow, y+r -shaddow, r, 1, shaddowColour); //top left corner
-      tft.drawCircleHelper(x+w-r-1 -shaddow, y+r -shaddow, r, 2, shaddowColour); //top right corner
-      tft.drawCircleHelper(x+r -shaddow, y+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
-      tft.drawRoundRect(x, y, w, h, radius, colour);
-      int newY = y + (h - CHARHEIGHT)/2;
-      int newX = x + (w - (strlen(str) * CHARWIDTH))/2;
-      tft.setCursor(newX, newY);
-      tft.print(str);
-    }
-
-    void pushButton(int x, int y, int w, int h, char* str) {
-      tft.fillRect(x-shaddow, y-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
-      tft.drawRoundRect(x, y, w, h, radius, shaddowColour);
-      int newY = y + (h - CHARHEIGHT)/2;
-      int newX = x + (w - (strlen(str) * CHARWIDTH))/2;
-      tft.setCursor(newX, newY);
-      tft.print(str);
+      int startX = x-w/2;
+      int startY = y-h/2;
+      Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
+      Display::device->drawRoundRect(startX, startY, w, h, radius, shaddowColour);
+      int newY = startY + (h - CHARHEIGHT)/2;
+      int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
+      Display::device->setCursor(newX, newY);
+      Display::device->print(label);
     }
 
 };
+#endif

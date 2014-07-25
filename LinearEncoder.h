@@ -1,3 +1,6 @@
+#ifndef LINEARENCODER_H
+#define LINEARENCODER_H
+
 #include <Encoder.h>
 #include "SensorInput.h"
 
@@ -7,29 +10,35 @@ class LinearEncoder : public SensorInput {
 		Encoder probe;
 
 	public:
-		int value;
 		
 		LinearEncoder(int pinA, int pinB) :
-		probe {pinA, pinB}, 
-		sensorInput {-1, -1}
+		SensorInput {-1, -1},
+		probe {pinA, pinB}
 		{
-
+			#ifdef DEBUG
+				Serial.println("LinearEncoder(...)");
+			#endif
 		}
 
 		int poll() {
+			#ifdef DEBUG
+				Serial.println("LinearEncoder::poll()");
+			#endif
 			return probe.read();
-
-			//TODO put this.... somewhere..
-			char probeString[6];
-			sprintf(probeString,"%5d", valProbe);
-			rePrint(158, TXTROW3, 5, probeString);
 		}
 		void reset() {
+			#ifdef DEBUG
+				Serial.println("LinearEncoder::reset()");
+			#endif
 			calibrate();
 			SensorInput::reset();
 		}
 		void calibrate() {
+			#ifdef DEBUG
+				Serial.println("LinearEncoder::calibrate()");
+			#endif
 			probe.write(0);
 		}
 
-}:
+};
+#endif

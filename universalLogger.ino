@@ -8,28 +8,23 @@
 #include <Time.h>
 #include <Wire.h>
 #include <Adafruit_STMPE610.h>
-#include "Data.h"
+#include "SensorData.h"
 #include "SensorInput.h"
 #include "Graph.h"
 #include "TouchButton.h"
+
+#include "universalLogger.h"
 
 #if defined(__SAM3X8E__)
     #undef __FlashStringHelper::F(string_literal)
     #define F(string_literal) string_literal
 #endif
 
-//colorLCD stuff
-// #define GRAPHHEIGHT 200
-// #define GRAPHWIDTH 120
-// #define RIGHTGRAPHPOS 199
-// #define LEFTGRAPHPOS 1
-
 const int divider = 5; //= (max expected input ~1000 )/ GRAPHHEIGHT
 #define lcd_cs 10
 #define lcd_dc 9
 #define lcd_rst -1
 const int shaddow = 2;
-
 
 Adafruit_ILI9340 tft = Adafruit_ILI9340(lcd_cs, lcd_dc, lcd_rst);
 
@@ -63,7 +58,7 @@ TouchButton *modeBtn;
 TouchButton *calBtn;
 
 //main screen
-SensorInput sensorInputs[];
+SensorInput *sensorInputs;
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
@@ -92,9 +87,14 @@ void drawMainScreen() {
 }
 
 void drawMenuScreen() {
-  logBtn->draw();
-  modeBtn->draw();
-  calBtn->draw();
+
+  //TODO draw controls for each of the inputs for a sensor
+
+  //TODO draw specilized controls for loadcell and linearEnc???
+
+  // logBtn.draw();
+  // modeBtn.draw();
+  // calBtn.draw();
 }
 
 //-----------------------------------------------------------------------------
@@ -104,7 +104,7 @@ void pollSensors() {
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
 
-    if(sensorInputs[i]->enabled) {
+    if(sensorInputs[i].enabled) {
 
       //get value
       int newReading = sensorInputs[i]->poll();
@@ -236,12 +236,12 @@ int startLogging() {
 void toggleLogging() {
     if (logging==false) {
       if (startLogging()) {
-        logBtn->setLabel("LOG ON");
+        logBtn.setLabel("LOG ON");
       }
     }
   else {
       logging = false;
-      logBtn->setLabel("LOG OFF");
+      logBtn.setLabel("LOG OFF");
     }
 }
 
@@ -255,68 +255,122 @@ void emptyTouchBuffer() {
   }
 }
 
+int parseTouchBoilerPlate() {
+	  // Retrieve a point
+	  TS_Point p = ts.getPoint();
+	  // Scale using the calibration #'s
+	  // and rotate coordinate system
+	  #ifdef DEBUG
+	    Serial.print(F("\noriginal touch at "));
+	    Serial.print(p.x);
+	    Serial.print(F(", "));
+	    Serial.print(p.y);
+	  #endif
+	  p.x = map(p.x, TS_MINY, TS_MAXY, 0, tft.height());
+	  p.y = map(p.y, TS_MINX, TS_MAXX, 0, tft.width());
+	  int y = tft.height() - p.x;
+	  int x = p.y;
+
+	  #ifdef DEBUG
+	    Serial.print(F(". mapped to "));
+	    Serial.print(x);
+	    Serial.print(F(", "));
+	    Serial.println(y);
+	  #endif
+
+	  emptyTouchBuffer();
+
+	  //make sure we don't get duplicate touches
+	  int newTouchTime = millis();
+	  if((newTouchTime > lastTouchTime + MINTOUCHINTERVAL) ){
+	    lastTouchTime = newTouchTime;
+	    return true;
+	  }
+	  return false;
+}
+
+void parseSensorMenuTouch() {
+	if (parseTouchBoilerPlate()) {
+
+		//----------START LOGIC BLOCK--------------
+
+
+
+		//----------END LOGIC BLOCK----------------
+
+	}
+	else {
+	  #ifdef DEBUG
+		Serial.println(F("ignoring menu touch, to soon after last touch"));
+	  #endif
+	}
+}
+
+void parseMenuTouch() {
+	if (parseTouchBoilerPlate()) {
+
+		//----------START LOGIC BLOCK--------------
+		//sample logic to be used for menu touch parsing
+
+		//    if (logBtn.isPushed(x,y)) {
+		//      #ifdef DEBUG
+		//        Serial.println(F("logBtn isPushed"));
+		//      #endif
+		//      logBtn.push();
+		//      toggleLogging();
+		//      logBtn.draw();
+		//    }
+		//    else if (modeBtn.isPushed(x,y)) {
+		//      #ifdef DEBUG
+		//        Serial.println(F("modeBtn isPushed"));
+		//      #endif
+		//      modeBtn.push();
+		//      toggleMode();
+		//      modeBtn.draw();
+		//    }
+		//    else if (calBtn.isPushed(x,y)) {
+		//       #ifdef DEBUG
+		//        Serial.println(F("calBtn isPushed"));
+		//      #endif
+		//      calBtn.push();
+		//      calibrate();
+		//      calBtn.draw();
+		//      emptyTouchBuffer(); //just to make sure
+		//    }
+
+			//----------END LOGIC BLOCK----------------
+
+	}
+	else {
+	  #ifdef DEBUG
+		Serial.println(F("ignoring menu touch, to soon after last touch"));
+	  #endif
+	}
+}
+
+
+/** would be great to reuse this with a different*/
 void parseTouch() {
-  // Retrieve a point  
-  TS_Point p = ts.getPoint(); 
-  // Scale using the calibration #'s
-  // and rotate coordinate system
-  #ifdef DEBUG
-    Serial.print(F("\noriginal touch at "));
-    Serial.print(p.x);
-    Serial.print(F(", "));
-    Serial.print(p.y);
-  #endif
-  p.x = map(p.x, TS_MINY, TS_MAXY, 0, tft.height());
-  p.y = map(p.y, TS_MINX, TS_MAXX, 0, tft.width());
-  int y = tft.height() - p.x;
-  int x = p.y;
 
-  #ifdef DEBUG
-    Serial.print(F("-> mapped to "));
-    Serial.print(x);
-    Serial.print(F(", "));
-    Serial.println(y);
-  #endif
+	if (parseTouchBoilerPlate()) {
 
-  emptyTouchBuffer();
+		//----------START LOGIC BLOCK--------------
 
-  //make sure we don't get duplicate touches
-  int newTouchTime = millis();
-  if((newTouchTime > lastTouchTime + MINTOUCHINTERVAL) ){
-    lastTouchTime = newTouchTime;
+		//TODO make the contents of this parametric
 
-    if (logBtn->isPushed(x,y)) {
-      #ifdef DEBUG
-        Serial.println(F("logBtn isPushed"));
-      #endif
-      logBtn->push();
-      toggleLogging();
-      logBtn->draw();
-    }
-    else if (modeBtn->isPushed(x,y)) {
-      #ifdef DEBUG
-        Serial.println(F("modeBtn isPushed"));
-      #endif
-      modeBtn->push();
-      toggleMode();
-      modeBtn->draw();
-    }
-    else if (calBtn->isPushed(x,y)) {
-       #ifdef DEBUG
-        Serial.println(F("calBtn isPushed"));
-      #endif
-      calBtn->push();
-      calibrate();
-      calBtn->draw();
-      emptyTouchBuffer(); //just to make sure
-    }
+		drawMainMenu(); /** menu handles all it's own touch and navigation */
 
-  }
-  else {
-    #ifdef DEBUG
-      Serial.println(F("ignoring touch, to soon after last touch"));
-    #endif
-  }
+		//need to erase menu screen and draw SensorDisplay's from scratch
+		drawMainScreen();
+
+		//----------END LOGIC BLOCK----------------
+
+	}
+	else {
+	  #ifdef DEBUG
+		Serial.println(F("ignoring touch, to soon after last touch"));
+	  #endif
+	}
 
 }
 
@@ -402,12 +456,17 @@ void setup() {
 
   }
 
-  sensorInputs[4] = {
-    ForceMeter(0,1),
-    LinearEncoder(5,6), 
-    SensorInput(16, ANALOG), 
-    SensorInput(17, DIGITAL)
-  };
+  sensorInputs[4] = {};
+  sensorInputs[0] = ForceMeter(0,1);
+  sensorInputs[1] = LinearEncoder(5,6);
+  sensorInputs[2] = SensorInput(16, ANALOG);
+  sensorInputs[3] = SensorInput(17, DIGITAL);
+
+  Display display(4);
+  //loop through sensorInputs
+  for (int i=0; i<NUMINPUTS; i++) {
+	  display.add(sensorInputs[i]->shortTermDisplay);
+  }
 
   // am i just creating these so that there's something to call isPushed on?
   setupMenuScreen();

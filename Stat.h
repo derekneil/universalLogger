@@ -1,65 +1,60 @@
+#ifndef STAT_H
+#define STAT_H
+
+#include "universalLogger.h"
+#include "DisplayElement.h"
+#include "Display.h"
+
 class Stat : public DisplayElement {
   protected:
+
+  public:
+    int colour = TEXTCOLOUR;
     char *label;
     char *lastValue;
-    int shaddow;
-    int shaddowColour;
-    int radius;
-    int colour;
-  public:
-    Stat(int x, int y, int w, int h, char* label, int shaddow, int radius, int colour) : DisplayElement {x,y,w,h} 
+
+    Stat(int x=0, int y=0, int w=0, int h=0, char* label="") :
+    	DisplayElement {x,y,w,h}
     {
+		#ifdef DEBUG
+		  Serial.println(F("Stat(...) "));
+		#endif
         this->label = label;
-        this->shaddow = shaddow;
+        lastValue = "";
     }
 
-    void setLabel(char *newLabel) {
-      #ifdef DEBUG
-        Serial.print(F("setLabel() "));
-        Serial.print(F(label));
-        Serial.print(F(" to "));
-        Serial.println(F(newLabel));
-      #endif
-        this->label = newLabel;
-    }
     void draw() {
-      #ifdef DEBUG
-        Serial.print(F("draw() "));
-        Serial.println(F(label));
-      #endif
-      drawButton(x-w/2, y-h/2, w, h, label);
-    }
-    void push() {
-      #ifdef DEBUG
-        Serial.print(F("push() "));
-        Serial.println(F(label));
-      #endif
-        pushButton(x-w/2, y-h/2, w, h, label);
+		#ifdef DEBUG
+			Serial.print(F("Stat::draw() "));
+			Serial.println(F(label));
+		#endif
+
+		//TODO erase space for label and value, then print both
+		int startX = x-w/2;
+		int startY = y-h/2;
+		Display::device->fillRect(startX, startY, w, h, ERASECOLOUR);
+		int newY = startY + (h - CHARHEIGHT)/2;
+		int newX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2;
+		Display::device->setCursor(newX, newY);
+		Display::device->print(label);
+		Display::device->print(lastValue);
     }
 
-  private:
-    void drawButton(int x, int y, int w, int h, char* str) {
-        int r = 4;
-        tft.fillRect(x-shaddow, y-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
-        tft.drawFastHLine(x+r -shaddow, y -shaddow  , w-2*r, shaddowColour); // Top
-        tft.drawFastVLine(x -shaddow  , y+r -shaddow, h-2*r, shaddowColour); // Left
-        tft.drawCircleHelper(x+r -shaddow, y+r -shaddow, r, 1, shaddowColour); //top left corner
-        tft.drawCircleHelper(x+w-r-1 -shaddow, y+r -shaddow, r, 2, shaddowColour); //top right corner
-        tft.drawCircleHelper(x+r -shaddow, y+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
-        tft.drawRoundRect(x, y, w, h, radius, colour);
-        int newY = y + (h - CHARHEIGHT)/2;
-        int newX = x + (w - (strlen(str) * CHARWIDTH))/2;
-        tft.setCursor(newX, newY);
-        tft.print(str);
-    }
+    void redraw() {
+		#ifdef DEBUG
+		  Serial.print(F("Stat::redraw() "));
+		  Serial.println(F(label));
+		#endif
 
-    void pushButton(int x, int y, int w, int h, char* str) {
-        tft.fillRect(x-shaddow, y-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
-        tft.drawRoundRect(x, y, w, h, radius, shaddowColour);
-        int newY = y + (h - CHARHEIGHT)/2;
-        int newX = x + (w - (strlen(str) * CHARWIDTH))/2;
-        tft.setCursor(newX, newY);
-        tft.print(str);
+		//TODO erase space for value only, leaving label alone, assuming it's still there, and print the lastValue only
+		int startX = x-w/2;
+		int startY = y-h/2;
+		Display::device->fillRect(startX, startY, w, h, ERASECOLOUR);
+		int newY = startY + (h - CHARHEIGHT)/2;
+		int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
+		Display::device->setCursor(newX, newY);
+		Display::device->print(label);
     }
 
 };
+#endif

@@ -1,18 +1,23 @@
-#import "Data.h"
+#ifndef GRAPHSCROLLING_H
+#define GRAPHSCROLLING_H
 
-class GraphScrolling : public DisplayElement{
+#include "Visualization.h"
+#include "Display.h"
+#include "SensorData.h"
+
+class GraphScrolling : public Visualization {
 
   private:
     void drawDoubleGraphLines(int *graphStartX, int last, int temp) {
       if (last > temp) {
         //erase, aka draw background
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT-last, last-temp, BACKGROUNDCOLOUR);
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT-last, last-temp, BACKGROUNDCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h-last, last-temp, BACKGROUNDCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h-last, last-temp, BACKGROUNDCOLOUR);
       }
       else if (last < temp) {
         //add, aka draw white
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT-temp, temp-last, TEXTCOLOUR);
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT-temp, temp-last, TEXTCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h-temp, temp-last, TEXTCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h-temp, temp-last, TEXTCOLOUR);
       }
       else {
         (*graphStartX)++;
@@ -22,17 +27,17 @@ class GraphScrolling : public DisplayElement{
     void drawSingleGraphLines(int *graphStartX, int last, int temp) {
       if (last > temp) {
         //erase, aka draw background
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT-last, last-temp, BACKGROUNDCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h-last, last-temp, BACKGROUNDCOLOUR);
       }
       else if (last < temp) {
         //add, aka draw white
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT-temp, temp-last, TEXTCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h-temp, temp-last, TEXTCOLOUR);
       }
       else {
         (*graphStartX)++;
       }
     }
-    void drawFromScratch(int x, int y, int w, int h, Data *data) {
+    void drawFromScratch(int x, int y, int w, int h, SensorData *data) {
       int i = data->index + 1;
       if (i==data->size) { i=0; } //avoids % operation
 
@@ -46,26 +51,24 @@ class GraphScrolling : public DisplayElement{
       //loop through all the middle values in the graph
       while( i!=data->index ) {
 
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT, temp, TEXTCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
         if (doubleWidth) {
-          tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT, temp, TEXTCOLOUR);
+          tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
         }
         i++;
-        if (i==arraySize) { i=0; } //avoids % operation
-        temp = array[i]/divider;
+        if (i==data->size) { i=0; } //avoids % operation
+        temp = data->array[i]/divider;
         if(temp < 0) { temp=0; }
-        lastI = i-1;
-        if (lastI <0) { lastI = arraySize-1; }
-        last = array[lastI]/divider;
+        int lastI = i-1;
+        if (lastI <0) { lastI = data->size-1; }
+        last = data->array[lastI]/divider;
         if(last < 0) { last=0; }
       }
 
       //draw latest value added to graph
+      tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
       if (doubleWidth) {
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT, temp, TEXTCOLOUR);
-      }
-      else {
-        tft.drawFastVLine((*graphStartX)++, GRAPHHEIGHT, temp, TEXTCOLOUR);
+        tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
       }
     }
 
@@ -73,14 +76,18 @@ class GraphScrolling : public DisplayElement{
 
   public:
     int doubleWidth = 0;
+
     GraphScrolling(int x, int y, int w, int h) : 
-    DisplayElement {x,y,w,h}
+    	Visualization {x,y,w,h}
     {
 
     }
 
-    void draw(Data data) {
-      DisplayElement::clear();
+    void draw(SensorData *data) {
+	#ifdef DEBUG
+		Serial.print(F("GraphScrolling::draw()"));
+	#endif
+      Visualization::clear();
 
       //draw graph borders
       tft.drawFastVLine(  0, 0, h, TEXTCOLOUR);
@@ -92,7 +99,10 @@ class GraphScrolling : public DisplayElement{
 
     }
 
-    void redraw(int x, int y, int w, int h, Data *data) { 
+    void redraw(SensorData *data) {
+	#ifdef DEBUG
+		Serial.print(F("GraphScrolling::redraw()"));
+	#endif
 
       int i = data->index + 1;
       if (i==data->size) { i=0; } //avoids % operation
@@ -106,29 +116,25 @@ class GraphScrolling : public DisplayElement{
 
       //loop through all the middle values in the graph
       while( i!=data->index ) {
-
-        if (doubleWidth) {
-          drawDoubleGraphLines(&x, last, temp);
-        }
-        else {
-          drawSingleGraphLines(&x, last, temp);
-        }
+    	drawSingleGraphLines(&x, last, temp);
+		if (doubleWidth) {
+		  drawSingleGraphLines(&x, last, temp);
+		}
         i++;
-        if (i==arraySize) { i=0; } //avoids % operation
-        temp = array[i]/divider;
+        if (i==data->size) { i=0; } //avoids % operation
+        temp = data->array[i]/divider;
         if(temp < 0) { temp=0; }
         lastI = i-1;
-        if (lastI <0) { lastI = arraySize-1; }
-        last = array[lastI]/divider;
+        if (lastI <0) { lastI = data->size-1; }
+        last = data->array[lastI]/divider;
         if(last < 0) { last=0; }
       }
 
       //draw latest value added to graph
+      drawSingleGraphLines(&x, last, temp);
       if (doubleWidth) {
-        drawDoubleGraphLines(&x, last, temp);
-      }
-      else {
         drawSingleGraphLines(&x, last, temp);
       }
     }
 };
+#endif

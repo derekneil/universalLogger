@@ -1,44 +1,44 @@
-#include "Data.h"
+#ifndef VISUALIZATION_H
+#define VISUALIZATION_H
 
-class SensorDisplay : public DisplayElement {
-	protected:
-		int enabled;
-		Data *data;
-		DisplayElement viz;
-		Stats stats;
-		
-	public:
-		SensorDisplay(int x, int y, int w, int h) : 
-		DisplayElement {x,y,w,h},
-		viz {x,y,w,h}, 
-		stats {x,y}
-		{
+#include "SensorData.h"
 
-		}
+/** wrapper class for visualizations so DisplayElement
+ * can hold another DisplayElement */
+class Visualization : public DisplayElement {
+  protected:
+  	
+  public:
+	Visualization() {
+		#ifdef DEBUG
+			Serial.println(F("Visualization()"));
+		#endif
+	}
+	Visualization(int x=0, int y=0, int w=0, int h=0) :
+		DisplayElement {x,y,w,h}
+	{
+		#ifdef DEBUG
+			Serial.println(F("Visualization(...)"));
+		#endif
+	}
 
-		virtual void draw() {
-			clear();
-			//something special to draw some of them from scratch
-			#ifdef DEBUG
-        		Serial.print(F("draw() not implemented yet for this class"));
-        	#endif
-		}
+	virtual ~Visualization() {
+		#ifdef DEBUG
+			Serial.println(F("~Visualization()"));
+		#endif
+	} //shut eclipse up
 
-		virtual void redraw() {
-			//minimal code to change the graph from t-1 state to t state
-			#ifdef DEBUG
-        		Serial.print(F("redraw() not implemented yet for this class"));
-        	#endif
-		}
+	virtual void draw() {
+		#ifdef DEBUG
+			Serial.println(F("Visualization::draw() not implemented yet for this class"));
+		#endif
+	}
 
-		virtual void locate(int x, int y) {
-	      viz.locate(x, y);
-	      stats.locate(x, y);
-	    }
-
-	    virtual void locateAndSize(int x, int y, int w, int h) {
-	      viz.locateAndSize(x, y, w, h);
-	      stats.locateAndSize(x, y, w, h);
-	    }
+	virtual void redraw() {
+		#ifdef DEBUG
+			Serial.println(F("Visualization::redraw() not implemented yet for this class"));
+		#endif
+	}
 
 };
+#endif

@@ -1,4 +1,10 @@
-#include "Data.h"
+#ifndef SENSORINPUT_H
+#define SENSORINPUT_H
+
+#include "universalLogger.h"
+
+#include "SensorData.h"
+#include "SensorDisplay.h"
 #include "limits.h"
 
 //SensorInput.h
@@ -16,31 +22,56 @@
 
 // TODO add defs to break out .h
 
-class SensorInput{
-    protected:
-        int type; // ANALOG | DIGITAL
-        int pin;
-        int enabled;
-        int mode; // STATIC | DYNAMIC
-        int low;
-        int high;
-        int dynamicLock = LOCK;
-        int interval=1000000; //default to 1 second
-        int lastIntervalTime = 0;
-        int cycles;
-        int filter; // MIN | AVG | MAX
-        Data raw;
-        Data shortTerm;
-        Data longTerm;
-        SensorDisplay shortTermDisplay;
-        SensorDisplay longTermDisplay;
+class SensorInput {
+  protected:
+	int type; /** ANALOG | DIGITAL */
+	int pin;
+	int mode = STATIC; /** STATIC | DYNAMIC */
+	int low = 10;
+	int high = 50;
+	int dynamicLock = LOCK;
+	int interval = 1000000; /** default to 1 second */
+	int lastIntervalTime = 0;
+	int cycles = 0;
+	int filter = MINDETECTION; /** MIN | AVG | MAX */
+	SensorData rawData;
+	SensorData shortTermData;
+	SensorData longTermData;
+	SensorDisplay shortTermDisplay;
+	SensorDisplay longTermDisplay;
 
-public:
+    virtual void redrawStat(Stat *stat, int newVal) {
+        {
+            char tempString[5];
+            sprintf(tempString, "%4d", newVal);
+            stat->lastValue = tempString;
+            stat->redraw();
+        }
+    }
+
+    virtual void redrawStats(SensorData *data, SensorDisplay *display, int newVal) {
+		#ifdef DEBUG
+			Serial.println("SensorInput::redrawStats(...)");
+		#endif
+        redrawStat(&(display->stats.latest), newVal);
+        redrawStat(&(display->stats.min), data->min);
+        redrawStat(&(display->stats.avg), data->avg);
+        redrawStat(&(display->stats.max), data->max);
+    }
+
+  public:
+	int enabled = 1;
+
     SensorInput(int pin, int type) : 
-    raw              {RAWDATASIZE},
-    shortTermDisplay {STDWIDTH},
-    longTermDisplay  {STDWIDTH}
+    rawData          {RAWDATASIZE},
+    shortTermData    {STDWIDTH},
+    longTermData     {STDWIDTH},
+    shortTermDisplay {STDWIDTH, &shortTermData},
+    longTermDisplay  {STDWIDTH, &longTermData}
     {
+		#ifdef DEBUG
+			Serial.println("SensorInput(...)");
+		#endif
         this->pin = pin;
         this->type = type;
         if (pin > 0) {
@@ -53,10 +84,18 @@ public:
         }
     }
 
+    virtual ~SensorInput() {
+		#ifdef DEBUG
+			Serial.println("~SensorInput()");
+		#endif
+    }
+
     virtual void toggleMode() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::toggleMode(...)");
+		#endif
         if (mode==DYNAMIC) {
             mode = STATIC;
-            // modeBtn->setLabel("STATIC"); //TODO make second level menu read this
         }
         else {
             mode = DYNAMIC;
@@ -64,9 +103,12 @@ public:
     }
 
     /** Poll sensor input for latest value
-    use type parameter 
+    use type parameter to determine read function used
     */
     virtual int poll() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::poll()");
+		#endif
         int newReading;
         if (type==ANALOG) {
             newReading = analogRead(pin-14); // 0-1024
@@ -89,6 +131,9 @@ public:
     during that cycle
     */
     virtual int intervalLapsed(int newReading) {
+		#ifdef DEBUG
+			Serial.println("SensorInput::intervalLapsed(...)");
+		#endif
         int lapsed = 0;
 
         if( mode == DYNAMIC ) {
@@ -106,23 +151,23 @@ public:
                 lapsed = 1;
             }
         }
-    else { // mode == STATIC
-        int timeCheck = micros() - lastIntervalTime;
-        if (timeCheck > interval){
-            #ifdef DEBUG
-                Serial.println("interval lapsed - time up");
-            #endif
-            lapsed = 1;
+        else { // mode == STATIC
+            int timeCheck = micros() - lastIntervalTime;
+            if (timeCheck > interval){
+                #ifdef DEBUG
+                    Serial.println("interval lapsed - time up");
+                #endif
+                lapsed = 1;
+            }
         }
-    }
 
-    //make sure storage isn't overflowing
-    if (raw->checkAndResetIndex()) {
-        #ifdef DEBUG
-            Serial.println("interval still going - wrapping around data storage");
-        #endif
-    }
-    return lapsed;
+        //make sure storage isn't overflowing
+        if (rawData.checkAndResetIndex()) {
+            #ifdef DEBUG
+                Serial.println("interval still going - wrapping around data storage");
+            #endif
+        }
+        return lapsed;
     }
 
     /** Update saved data and stats for SensorInput
@@ -134,166 +179,88 @@ public:
     Once long term data cycles through the storage, it replaces the
     oldest value with the new one.
     */
-    virtual void updateDataAndStats(int newReading) {
-        raw.insert(newReading);
+    virtual void updateDataAndRedrawStats(int newReading) {
+		#ifdef DEBUG
+			Serial.println("SensorInput::updateDataAndStats(...)");
+		#endif
+        rawData.insert(newReading);
 
         //see if interval is up or raw data is full
         if (intervalLapsed(newReading)) {
             cycles++;
-            int currentFiltered;
-            int found = false;
+            int currentFiltered = INT_MIN;
 
             if (filter==MINDETECTION) {
-                currentFiltered = max();
-                for (int i=0; i<RAWDATASIZE; i++) {
-                    //find smallest value
-                    if(raw.array[i] > currentFiltered) {
-                        currentFiltered = raw.array[i];
-                    }
-                    //reset array to flag value as we go
-                    raw.array[i] = max();
-                }
-                if (currentFiltered!=max()) {
-                    found = true;
-                }
+                currentFiltered = rawData.min;
             }
             else if (filter==AVGDETECTION) {
-                currentFiltered = lowest();
-                for (int i=0; i<RAWDATASIZE; i++) {
-                    //find largest value recorded
-                    if(raw.array[i] > currentFiltered) {
-                        currentFiltered += raw.array[i];
-                    }
-                    raw.array[i] = lowest();
-                }
-                if (currentFiltered!=lowest()) {
-                    currentFiltered /= RAWDATASIZE;
-                    found = true;
-                }
+                currentFiltered = rawData.avg;
             }
             else if (filter==PEAKDETECTION) {
-                currentFiltered = lowest();
-                for (int i=0; i<RAWDATASIZE; i++) {
-                    //find largest value recorded
-                    if(raw.array[i] > currentFiltered) {
-                        currentFiltered = raw.array[i];
+                currentFiltered = rawData.max;
+            }
+            rawData.reset();
+
+            //see if we have new value
+            if (currentFiltered!=INT_MAX && currentFiltered!=INT_MIN) {
+                shortTermData.insert(currentFiltered);
+                if (shortTermDisplay.enabled) {
+                	redrawStats(&shortTermData, &shortTermDisplay, currentFiltered);
+                }
+
+                // see if we're done a cycle through the short term
+                if (shortTermData.checkAndResetIndex()) {
+
+                	//save last shortTermData cycle avgerage to long term
+                    longTermData.insert(shortTermData.avg);
+                    if (longTermDisplay.enabled) {
+                    	redrawStats(&longTermData, &longTermDisplay, shortTermData.avg);
                     }
-                    raw.array[i] = lowest();
+                    shortTermData.resetAvg();
+                    shortTermData.resetMinMax();
+
+                    //see if it's time to calculate new long term peak avg
+                    if (longTermData.checkAndResetIndex()) {
+                    	longTermData.resetAvg(); //TODO do we really want the avg to be of the displayed value
+                    							 //or of every value the longTermData has seen?
+                    }
+
                 }
-                if (currentFiltered!=lowest()) {
-                    found = true;
-                }
+
             }
-
-            if (found==true) {
-                // do some short term stuff
-                shortTermDisplay.stats.latest = currentFiltered;
-                // rePrint(292, TXTROW2, 4, currentFiltered);
-
-
-
-                shortTermDisplay.stats.redraw();
-            }
-
-// void updatePeaks(char newLoadCellReading[]) { ------------- old method pasted in
-
-// -- update max and avgPeaks --
-        if (currentFiltered > minMaxForce) {
-            minMaxForce = currentFiltered;
-
-            char minMaxForceString[5];
-            sprintf(minMaxForceString,"%4d", minMaxForce);
-            rePrint(30, TXTROW3, 4, minMaxForceString);
         }
-        avgForce = (avgForce*(cycles-1) + currentFiltered) / cycles;
-        char avgForceString[5];
-        sprintf(avgForceString,"%4.0f", avgForce);
-        rePrint(30, TXTROW2, 4, avgForceString);
-
-// -- save peak value -- 
-        int bumped2min = arrayShortTermForce[arrayShortTermIndex];
-        arrayShortTermForce[arrayShortTermIndex] = currentFiltered;
-
-// -- redraw short term graph --
-        redrawScrollingGraph(RIGHTGRAPHPOS, arrayShortTermForce, arrayShortTermIndex, arrayShortTermSize, bumped2min);
-
-        arrayShortTermIndex++;
-
-//see if it's time to calculate new short term peak avg
-        if (arrayShortTermIndex==arrayShortTermSize) {
-            arrayShortTermIndex=0;
-
-            int nonZero = 0;
-            avgShortTermForce = 0;
-            for (int i=0; i<arrayShortTermSize; i++) {
-                if(arrayShortTermForce[i] > 0) {
-                    nonZero++; 
-                    avgShortTermForce += arrayShortTermForce[i];
-                }
-            }
-            if (nonZero > 0) { 
-                avgShortTermForce /= nonZero;
-            }
-
-            char avgShortTermForceString[9];
-            sprintf(avgShortTermForceString,"%4d", avgShortTermForce);
-            rePrint(280, TXTROW1, 4, avgShortTermForceString);
-
-// -- save short term peak avg --
-            int bumped2hr = arrayLongtermForce[arrayLongtermIndex];
-            arrayLongtermForce[arrayLongtermIndex] = avgShortTermForce;      
-
-// -- redraw long term graph --
-            redrawScrollingGraph(LEFTGRAPHPOS, arrayLongtermForce, arrayLongtermIndex, arrayLongtermSize, bumped2hr);
-
-            arrayLongtermIndex++;
-
-//see if it's time to calculate new long term peak avg
-            if (arrayLongtermIndex==arrayLongtermSize) {
-                arrayLongtermIndex = 0;
-            }
-
-            nonZero = 0;
-            avgLongtermForce = 0;
-            for (int i=0; i<arrayLongtermSize; i++) {   
-                if(arrayLongtermForce[i] > 0) {
-                    nonZero++;
-                    avgLongtermForce += arrayLongtermForce[i];
-                }
-            }
-            if (nonZero > 0) { 
-                avgLongtermForce /= nonZero;
-            }
-
-            char avgLongtermForceString[9];
-            sprintf(avgLongtermForceString,"%4d", avgLongtermForce);
-            rePrint(66, TXTROW1, 4, avgLongtermForceString);
-
-        }
-
     }
 
-// } ---------------- end old updatePeaks function
-
-}
-
-    virtual void updateDisplay() {
+    virtual void updateViz() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::updateViz()");
+		#endif
         if (shortTermDisplay.enabled) {
-            shortTermDisplay.redDraw();
+            shortTermDisplay.viz->redraw();
         }
         if (longTermDisplay.enabled) {
-            longTermDisplay.redDraw();
+            longTermDisplay.viz->redraw();
         }
     }
 
     virtual void reset() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::reset()");
+		#endif
         if (mode==DYNAMIC) {
             dynamicLock = LOCK;
         }
-        raw.reset();
-        shortTerm.reset();
-        longTerm.reset();
+        rawData.reset();
+        shortTermData.reset();
+        longTermData.reset();
         lastIntervalTime = micros();
     }
 
+    virtual void calibrate() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::calibrate() not implemented");
+		#endif
+    }
+
 };
+#endif
