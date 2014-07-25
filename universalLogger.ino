@@ -8,9 +8,12 @@
 #include <Time.h>
 #include <Wire.h>
 #include <Adafruit_STMPE610.h>
-#include "SensorData.h"
+
+#include "ForceMeter.h"
+#include "LinearEncoder.h"
 #include "SensorInput.h"
-#include "Graph.h"
+#include "SensrDisplay.h"
+#include "SensorData.h"
 #include "TouchButton.h"
 
 #include "universalLogger.h"
@@ -58,43 +61,57 @@ TouchButton *modeBtn;
 TouchButton *calBtn;
 
 //main screen
-SensorInput *sensorInputs;
+SensorInput *sensorInputs; //array of sensor inputs 
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
 
 
-
-void rePrint(int x, int y, int len, int value) {
-  tft.fillRect(x, y, CHARWIDTH*len, CHARHEIGHT, ERASECOLOUR);
-  tft.setCursor(x, y);
-  tft.print(value);
-}
-
-void rePrint(int x, int y, int len, char* str) {
-  tft.fillRect(x, y, CHARWIDTH*len, CHARHEIGHT, ERASECOLOUR);
-  tft.setCursor(x, y);
-  tft.print(str);
-}
-
-
-
 void drawMainScreen() {
   tft.fillScreen(BACKGROUNDCOLOUR);
 
-  //TODO draw each enabled sensorInput from scratch
+  for (int i=0; i<NUMREGIONS; i++) {
+    //TODO draw each enabled sensorInput from scratch
+    sensorInputs[i].draw();
+  }
 
 }
 
 void drawMenuScreen() {
 
+  //TODO draw back button
+
+  //TODO draw LOG label & toggle switch
+  // logBtn.draw();
+
+  //TODO draw global RESET, MODE, CALIBRATE buttons
+  // resetAllBtn.draw();
+  // modeAllBtn.draw();
+  // calAllBtn.draw();
+  
+  //TODO listen for touch events in infinite loop
+  if (!(Display::touch->bufferEmpty())) { //this should stay at the begining or end of a loop
+    parseMenuTouch();
+  }
+
+  //TODO touching back button breaks out of loop to return 
+
+}
+
+void drawSensorMenuScreen(SensorInput *si) {
+
+  //TODO draw back button
+
   //TODO draw controls for each of the inputs for a sensor
 
   //TODO draw specilized controls for loadcell and linearEnc???
 
-  // logBtn.draw();
-  // modeBtn.draw();
-  // calBtn.draw();
+  //TODO listen for touch events in infinite loop
+  if (!(Display::touch->bufferEmpty())) { //this should stay at the beginning or end of a loop
+    parseSensorMenuTouch();
+  }
+
+  //TODO touching back button breaks out of loop to return 
 }
 
 //-----------------------------------------------------------------------------
@@ -107,13 +124,13 @@ void pollSensors() {
     if(sensorInputs[i].enabled) {
 
       //get value
-      int newReading = sensorInputs[i]->poll();
+      int newReading = sensorInputs[i].poll();
 
       //update data & stats
-      sensorInputs[i]->updateDataAndStats(newReading);
+      sensorInputs[i].updateDataAndRedrawStats(newReading);
 
       //update graph
-      sensorInputs[i]->updateViz();
+      sensorInputs[i].updateViz();
     }
   }
 }
@@ -122,34 +139,16 @@ void logOutput(){
   
   if (logging==true) {
 
-    char logString[128];
+    char logString[128]; //TODO how big does this need to be?? have to free dynamically allocated memeory!
 
     //initial datestamp for log entry
     sprintf(logString, "%04d/%02d/%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second(), micros());
     
     for (int i=0; i<NUMINPUTS; i++) {
-      if(sensorInputs[i]->enabled) {
-
-        sprintf(logString, ", %s", sensorInputs[i]->logout());
-
+      if(sensorInputs[i].isEnabled()) {
+        sprintf(logString, ", %s", sensorInputs[i].logout());
       }
     }
-
-    // // linear probe
-    // if (linearProbe) {
-    //   sprintf(logString, ", %d", valProbe);
-    // }
-
-    // // log number of cycles
-    // if (cycles) {
-    //   sprintf(logString, ", %d", cycles);
-    // }
-
-    // // loadcell data
-    // if (loadcell) {
-    //   sprintf(logString, ", %d, %d, %d, %d, %d, %d, %f", cycles, loadCellReadingInt, minMaxForce, avgShortTermForce, avgLongtermForce, avgForce);
-    // }
-
 
     //write to sd card
     if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
@@ -160,14 +159,17 @@ void logOutput(){
     #endif
     }
     else {
-      rePrint(130, 0, 9, "log error");
-      delay(1000);
-      rePrint(130, 0, 9, "");
+      rePrint(130, 0, 9, "log error"); //TODO just make this gigantic on screen error msg
       #ifdef DEBUG
         Serial.println(F("...log file error"));
       #endif
+
+     while(1) {}
       
     }
+
+    //TODO delete logString; to free memory? 
+
   }
   
 }
@@ -175,9 +177,9 @@ void logOutput(){
 void resetAll() {
   //calibrate and clear all data?? 
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i]->enabled) {
+    if(sensorInputs[i].enabled) {
 
-      sensorInputs[i]->reset();
+      sensorInputs[i].reset();
 
     }
   }
@@ -187,13 +189,13 @@ void resetAll() {
 
 void calibrateAll() { //just zero inputs
   #ifdef DEBUG
-    Serial.println("calibrate...");
+    Serial.println("calibrate... ");
   #endif
 
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i]->enabled) {
+    if(sensorInputs[i].enabled) {
 
-      sensorInputs[i]->calibrate();
+      sensorInputs[i].calibrate(); /** only some sensors implement calibrate */
 
     }
   }
@@ -294,7 +296,7 @@ void parseSensorMenuTouch() {
 
 		//----------START LOGIC BLOCK--------------
 
-
+    //TODO implement touch buttons for all the SensorInput variables we want to control
 
 		//----------END LOGIC BLOCK----------------
 
@@ -310,6 +312,11 @@ void parseMenuTouch() {
 	if (parseTouchBoilerPlate()) {
 
 		//----------START LOGIC BLOCK--------------
+
+    //TODO implement touch buttons for all the global options we want to control
+
+    //TODO implement touch buttons for accessing menu for a particular SensorInput
+
 		//sample logic to be used for menu touch parsing
 
 		//    if (logBtn.isPushed(x,y)) {
@@ -355,8 +362,6 @@ void parseTouch() {
 	if (parseTouchBoilerPlate()) {
 
 		//----------START LOGIC BLOCK--------------
-
-		//TODO make the contents of this parametric
 
 		drawMainMenu(); /** menu handles all it's own touch and navigation */
 
@@ -411,29 +416,6 @@ void setup() {
   tft.setTextSize(1);
   tft.setRotation(1);
 
-  // #ifdef DEBUG
-  //   Serial.print("tft height: ");
-  //   Serial.print(tft.height());
-  //   if (tft.height()==SCREENHEIGHT) {
-  //     Serial.println(" as expected :)");
-  //   }
-  //   else {
-  //     Serial.print(" does not match ");
-  //     Serial.print(SCREENHEIGHT);
-  //     Serial.println(" DANGER!!!!");
-  //   }
-  //   Serial.print("tft width: ");
-  //   Serial.print(tft.width());
-  //       if (tft.width()==SCREENWIDTH) {
-  //     Serial.println(" as expected :)");
-  //   }
-  //   else {
-  //     Serial.print(" does not match ");
-  //     Serial.print(SCREENWIDTH);
-  //     Serial.println(" DANGER!!!!");
-  //   }
-  // #endif
-
   while(!ts.begin()){
     tft.println(F("Unable to start touchscreen."));
     #ifdef DEBUG
@@ -442,17 +424,17 @@ void setup() {
     delay(500);
   }
 
-  // #ifdef DEBUG
-  //   Serial.println("Touchscreen started.");
-  // #endif
+  #ifdef DEBUG
+    Serial.println("Touchscreen started.");
+  #endif
   
   SdFile::dateTimeCallback(dateTime);
   while (!sd.begin(sdCS, SPI_HALF_SPEED)) {
     tft.println(F("Insert microSD card"));
     delay(500);
-    // #ifdef DEBUG
-    //   Serial.println(F("Insert microSD card"));
-    // #endif
+    #ifdef DEBUG
+      Serial.println(F("Insert microSD card"));
+    #endif
 
   }
 
@@ -462,15 +444,11 @@ void setup() {
   sensorInputs[2] = SensorInput(16, ANALOG);
   sensorInputs[3] = SensorInput(17, DIGITAL);
 
-  Display display(4);
+  Display display(tft, ts, NUMREGIONS);
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
-	  display.add(sensorInputs[i]->shortTermDisplay);
+	  display.add(sensorInputs[i].shortTermDisplay);
   }
-
-  // am i just creating these so that there's something to call isPushed on?
-  setupMenuScreen();
-  setupSecondLevelMenuScreens();
 
   drawMainScreen();
 
@@ -487,7 +465,7 @@ void loop() {
 
   logOutput();
   
-  if (!ts.bufferEmpty()) { //this should stay at the begining or end of a loop
+  if (!(Display::touch.bufferEmpty()) { //this should stay at the begining or end of a loop
     parseTouch();
   }
   

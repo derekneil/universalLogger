@@ -231,6 +231,19 @@ class SensorInput {
         }
     }
 
+    virtual void draw() {
+        if (shortTermDisplay.enabled) {
+        	shortTermDisplay.draw();
+        }
+        if (longTermDisplay.enabled) {
+        	longTermDisplay.draw();
+        }
+    }
+
+    virtual void reDraw() { //TODO is this confusing since it doesn't redraw stats????
+    	updateViz();
+    }
+
     virtual void updateViz() {
 		#ifdef DEBUG
 			Serial.println("SensorInput::updateViz()");
@@ -241,6 +254,24 @@ class SensorInput {
         if (longTermDisplay.enabled) {
             longTermDisplay.viz->redraw();
         }
+    }
+
+    virtual int isEnabled() {
+        return shortTermDisplay.enabled || longTermDisplay.enabled;
+    }
+
+    virtual char* logout() {
+        if (shortTermDisplay.enabled) {
+
+        }
+        if (longTermDisplay.enabled) {
+
+        }
+        return null;
+        // // old example from loadcell data
+        // if (loadcell) {
+        //   sprintf(logString, ", %d, %d, %d, %d, %d, %d, %f", cycles, loadCellReadingInt, minMaxForce, avgShortTermForce, avgLongtermForce, avgForce);
+        // }
     }
 
     virtual void reset() {

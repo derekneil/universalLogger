@@ -23,6 +23,7 @@ void setup();
 //add your function definitions for the project universalLogger here
 
 #define NUMINPUTS 4
+#define NUMREGIONS NUMINPUTS
 
 #define LOADCELL Serial1
 

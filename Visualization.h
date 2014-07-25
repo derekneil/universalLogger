@@ -9,6 +9,7 @@ class Visualization : public DisplayElement {
   protected:
   	
   public:
+	int doubleWidth = 0;
 	Visualization() {
 		#ifdef DEBUG
 			Serial.println(F("Visualization()"));
