@@ -12,14 +12,14 @@ class SensorDisplay : public DisplayElement {
 
 	public:
 		int enabled = 0;
-		SensorData *data; /** reference to externally owned data */
-		Visualization *viz; /** GRAPH | DIAL | ONOFF */
-		Stats stats;
+		SensorData *data;   /** reference to externally owned data */
+		Visualization *viz; /** GRAPH | DIAL | ONOFF set by menu control, but owned by this class*/
+		Stats stats;        /** block of numerical outputs */
 
-		SensorDisplay(int x=0, int y=0, int w=158, int h=, SensorData *dataSource) :
-			DisplayElement {x,y,w,h},
-			viz { new GraphScrolling(x,y,w,h) },
-			stats {x,y, w, h}
+		SensorDisplay(SensorData *dataSource) :
+			DisplayElement          {0,0,STDWIDTH,STDHEIGHT},
+			viz { new GraphScrolling(0,0,STDWIDTH,STDHEIGHT) },
+			stats                   {0,0,STDWIDTH,STDHEIGHT}
 		{
 			#ifdef DEBUG
 				Serial.println(F("SensorDisplay(...)"));
@@ -69,6 +69,7 @@ class SensorDisplay : public DisplayElement {
 			#ifdef DEBUG
 				Serial.println(F("SensorDisplay::locate(...)"));
 			#endif
+			DisplayElement::locate(x,y);
 			viz->locate(x, y); //TODO i think we need to adjust the coordinates for each here
 			stats.locate(x, y);
 
@@ -79,6 +80,7 @@ class SensorDisplay : public DisplayElement {
 			#ifdef DEBUG
 				Serial.println(F("SensorDisplay::locate(...)"));
 			#endif
+			DisplayElement::locateAndSize(x,y,w,h);
 			viz->locateAndSize(x, y, w, h); //TODO i think we need to adjust the coordinates for each here
 			stats.locateAndSize(x, y, w, h);
 	    }

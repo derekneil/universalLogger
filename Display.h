@@ -16,7 +16,7 @@
 #define CENTER_Y1 59
 #define CENTER_Y2 177
 
-#define HALFHEIGHT 118 // = CENTER_Y-1
+#define HALFHEIGHT STDHEIGHT // = CENTER_Y-1
 #define FULLHEIGHT 238 // = 118 * 2 + 2
 
 #define HALFWIDTH STDWIDTH // = CENTER_X-1
@@ -24,8 +24,8 @@
 
 class Display {
 	protected:
-		static int numSDs = 0;
-		static int lastNumSDs = -1;
+		static int numSDs;
+		static int lastNumSDs;
 		static SensorDisplay *SDs;
 		static int numRegions;
 
@@ -37,38 +37,39 @@ class Display {
 
 		static Adafruit_STMPE610 *touch;
 
-		Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) :
-			device {tft},
-			touch {ts},
-			numRegions {regions}
-		{
+		Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
 			#ifdef DEBUG
 				Serial.println(F("Display(...)"));
 			#endif
+			device     = tft;
+			touch      = ts;
+			numSDs     = 0;
+			lastNumSDs = -1;
+			numRegions = regions;
 			SDs = new SensorDisplay[regions];
 
-			// #ifdef DEBUG
-		 //    	Serial.print("tft height: ");
-			//     Serial.print(device->`height());
-			//     if (device->height()==SCREENHEIGHT) {
-			//       Serial.println(" as expected :)");
-			//     }
-			//     else {
-			//       Serial.print(" does not match ");
-			//       Serial.print(SCREENHEIGHT);
-			//       Serial.println(" DANGER!!!!");
-			//     }
-			//     Serial.print("tft width: ");
-			//     Serial.print(device->width());
-			//         if (device->width()==SCREENWIDTH) {
-			//       Serial.println(" as expected :)");
-			//     }
-			//     else {
-			//       Serial.print(" does not match ");
-			//       Serial.print(SCREENWIDTH);
-			//       Serial.println(" DANGER!!!!");
-			//     }
-			//   #endif
+			 #ifdef DEBUG
+		     	Serial.print("tft height: ");
+			     Serial.print(device->`height());
+			     if (device->height()==SCREENHEIGHT) {
+			       Serial.println(" as expected :)");
+			     }
+			     else {
+			       Serial.print(" does not match ");
+			       Serial.print(SCREENHEIGHT);
+			       Serial.println(" DANGER!!!!");
+			     }
+			     Serial.print("tft width: ");
+			     Serial.print(device->width());
+			         if (device->width()==SCREENWIDTH) {
+			       Serial.println(" as expected :)");
+			     }
+			     else {
+			       Serial.print(" does not match ");
+			       Serial.print(SCREENWIDTH);
+			       Serial.println(" DANGER!!!!");
+			     }
+			   #endif
 		}
 
 		~Display() {
@@ -101,14 +102,14 @@ class Display {
 					SDs[i] = NULL; //TODO figure out best way to have empty spots in the array of SensorDisplay's or use a linked list :/
 					lastNumSDs = numSDs;
 					numSDs--;
-					changeDisplayLayout();
+					updateDisplayLayout();
 					return true;
 				}
 			}
 			return false;
 		}
 
-		void changeDisplayLayout() {
+		void updateDisplayLayout() {
 			#ifdef DEBUG
 				Serial.println(F("Display::changeDisplayLayout()"));
 			#endif
@@ -173,7 +174,7 @@ class Display {
 					SDs[i] = sd;
 					lastNumSDs = numSDs;
 					numSDs++;
-					changeDisplayLayout();
+					updateDisplayLayout();
 					return true;
 				}
 			}

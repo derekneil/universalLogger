@@ -3,8 +3,7 @@
 
 #include "SensorData.h"
 
-/** wrapper class for visualizations so DisplayElement
- * can hold another DisplayElement */
+/** wrapper class for sensor visualizations such as graphs, dials, and on/off etc..  */
 class Visualization : public DisplayElement {
   protected:
   	

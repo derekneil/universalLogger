@@ -18,27 +18,23 @@
 #define PEAKDETECTION 1
 #define MINDETECTION 2
 
-#define RAWDATASIZE STDWIDTH*4
-
-// TODO add defs to break out .h
+#define RAWDATASIZE STDWIDTH*4 //allows for
 
 class SensorInput {
   protected:
 	int type; /** ANALOG | DIGITAL */
 	int pin;
-	int mode = STATIC; /** STATIC | DYNAMIC */
-	int low = 10;
-	int high = 50;
-	int dynamicLock = LOCK;
-	int interval = 1000000; /** default to 1 second */
+	int mode             = STATIC; /** STATIC | DYNAMIC */
+	int low              = 10;
+	int high             = 50;
+	int dynamicLock      = LOCK;
+	int interval         = 1000000; /** default to 1 second */
 	int lastIntervalTime = 0;
-	int cycles = 0;
-	int filter = MINDETECTION; /** MIN | AVG | MAX */
+	int cycles           = 0;
+	int filter           = MINDETECTION; /** MIN | AVG | MAX */
 	SensorData rawData;
 	SensorData shortTermData;
 	SensorData longTermData;
-	SensorDisplay shortTermDisplay;
-	SensorDisplay longTermDisplay;
 
     virtual void redrawStat(Stat *stat, int newVal) {
         {
@@ -60,14 +56,15 @@ class SensorInput {
     }
 
   public:
-	int enabled = 1;
+	SensorDisplay shortTermDisplay;
+	SensorDisplay longTermDisplay;
 
     SensorInput(int pin, int type) : 
     rawData          {RAWDATASIZE},
     shortTermData    {STDWIDTH},
     longTermData     {STDWIDTH},
-    shortTermDisplay {STDWIDTH, &shortTermData},
-    longTermDisplay  {STDWIDTH, &longTermData}
+    shortTermDisplay {&shortTermData},
+    longTermDisplay  {&longTermData}
     {
 		#ifdef DEBUG
 			Serial.println("SensorInput(...)");
@@ -109,12 +106,14 @@ class SensorInput {
 		#ifdef DEBUG
 			Serial.println("SensorInput::poll()");
 		#endif
-        int newReading;
-        if (type==ANALOG) {
-            newReading = analogRead(pin-14); // 0-1024
-        }
-        else if (type==DIGITAL) {
-            newReading = pinMode(pin, INPUT_PULLUP); // 0-1
+        int newReading = -1;
+		if (pin > -1) {
+			if (type==ANALOG) {
+				newReading = analogRead(pin-14); // 0-1024
+			}
+			else if (type==DIGITAL) {
+				newReading = pinMode(pin, INPUT_PULLUP); // 0-1
+			}
         }
         return newReading;
     }
@@ -261,13 +260,14 @@ class SensorInput {
     }
 
     virtual char* logout() {
+    	char *output = "TODO";
         if (shortTermDisplay.enabled) {
 
         }
         if (longTermDisplay.enabled) {
 
         }
-        return null;
+        return output; //TODO finish logout for sensorInput
         // // old example from loadcell data
         // if (loadcell) {
         //   sprintf(logString, ", %d, %d, %d, %d, %d, %d, %f", cycles, loadCellReadingInt, minMaxForce, avgShortTermForce, avgLongtermForce, avgForce);

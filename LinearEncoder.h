@@ -4,7 +4,7 @@
 #include <Encoder.h>
 #include "SensorInput.h"
 
-// differential linear encoder supported by hardware interrupts
+/** differential linear encoder supported by hardware interrupts */
 class LinearEncoder : public SensorInput {
 	protected:
 		Encoder probe;
@@ -12,8 +12,8 @@ class LinearEncoder : public SensorInput {
 	public:
 		
 		LinearEncoder(int pinA, int pinB) :
-		SensorInput {-1, -1},
-		probe {pinA, pinB}
+			SensorInput {-1, -1},
+			probe {pinA, pinB}
 		{
 			#ifdef DEBUG
 				Serial.println("LinearEncoder(...)");

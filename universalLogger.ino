@@ -10,9 +10,10 @@
 #include <Adafruit_STMPE610.h>
 
 #include "ForceMeter.h"
+#include <Encoder.h>
 #include "LinearEncoder.h"
 #include "SensorInput.h"
-#include "SensrDisplay.h"
+#include "SensorDisplay.h"
 #include "SensorData.h"
 #include "TouchButton.h"
 
@@ -23,7 +24,7 @@
     #define F(string_literal) string_literal
 #endif
 
-const int divider = 5; //= (max expected input ~1000 )/ GRAPHHEIGHT
+const int divider = 5; //= (max expected input ~1000 )/ GRAPHHEIGHT //TODO should this be the default, then update based on max input seen?
 #define lcd_cs 10
 #define lcd_dc 9
 #define lcd_rst -1
@@ -77,7 +78,7 @@ void drawMainScreen() {
 
 }
 
-void drawMenuScreen() {
+void drawMainMenu() {
 
   //TODO draw back button
 
@@ -98,7 +99,7 @@ void drawMenuScreen() {
 
 }
 
-void drawSensorMenuScreen(SensorInput *si) {
+void drawIndividualSensorMenu(SensorInput *si) {
 
   //TODO draw back button
 
@@ -121,18 +122,22 @@ void pollSensors() {
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
 
-    if(sensorInputs[i].enabled) {
+    if(sensorInputs[i].isEnabled()) {
 
-      //get value
-      int newReading = sensorInputs[i].poll();
-
-      //update data & stats
-      sensorInputs[i].updateDataAndRedrawStats(newReading);
-
-      //update graph
-      sensorInputs[i].updateViz();
+		int newReading = sensorInputs[i].poll();
+		sensorInputs[i].updateDataAndRedrawStats(newReading);
+		sensorInputs[i].updateViz();
     }
   }
+}
+
+void logError() {
+	Display::device->setTextSize(4);
+	Display::device->setCursor(130, 140);
+	Display::device->print("LOG ERROR");
+	#ifdef DEBUG
+		Serial.println(F("...log file error"));
+	#endif
 }
 
 void logOutput(){
@@ -159,16 +164,12 @@ void logOutput(){
     #endif
     }
     else {
-      rePrint(130, 0, 9, "log error"); //TODO just make this gigantic on screen error msg
-      #ifdef DEBUG
-        Serial.println(F("...log file error"));
-      #endif
-
-     while(1) {}
-      
+    	logError();
+    	 //TODO delete logString; to free memory?
+    	while(1) {}
     }
 
-    //TODO delete logString; to free memory? 
+    //TODO delete logString; to free memory?
 
   }
   
@@ -177,23 +178,29 @@ void logOutput(){
 void resetAll() {
   //calibrate and clear all data?? 
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i].enabled) {
+    if(sensorInputs[i].isEnabled()) { //TODO should we do for all of them anyways??
 
       sensorInputs[i].reset();
 
     }
   }
 
-  // what about starting a new log file?
+  // TODO what about starting a new log file? should we ask the user with a pop up window?
+		//draw yes/no screen
+		//if yes
+		  //stop logging
+		  //start logging
+		//drawMainMenu()
 }
 
-void calibrateAll() { //just zero inputs
+/** zero inputs for sensors that support it */
+void calibrateAll() {
   #ifdef DEBUG
     Serial.println("calibrate... ");
   #endif
 
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i].enabled) {
+    if(sensorInputs[i].isEnabled()) { //TODO should we do for all of them anyways??
 
       sensorInputs[i].calibrate(); /** only some sensors implement calibrate */
 
@@ -220,12 +227,11 @@ int startLogging() {
   #endif
   
   if( !logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE) ){
-    rePrint(130, 0, 9, "log error");
-    delay(1000);
-    rePrint(130, 0, 9, "");
+	  logError();
     #ifdef DEBUG
       Serial.println(F("...log file error"));
     #endif
+    delay(1000);
     return 0;
   }
   else {
@@ -238,12 +244,12 @@ int startLogging() {
 void toggleLogging() {
     if (logging==false) {
       if (startLogging()) {
-        logBtn.setLabel("LOG ON");
+//        logBtn.setLabel("LOG ON"); //TODO store global variables somewhere
       }
     }
   else {
       logging = false;
-      logBtn.setLabel("LOG OFF");
+//      logBtn.setLabel("LOG OFF"); //TODO store global variables somewhere
     }
 }
 
@@ -365,7 +371,6 @@ void parseTouch() {
 
 		drawMainMenu(); /** menu handles all it's own touch and navigation */
 
-		//need to erase menu screen and draw SensorDisplay's from scratch
 		drawMainScreen();
 
 		//----------END LOGIC BLOCK----------------
@@ -438,16 +443,16 @@ void setup() {
 
   }
 
-  sensorInputs[4] = {};
-  sensorInputs[0] = ForceMeter(0,1);
+  sensorInputs[NUMINPUTS] = {};
+  sensorInputs[0] = ForceMeter(0, SERIAL);
   sensorInputs[1] = LinearEncoder(5,6);
   sensorInputs[2] = SensorInput(16, ANALOG);
   sensorInputs[3] = SensorInput(17, DIGITAL);
 
-  Display display(tft, ts, NUMREGIONS);
+  Display display(&tft, &ts, NUMREGIONS);
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
-	  display.add(sensorInputs[i].shortTermDisplay);
+	  display.add( &(sensorInputs[i].shortTermDisplay));
   }
 
   drawMainScreen();
@@ -465,7 +470,7 @@ void loop() {
 
   logOutput();
   
-  if (!(Display::touch.bufferEmpty()) { //this should stay at the begining or end of a loop
+  if (!(Display::touch->bufferEmpty())) { //this should stay at the begining or end of a loop
     parseTouch();
   }
   

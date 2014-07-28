@@ -14,13 +14,13 @@
 class ForceMeter : public SensorInput {
 	protected:
 		int loadCellReadingState = COMPLETE;
-		char loadCellReading[] = {' ','0','0','0','0','0'};
-		int loadCellReadingInt = 0;
+		char loadCellReading[6]  = {' ','0','0','0','0','0'};
+		int loadCellReadingInt   = 0;
 		int loadCellReadingIndex = 0;
 
 	public:
 
-		ForceMeter() : SensorInput{-1, -1}
+		ForceMeter(int pin=0, int type=-1) : SensorInput{pin, type}
 		{
 			#ifdef DEBUG
 				Serial.print(F("ForceMeter()"));

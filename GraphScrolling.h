@@ -8,33 +8,33 @@
 class GraphScrolling : public Visualization {
 
   private:
-    void drawDoubleGraphLines(int *graphStartX, int last, int temp) {
+    void drawDoubleGraphLines(int *startX, int last, int temp) {
       if (last > temp) {
         //erase, aka draw background
-        tft.drawFastVLine((*graphStartX)++, h-last, last-temp, BACKGROUNDCOLOUR);
-        tft.drawFastVLine((*graphStartX)++, h-last, last-temp, BACKGROUNDCOLOUR);
+        Display::device->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
+        Display::device->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
       }
       else if (last < temp) {
         //add, aka draw white
-        tft.drawFastVLine((*graphStartX)++, h-temp, temp-last, TEXTCOLOUR);
-        tft.drawFastVLine((*graphStartX)++, h-temp, temp-last, TEXTCOLOUR);
+        Display::device->drawFastVLine((*startX)++, h-temp, temp-last, TEXTCOLOUR);
+        Display::device->drawFastVLine((*startX)++, h-temp, temp-last, TEXTCOLOUR);
       }
       else {
-        (*graphStartX)++;
-        (*graphStartX)++;
+        (*startX)++;
+        (*startX)++;
       }
     }
-    void drawSingleGraphLines(int *graphStartX, int last, int temp) {
+    void drawSingleGraphLines(int *startX, int last, int temp) {
       if (last > temp) {
         //erase, aka draw background
-        tft.drawFastVLine((*graphStartX)++, h-last, last-temp, BACKGROUNDCOLOUR);
+        Display::device->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
       }
       else if (last < temp) {
         //add, aka draw white
-        tft.drawFastVLine((*graphStartX)++, h-temp, temp-last, TEXTCOLOUR);
+        Display::device->drawFastVLine((*startX)++, h-temp, temp-last, TEXTCOLOUR);
       }
       else {
-        (*graphStartX)++;
+        (*startX)++;
       }
     }
     void drawFromScratch(int x, int y, int w, int h, SensorData *data) {
@@ -44,31 +44,31 @@ class GraphScrolling : public Visualization {
       //setup values and use bumped for graphing oldest value in graph
       int temp = data->array[i]/divider; //TODO divider....
       if(temp < 0) { temp=0; }
-      // int lastI = -1;
-      // int last = data->bumped / divider;
-      // if(last < 0) { last=0; }
+//       int lastI = -1;
+//       int last = data->bumped / divider;
+//       if(last < 0) { last=0; }
 
       //loop through all the middle values in the graph
       while( i!=data->index ) {
 
-        tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
+        Display::device->drawFastVLine(x++, h, temp, TEXTCOLOUR);
         if (doubleWidth) {
-          tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
+          Display::device->drawFastVLine(x++, h, temp, TEXTCOLOUR);
         }
         i++;
         if (i==data->size) { i=0; } //avoids % operation
         temp = data->array[i]/divider;
         if(temp < 0) { temp=0; }
-        int lastI = i-1;
-        if (lastI <0) { lastI = data->size-1; }
-        last = data->array[lastI]/divider;
-        if(last < 0) { last=0; }
+//        int lastI = i-1;
+//        if (lastI <0) { lastI = data->size-1; }
+//        last = data->array[lastI]/divider;
+//        if(last < 0) { last=0; }
       }
 
       //draw latest value added to graph
-      tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
+      Display::device->drawFastVLine(x++, h, temp, TEXTCOLOUR);
       if (doubleWidth) {
-        tft.drawFastVLine((*graphStartX)++, h, temp, TEXTCOLOUR);
+        Display::device->drawFastVLine(x++, h, temp, TEXTCOLOUR);
       }
     }
 
@@ -76,6 +76,7 @@ class GraphScrolling : public Visualization {
 
   public:
     int doubleWidth = 0;
+    int divider     = 5;
 
     GraphScrolling(int x, int y, int w, int h) : 
     	Visualization {x,y,w,h}
@@ -90,10 +91,10 @@ class GraphScrolling : public Visualization {
       Visualization::clear();
 
       //draw graph borders
-      tft.drawFastVLine(  0, 0, h, TEXTCOLOUR);
-      tft.drawFastVLine(121, 0, h, TEXTCOLOUR);
-      tft.drawFastVLine(198, 0, h, TEXTCOLOUR);
-      tft.drawFastVLine(319, 0, h, TEXTCOLOUR);
+      Display::device->drawFastVLine(  0, 0, h, TEXTCOLOUR);
+      Display::device->drawFastVLine(121, 0, h, TEXTCOLOUR);
+      Display::device->drawFastVLine(198, 0, h, TEXTCOLOUR);
+      Display::device->drawFastVLine(319, 0, h, TEXTCOLOUR);
 
       drawFromScratch(x-w/2, y-h/2, w, h, data);
 

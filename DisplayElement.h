@@ -16,7 +16,7 @@ class DisplayElement {
 		#endif
 	}
 
-	DisplayElement(int x=0, int y=0, int w=0, int h=0)
+	DisplayElement(int x, int y, int w, int h)
 	{
 		#ifdef DEBUG
 			Serial.println(F("DisplayElement(...)"));
