@@ -9,6 +9,8 @@
 #include <Wire.h>
 #include <Adafruit_STMPE610.h>
 
+#include <string.h>
+
 #include "ForceMeter.h"
 #include <Encoder.h>
 #include "LinearEncoder.h"
@@ -91,7 +93,7 @@ void drawMainMenu() {
   // calAllBtn.draw();
   
   //TODO listen for touch events in infinite loop
-  if (!(Display::touch->bufferEmpty())) { //this should stay at the begining or end of a loop
+  if (!(Display::touch->bufferEmpty())) { //this should stay at the beginning or end of a loop
     parseMenuTouch();
   }
 
@@ -105,12 +107,14 @@ void drawIndividualSensorMenu(SensorInput *si) {
 
   //TODO draw controls for each of the inputs for a sensor
 
-  //TODO draw specilized controls for loadcell and linearEnc???
+  //TODO draw specialized controls for loadcell and linearEnc???
 
   //TODO listen for touch events in infinite loop
-  if (!(Display::touch->bufferEmpty())) { //this should stay at the beginning or end of a loop
-    parseSensorMenuTouch();
-  }
+	while (1) {
+		if (!(Display::touch->bufferEmpty())) { //this should stay at the beginning or end of a loop
+			parseSensorMenuTouch();
+		}
+	}
 
   //TODO touching back button breaks out of loop to return 
 }
@@ -144,14 +148,15 @@ void logOutput(){
   
   if (logging==true) {
 
-    char logString[128]; //TODO how big does this need to be?? have to free dynamically allocated memeory!
+    String logString;
 
-    //initial datestamp for log entry
-    sprintf(logString, "%04d/%02d/%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second(), micros());
+    char* datetime;
+    sprintf(datetime, "%04d/%02d/%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second(), micros());
+    logString.append(datetime);
     
     for (int i=0; i<NUMINPUTS; i++) {
       if(sensorInputs[i].isEnabled()) {
-        sprintf(logString, ", %s", sensorInputs[i].logout());
+        logString.append(sensorInputs[i].logout());
       }
     }
 
@@ -165,18 +170,22 @@ void logOutput(){
     }
     else {
     	logError();
-    	 //TODO delete logString; to free memory?
+		delete datetime;
+    	delete logString;
     	while(1) {}
     }
 
-    //TODO delete logString; to free memory?
+    delete datetime;
+    delete logString;
 
   }
   
 }
 
 void resetAll() {
-  //calibrate and clear all data?? 
+#ifdef DEBUG
+  Serial.println("resetAll()");
+#endif
   for (int i=0; i<NUMINPUTS; i++) {
     if(sensorInputs[i].isEnabled()) { //TODO should we do for all of them anyways??
 
@@ -235,6 +244,7 @@ int startLogging() {
     return 0;
   }
   else {
+	logFile.println(SensorInput::logoutHeader());
     logging = true;
     logFile.close();
     return 1;
@@ -452,7 +462,7 @@ void setup() {
   Display display(&tft, &ts, NUMREGIONS);
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
-	  display.add( &(sensorInputs[i].shortTermDisplay));
+	  display.add( &(sensorInputs[i].shortTermDisplay) );
   }
 
   drawMainScreen();

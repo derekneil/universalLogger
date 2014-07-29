@@ -2,7 +2,6 @@
 #define SENSORINPUT_H
 
 #include "universalLogger.h"
-
 #include "SensorData.h"
 #include "SensorDisplay.h"
 #include "limits.h"
@@ -18,7 +17,7 @@
 #define PEAKDETECTION 1
 #define MINDETECTION 2
 
-#define RAWDATASIZE STDWIDTH*4 //allows for
+#define RAWDATASIZE STDWIDTH*5 //allows for 158*5 = 790 / ~65 readings per second = up to 10 seconds of draw data for an interval
 
 class SensorInput {
   protected:
@@ -37,22 +36,25 @@ class SensorInput {
 	SensorData longTermData;
 
     virtual void redrawStat(Stat *stat, int newVal) {
-        {
-            char tempString[5];
-            sprintf(tempString, "%4d", newVal);
-            stat->lastValue = tempString;
-            stat->redraw();
-        }
+//		#ifdef DEBUG
+//			Serial.println("SensorInput::redrawStat()");
+//		#endif
+		char tempString[5];
+		sprintf(tempString, "%4d", newVal);
+		delete stat->lastValue; //free memory
+		stat->lastValue = tempString;
+		stat->redraw();
     }
 
-    virtual void redrawStats(SensorData *data, SensorDisplay *display, int newVal) {
+    virtual void redrawStats(SensorData *sensorData, SensorDisplay *sensorDisplay, int newVal) {
 		#ifdef DEBUG
 			Serial.println("SensorInput::redrawStats(...)");
 		#endif
-        redrawStat(&(display->stats.latest), newVal);
-        redrawStat(&(display->stats.min), data->min);
-        redrawStat(&(display->stats.avg), data->avg);
-        redrawStat(&(display->stats.max), data->max);
+        redrawStat(&(sensorDisplay->stats.latest),    newVal);
+        redrawStat(&(sensorDisplay->stats.min),       sensorData->min);
+        redrawStat(&(sensorDisplay->stats.avg),       sensorData->avg);
+        redrawStat(&(sensorDisplay->stats.max),       sensorData->max);
+        redrawStat(&(sensorDisplay->stats.last10avg), sensorData->last10avg);
     }
 
   public:
@@ -205,18 +207,20 @@ class SensorInput {
                 shortTermData.insert(currentFiltered);
                 if (shortTermDisplay.enabled) {
                 	redrawStats(&shortTermData, &shortTermDisplay, currentFiltered);
+                	shortTermDisplay.needsRedraw = true;
                 }
 
                 // see if we're done a cycle through the short term
                 if (shortTermData.checkAndResetIndex()) {
 
-                	//save last shortTermData cycle avgerage to long term
+                	//save last shortTermData cycle average to long term
                     longTermData.insert(shortTermData.avg);
                     if (longTermDisplay.enabled) {
                     	redrawStats(&longTermData, &longTermDisplay, shortTermData.avg);
+                    	longTermDisplay.needsRedraw = true;
                     }
-                    shortTermData.resetAvg();
-                    shortTermData.resetMinMax();
+                    shortTermData.resetAvg();    //TODO clearing these means we'll have to scan through the
+                    shortTermData.resetMinMax(); //data that's left to find the new values
 
                     //see if it's time to calculate new long term peak avg
                     if (longTermData.checkAndResetIndex()) {
@@ -231,6 +235,9 @@ class SensorInput {
     }
 
     virtual void draw() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::draw()");
+		#endif
         if (shortTermDisplay.enabled) {
         	shortTermDisplay.draw();
         }
@@ -239,39 +246,55 @@ class SensorInput {
         }
     }
 
-    virtual void reDraw() { //TODO is this confusing since it doesn't redraw stats????
-    	updateViz();
-    }
+//    virtual void reDraw() { //this is kind of confusing since it doesn't actually redraw everything in a SensorInput
+//		#ifdef DEBUG
+//			Serial.println("SensorInput::redraw()");
+//		#endif
+//    	updateViz();
+//    	//shortTerm and longTerm display stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change
+//    }
 
     virtual void updateViz() {
 		#ifdef DEBUG
 			Serial.println("SensorInput::updateViz()");
 		#endif
-        if (shortTermDisplay.enabled) {
-            shortTermDisplay.viz->redraw();
-        }
-        if (longTermDisplay.enabled) {
-            longTermDisplay.viz->redraw();
-        }
+		shortTermDisplay.viz->redraw();
+		longTermDisplay.viz->redraw();
     }
 
     virtual int isEnabled() {
+		#ifdef DEBUG
+			Serial.println("SensorInput::isEnabled()");
+		#endif
         return shortTermDisplay.enabled || longTermDisplay.enabled;
     }
 
-    virtual char* logout() {
+    virtual static char* logoutHeader() {
+        #ifdef DEBUG
+            Serial.println("SensorInput::logoutHeader()");
+        #endif
+    	return ", cycles, raw.latest, raw.min, raw.avg, raw.max, short.latest, short.min, short.avg, short.max, long.latest, long.min, long.avg, long.max";
+    }
+
+    virtual char* logout() { //TODO make sure this char * stuff doesn't blow up during run time
+		#ifdef DEBUG
+			Serial.println("SensorInput::logout()");
+		#endif
     	char *output = "TODO";
-        if (shortTermDisplay.enabled) {
+    	sprintf(output, ", %d", cycles);
+    	if (isEnabled()) {
+    		sprintf(output, ", %d", rawData.latest());
+//    		sprintf(output, ", %d, %d, %.1f, %d", rawData.latest(), rawData.min, rawData.avg, rawData.max);
+    	}
 
-        }
-        if (longTermDisplay.enabled) {
-
-        }
-        return output; //TODO finish logout for sensorInput
-        // // old example from loadcell data
-        // if (loadcell) {
-        //   sprintf(logString, ", %d, %d, %d, %d, %d, %d, %f", cycles, loadCellReadingInt, minMaxForce, avgShortTermForce, avgLongtermForce, avgForce);
-        // }
+    	//trimmed output based on Bob's feedback
+//        if (shortTermDisplay.enabled) {
+//        	sprintf(output, ", %d, %d, %.1f, %d", shortTermDisplay.data->latest() , shortTermDisplay.data->min, shortTermDisplay.data->avg, shortTermDisplay.data->max);
+//        }
+//        if (longTermDisplay.enabled) {
+//        	sprintf(output, ", %d, %d, %.1f, %d", longTermDisplay.data->latest() , longTermDisplay.data->min, longTermDisplay.data->avg, longTermDisplay.data->max);
+//        }
+        return output;
     }
 
     virtual void reset() {
@@ -284,7 +307,12 @@ class SensorInput {
         rawData.reset();
         shortTermData.reset();
         longTermData.reset();
+
+        shortTermDisplay.reset();
+        longTermDisplay.reset();
+
         lastIntervalTime = micros();
+
     }
 
     virtual void calibrate() {

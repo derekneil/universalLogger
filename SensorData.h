@@ -5,17 +5,17 @@
 #include "limits.h"
 
 class SensorData {
-  protected:
 
   public:
-    int *array;
+    int *array; //TODO need to add more accessor methods that don't take O(n) access time to hide the data structure from other classes
     int size   = STDWIDTH;
-    int index  = 0 ;
+    int index  = 0;
     int min    = INT_MIN;
     double avg = 0;
     int max    = INT_MAX;
     int bumped = 0;
     int count  = 0;
+    double last10avg = 0;
 
     SensorData() {
 		#ifdef DEBUG
@@ -47,9 +47,20 @@ class SensorData {
 		bumped = array[index];
 		array[index] = val;
 		index++;
-		avg = avg*count+val;
+		//TODO calculate avg for count<=size this way
+		avg = avg*count + val;
 		count++;
 		avg /= count;
+		//TODO calculate avg after count>size (avg*size - bumped + val) / size
+		if (count < 11) {
+			last10avg = avg;
+		}
+		else {
+			last10avg = (last10avg*10 - bumped + val) / 10;
+		}
+		if (count>=size){
+			//TODO find minMax
+		}
 		if (val>max) {
 			max = val;
 		}
@@ -82,6 +93,19 @@ class SensorData {
 			Serial.println(F("SensorData::resetAvg()"));
 		#endif
     	avg = count = 0;
+    }
+
+    /** as values are pushed out of the data storage, we need to update values */
+    virtual void findMinMax() {
+		#ifdef DEBUG
+			Serial.println(F("SensorData::FindMinMax()"));
+		#endif
+		if (bumped == min) {
+			//TODO scan for new min in data storage
+		}
+		if (bumped == max) {
+			//TODO scan for new max in data storage
+		}
     }
 
     virtual void resetMinMax() {

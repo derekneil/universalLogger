@@ -3,87 +3,41 @@
 
 #include "DisplayElement.h"
 #include "Visualization.h"
-#include "GraphScrolling.h"
-#include "Stats.h"
 #include "SensorData.h"
+#include "Stats.h"
 
 class SensorDisplay : public DisplayElement {
-	protected:
 
 	public:
-		int enabled = 0;
+		int enabled     = 0;
+		int needsRedraw = 0;
 		SensorData *data;   /** reference to externally owned data */
 		Visualization *viz; /** GRAPH | DIAL | ONOFF set by menu control, but owned by this class*/
 		Stats stats;        /** block of numerical outputs */
 
-		SensorDisplay(SensorData *dataSource) :
-			DisplayElement          {0,0,STDWIDTH,STDHEIGHT},
-			viz { new GraphScrolling(0,0,STDWIDTH,STDHEIGHT) },
-			stats                   {0,0,STDWIDTH,STDHEIGHT}
-		{
-			#ifdef DEBUG
-				Serial.println(F("SensorDisplay(...)"));
-			#endif
-			data = dataSource;
-		}
+		SensorDisplay();
+		SensorDisplay(SensorData *dataSource);
 
-		virtual ~SensorDisplay() {
-			delete viz;
-			delete stats;
-			//external owner responsible for freeing data
-		}
+		virtual ~SensorDisplay();
 
-		virtual void setData(SensorData *data) {
-			#ifdef DEBUG
-				Serial.println(F("SensorDisplay::setData(...)"));
-			#endif
-			this->data = data;
-		}
+		virtual SensorDisplay& operator= (SensorDisplay *param);
 
-		virtual void setViz(Visualization *viz) {
-			#ifdef DEBUG
-				Serial.println(F("SensorDisplay::setViz(...)"));
-			#endif
-			delete viz;
-			this->viz = viz;
-		}
+		virtual int operator== (const SensorDisplay *param);
 
-		virtual void draw() {
-			#ifdef DEBUG
-        		Serial.println(F("SensorDisplay::draw()"));
-        	#endif
-        	viz->draw();
-        	stats.draw();
-		}
+		/** deletes old viz it points to, assumes ownership of new viz being passed to it */
+		virtual void setViz(Visualization *viz);
 
-		virtual void redraw() {
-			#ifdef DEBUG
-        		Serial.println(F("SensorDisplay::redraw(...)"));
-        	#endif
-        	viz->redraw();
-        	//individual stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change
-		}
+		virtual void draw();
+
+		virtual void redraw();
 
 		/** the calling code is responsible for calling redraw after calling this function */
-		virtual void locate(int x, int y) {
-			#ifdef DEBUG
-				Serial.println(F("SensorDisplay::locate(...)"));
-			#endif
-			DisplayElement::locate(x,y);
-			viz->locate(x, y); //TODO i think we need to adjust the coordinates for each here
-			stats.locate(x, y);
-
-	    }
+//		virtual void locate(int x, int y);
 
 		/** the calling code is responsible for calling redraw after calling this function */
-	    virtual void locateAndSize(int x, int y, int w, int h) {
-			#ifdef DEBUG
-				Serial.println(F("SensorDisplay::locate(...)"));
-			#endif
-			DisplayElement::locateAndSize(x,y,w,h);
-			viz->locateAndSize(x, y, w, h); //TODO i think we need to adjust the coordinates for each here
-			stats.locateAndSize(x, y, w, h);
-	    }
+	    virtual void locateAndSize(int centerX, int centerY, int w, int h);
+
+	    virtual void reset();
 
 };
 #endif

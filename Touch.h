@@ -19,8 +19,8 @@ class TouchElement : public DisplayElement {
 		#ifdef DEBUG
 		  Serial.print(F("Touch::isPushed()"));
 		#endif
-		return tx > x - w/2  &&  tx < x + w/2
-			 && ty > y - h/2  &&  ty < y + h/2;
+		return tx > centerX - w/2  &&  tx < centerX + w/2
+			 && ty > centerY - h/2  &&  ty < centerY + h/2;
     }
 
     virtual void push() {

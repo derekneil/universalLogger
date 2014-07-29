@@ -11,6 +11,7 @@
 #define END       2
 #define COMPLETE  3
 
+/** does not  implement calibrate in software!!! */
 class ForceMeter : public SensorInput {
 	protected:
 		int loadCellReadingState = COMPLETE;
@@ -20,7 +21,8 @@ class ForceMeter : public SensorInput {
 
 	public:
 
-		ForceMeter(int pin=0, int type=-1) : SensorInput{pin, type}
+		ForceMeter(int pin=0, int type=-1) :
+			SensorInput{pin, type}
 		{
 			#ifdef DEBUG
 				Serial.print(F("ForceMeter()"));

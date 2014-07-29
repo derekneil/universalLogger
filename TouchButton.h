@@ -53,15 +53,15 @@ class TouchButton : public TouchElement{
         Serial.print(F("TouchButton::draw() "));
         Serial.println(F(label));
       #endif
-      int startX = x-w/2;
-      int startY = y-h/2;
+      int startX = centerX-w/2;
+      int startY = centerY-h/2;
       int r = 4;
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
-      Display::device->drawFastHLine(x+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
-      Display::device->drawFastVLine(x -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
-      Display::device->drawCircleHelper(x+r -shaddow, startY+r -shaddow, r, 1, shaddowColour); //top left corner
-      Display::device->drawCircleHelper(x+w-r-1 -shaddow, startY+r -shaddow, r, 2, shaddowColour); //top right corner
-      Display::device->drawCircleHelper(x+r -shaddow, startY+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
+      Display::device->drawFastHLine(centerX+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
+      Display::device->drawFastVLine(centerX -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
+      Display::device->drawCircleHelper(centerX+r -shaddow, startY+r -shaddow, r, 1, shaddowColour); //top left corner
+      Display::device->drawCircleHelper(centerX+w-r-1 -shaddow, startY+r -shaddow, r, 2, shaddowColour); //top right corner
+      Display::device->drawCircleHelper(centerX+r -shaddow, startY+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
       Display::device->drawRoundRect(startX, startY, w, h, radius, colour);
       int newY = startY + (h - CHARHEIGHT)/2;
       int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
@@ -74,8 +74,8 @@ class TouchButton : public TouchElement{
         Serial.print(F("TouchButton::push() "));
         Serial.println(F(label));
       #endif
-      int startX = x-w/2;
-      int startY = y-h/2;
+      int startX = centerX-w/2;
+      int startY = centerY-h/2;
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
       Display::device->drawRoundRect(startX, startY, w, h, radius, shaddowColour);
       int newY = startY + (h - CHARHEIGHT)/2;

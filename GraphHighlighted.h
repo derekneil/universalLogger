@@ -82,7 +82,7 @@ class GraphHighlight : public Visualization {
       //loop through all the middle values in the graph
       while( i!=data->index ) {
 
-        drawDoubleGraphLines(&x, last, temp);
+        drawDoubleGraphLines(&centerX, last, temp);
 
         i++;
         if (i==data->size) { i=0; } //avoids % operation
@@ -95,7 +95,7 @@ class GraphHighlight : public Visualization {
       }
 
       //draw latest value added to graph
-      drawDoubleGraphLines(&x, last, temp);
+      drawDoubleGraphLines(&centerX, last, temp);
 
     }
 };

@@ -18,15 +18,15 @@ class Graph : public Visualization {
     Graph(int x, int y, int w, int h) :
       DisplayElement{x,y,w,h}
      {
-      this->x = x;
-      this->y = y;
+      this->centerX = x;
+      this->centerY = y;
       this->w = w;
       this->h = h;
 //      this->type = GRAPHSCROLLING;
     }
     int isPushed(int tx, int ty) {
-      return tx > x - w/2  &&  tx < x + w/2
-             && ty > y - h/2  &&  ty < y + h/2;
+      return tx > centerX - w/2  &&  tx < centerX + w/2
+             && ty > centerY - h/2  &&  ty < centerY + h/2;
     }
 
     void draw(SensorData *data) {
@@ -36,10 +36,10 @@ class Graph : public Visualization {
        #endif
 
       if (type==GRAPHSCROLLING) {
-        redrawScrollingGraph(x-w/2, y-h/2, w, h, data);
+        redrawScrollingGraph(centerX-w/2, centerY-h/2, w, h, data);
       }
       else if(type==GRAPHHIGHLIGHT) {
-        redrawHighlightGraph(x-w/2, y-h/2, w, h, data);
+        redrawHighlightGraph(centerX-w/2, centerY-h/2, w, h, data);
       }
       else { //draw after screen cleared
         //graph side bars
@@ -48,7 +48,7 @@ class Graph : public Visualization {
         Display::device->drawFastVLine(198, 0, h, TEXTCOLOUR);
         Display::device->drawFastVLine(319, 0, h, TEXTCOLOUR);
 
-        redrawFromScratchGraph(x-w/2, y-h/2, w, h, data);
+        redrawFromScratchGraph(centerX-w/2, centerY-h/2, w, h, data);
       }
     }
 

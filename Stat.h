@@ -3,7 +3,6 @@
 
 #include "universalLogger.h"
 #include "DisplayElement.h"
-#include "Display.h"
 
 class Stat : public DisplayElement {
   protected:
@@ -13,48 +12,23 @@ class Stat : public DisplayElement {
     char *label;
     char *lastValue;
 
-    Stat(int x=0, int y=0, int w=0, int h=0, char* label="") :
-    	DisplayElement {x,y,w,h}
-    {
-		#ifdef DEBUG
-		  Serial.println(F("Stat(...) "));
-		#endif
-        this->label = label;
-        lastValue = "";
-    }
+    Stat(int centerX=0, int centerY=0, int w=0, int h=0, char* label="");
 
-    void draw() {
-		#ifdef DEBUG
-			Serial.print(F("Stat::draw() "));
-			Serial.println(F(label));
-		#endif
+    ~Stat();
 
-		//TODO erase space for label and value, then print both
-		int startX = x-w/2;
-		int startY = y-h/2;
-		Display::device->fillRect(startX, startY, w, h, ERASECOLOUR);
-		int newY = startY + (h - CHARHEIGHT)/2;
-		int newX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2;
-		Display::device->setCursor(newX, newY);
-		Display::device->print(label);
-		Display::device->print(lastValue);
-    }
+    int operator== (const Stat param);
 
-    void redraw() {
-		#ifdef DEBUG
-		  Serial.print(F("Stat::redraw() "));
-		  Serial.println(F(label));
-		#endif
+    /** erase entire space for stat
+     * print label
+     * print lastValue */
+    void draw();
 
-		//TODO erase space for value only, leaving label alone, assuming it's still there, and print the lastValue only
-		int startX = x-w/2;
-		int startY = y-h/2;
-		Display::device->fillRect(startX, startY, w, h, ERASECOLOUR);
-		int newY = startY + (h - CHARHEIGHT)/2;
-		int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
-		Display::device->setCursor(newX, newY);
-		Display::device->print(label);
-    }
+    /** assumes label is already on screen
+     * erases lastValue located after the label
+     * prints new lastValue in it's place */
+    void redraw();
+
+    void reset();
 
 };
 #endif
