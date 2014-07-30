@@ -10,11 +10,11 @@
 void GraphScrolling::redrawSingleGraphLines(int *startX, int last, int temp) {
   if (last > temp) {
     //erase, aka draw background
-    tft->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
+    Display::device->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
   }
   else if (last < temp) {
     //add, aka draw white
-    tft->drawFastVLine((*startX)++, h-temp, temp-last, TEXTCOLOUR);
+    Display::device->drawFastVLine((*startX)++, h-temp, temp-last, TEXTCOLOUR);
   }
   else {
     (*startX)++;
@@ -49,8 +49,8 @@ void GraphScrolling::draw(SensorData *data) {
   int startY = centerY-h/2;
 
   //draw graph side bars, these might get redrawn by adjacent sensor display, but that's ok
-  tft->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
-  tft->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
+  Display::device->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
+  Display::device->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
 
   //draw graph from scratch
   {
@@ -64,9 +64,9 @@ void GraphScrolling::draw(SensorData *data) {
   //loop through all the middle values in the graph
   while( i!=data->index ) {
 
-	tft->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+	Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
 	if (doubleWidth) {
-	  tft->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+	  Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
 	}
 	i++;
 	if (i==data->size) { i=0; } //avoids % operation
@@ -75,9 +75,9 @@ void GraphScrolling::draw(SensorData *data) {
   }
 
   //draw latest value added to graph
-  tft->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+  Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
   if (doubleWidth) {
-	tft->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+	Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
   }
   }
 
