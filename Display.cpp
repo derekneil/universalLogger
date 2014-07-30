@@ -7,6 +7,14 @@
 #include <Adafruit_ILI9340.h>
 //#include <Adafruit_STMPE610.h> //library doesn't have ifndef check in the header....
 
+	int                Display::numSDs;
+	int                Display::lastNumSDs;
+	SensorDisplay     *Display::SDs;
+	int                Display::numRegions;
+
+	Adafruit_ILI9340  *Display::device;
+	Adafruit_STMPE610 *Display::touch;
+
 Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
 	#ifdef DEBUG
 		Serial.println(F("Display(...)"));
