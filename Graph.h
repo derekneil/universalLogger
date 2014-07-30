@@ -106,7 +106,7 @@ class Graph : public Visualization {
       if (i==data->size) { i=0; } //avoids % operation
 
       //setup values and use bumped for graphing oldest value in graph
-      int temp = data->array[i]/divider; //TODO divider....
+      int temp = data->array[i]/divider; //FIXME divider....
       if(temp < 0) { temp=0; }
       int lastI = -1;
       int last = data->bumped / divider;

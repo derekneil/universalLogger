@@ -98,7 +98,6 @@ void Display::updateDisplayLayout() {
 			// single full screen SensorDisplay
 			SDs[0].locateAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);
 			SDs[0].viz->doubleWidth = true;
-			//SDs[0].redraw(); //TODO draw handled by ext of menu code
 			break;
 
 		case 2:

@@ -55,7 +55,7 @@ class GraphHighlight : public Visualization {
        #endif
 
         //graph side bars
-        Display::device->drawFastVLine(  0, 0, h, TEXTCOLOUR); //TODO make these parametric
+        Display::device->drawFastVLine(  0, 0, h, TEXTCOLOUR); //XXX make these parametric, see GraphScrolling
         Display::device->drawFastVLine(121, 0, h, TEXTCOLOUR);
         Display::device->drawFastVLine(198, 0, h, TEXTCOLOUR);
         Display::device->drawFastVLine(319, 0, h, TEXTCOLOUR);
@@ -73,7 +73,7 @@ class GraphHighlight : public Visualization {
       if (i==data->size) { i=0; } //avoids % operation
 
       //setup values and use bumped for graphing oldest value in graph
-      int temp = data->array[i]/divider; //TODO divider....
+      int temp = data->array[i]/divider; //FIXME divider....
       if(temp < 0) { temp=0; }
       int lastI = -1;
       int last = data->bumped / divider;

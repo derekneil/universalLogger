@@ -22,7 +22,7 @@
     #define F(string_literal) string_literal
 #endif
 
-const int divider = 5; //= (max expected input ~1000 )/ GRAPHHEIGHT //TODO should this be the default, then update based on max input seen?
+const int divider = 5; // = (max expected input ~1000 )/ GRAPHHEIGHT //FIXME divider update based on max input seen?
 #define lcd_cs 10
 #define lcd_dc 9
 #define lcd_rst -1
@@ -70,7 +70,7 @@ void drawMainScreen() {
   tft.fillScreen(BACKGROUNDCOLOUR);
 
   for (int i=0; i<NUMREGIONS; i++) {
-    //TODO draw each enabled sensorInput from scratch
+    //draw each enabled sensorInput from scratch
     sensorInputs[i].draw();
   }
 
@@ -78,41 +78,41 @@ void drawMainScreen() {
 
 void drawMainMenu() {
 
-  //TODO draw back button
+  //IMP draw back button
 
-  //TODO draw LOG label & toggle switch
+  //IMP draw LOG label & toggle switch
   // logBtn.draw();
 
-  //TODO draw global RESET, MODE, CALIBRATE buttons
+  //IMP draw global RESET, MODE, CALIBRATE buttons
   // resetAllBtn.draw();
   // modeAllBtn.draw();
   // calAllBtn.draw();
   
-  //TODO listen for touch events in infinite loop
+  //IMP listen for touch events in infinite loop
   if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
     parseMenuTouch();
   }
 
-  //TODO touching back button breaks out of loop to return 
+  //IMP touching back button breaks out of loop to return 
 
 }
 
 void drawIndividualSensorMenu(SensorInput *si) {
 
-  //TODO draw back button
+  //IMP draw back button
 
-  //TODO draw controls for each of the inputs for a sensor
+  //IMP draw controls for each of the inputs for a sensor
 
-  //TODO draw specialized controls for loadcell and linearEnc???
+  //IMP draw specialized controls for loadcell and linearEnc???
 
-  //TODO listen for touch events in infinite loop
+  //IMP listen for touch events in infinite loop
 	while (1) {
 		if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
 			parseSensorMenuTouch();
 		}
 	}
 
-  //TODO touching back button breaks out of loop to return 
+  //IMP touching back button breaks out of loop to return 
 }
 
 //-----------------------------------------------------------------------------
@@ -197,14 +197,12 @@ void resetAll() {
   Serial.println("resetAll()");
 #endif
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i].isEnabled()) { //TODO should we do for all of them anyways??
-
+    if(sensorInputs[i].isEnabled()) { //XXX should we do for all of them anyways??
       sensorInputs[i].reset();
-
     }
   }
 
-  // TODO what about starting a new log file? should we ask the user with a pop up window?
+  //XXX what about starting a new log file? should we ask the user with a pop up window?
 		//draw yes/no screen
 		//if yes
 		  //stop logging
@@ -219,10 +217,8 @@ void calibrateAll() {
   #endif
 
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i].isEnabled()) { //TODO should we do for all of them anyways??
-
+    if(sensorInputs[i].isEnabled()) { //XXX should we do for all of them anyways??
       sensorInputs[i].calibrate(); /** only some sensors implement calibrate */
-
     }
   }
 
@@ -282,12 +278,12 @@ int startLogging() {
 void toggleLogging() {
     if (logging==false) {
       if (startLogging()) {
-//        logBtn.setLabel("LOG ON"); //TODO store global variables somewhere for menus
+//        logBtn.setLabel("LOG ON"); //IMP store global variables somewhere for menus
       }
     }
   else {
       logging = false;
-//      logBtn.setLabel("LOG OFF"); //TODO store global variables somewhere for menus
+//      logBtn.setLabel("LOG OFF"); //IMP store global variables somewhere for menus
     }
 }
 
@@ -340,7 +336,7 @@ void parseSensorMenuTouch() {
 
 		//----------START LOGIC BLOCK--------------
 
-    //TODO implement touch buttons for all the SensorInput variables we want to control
+    //IMP implement touch buttons for all the SensorInput variables we want to control
 
 		//----------END LOGIC BLOCK----------------
 
@@ -357,9 +353,9 @@ void parseMenuTouch() {
 
 		//----------START LOGIC BLOCK--------------
 
-    //TODO implement touch buttons for all the global options we want to control
+    //IMP implement touch buttons for all the global options we want to control
 
-    //TODO implement touch buttons for accessing menu for a particular SensorInput
+    //IMP implement touch buttons for accessing menu for a particular SensorInput
 
 		//sample logic to be used for menu touch parsing
 

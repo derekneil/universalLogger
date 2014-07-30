@@ -231,14 +231,6 @@ class SensorInput {
                     	redrawStats(&longTermData, &longTermDisplay, shortTermData.avg);
                     	longTermDisplay.needsRedraw = true;
                     }
-                    shortTermData.resetAvg();    //TODO clearing these means we'll have to scan through the
-                    shortTermData.resetMinMax(); //data that's left to find the new values
-
-                    //see if it's time to calculate new long term peak avg
-                    if (longTermData.checkAndResetIndex()) {
-                    	longTermData.resetAvg(); //TODO do we really want the avg to be of the displayed value
-                    							 //or of every value the longTermData has seen?
-                    }
 
                 }
 
