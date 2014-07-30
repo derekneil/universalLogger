@@ -24,6 +24,8 @@ class SensorDisplay : public DisplayElement {
 
 		virtual int operator== (const SensorDisplay *param);
 
+		virtual void setTFT(Adafruit_ILI9340 *tft);
+
 		/** deletes old viz it points to, assumes ownership of new viz being passed to it */
 		virtual void setViz(Visualization *viz);
 

@@ -54,6 +54,15 @@ int Stats::operator== (const Stats param) {
 	}
 }
 
+void Stats::setTFT(Adafruit_ILI9340 *tft) {
+	min       .tft = tft;
+	max       .tft = tft;
+	interval  .tft = tft;
+	avg       .tft = tft;
+	last10avg .tft = tft;
+	latest    .tft = tft;
+}
+
 /** depricated, you should call locateAndSize */
 void Stats::locate(int centerX, int centerY){
 	#ifdef DEBUG

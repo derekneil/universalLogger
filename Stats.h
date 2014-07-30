@@ -24,6 +24,8 @@ class Stats : public DisplayElement {
 
 	int operator== (const Stats param);
 
+	void setTFT(Adafruit_ILI9340 *tft);
+
 	/** depricated, you should call locateAndSize */
 	void locate(int centerX, int centerY);
 

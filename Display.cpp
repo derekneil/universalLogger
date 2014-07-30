@@ -137,6 +137,8 @@ int Display::add(SensorDisplay *sd) {
 		// see if there's space
 		if (SDs[i] == NULL) { //TODO figure out best way to have empty spots in the array of SensorDisplay's or use a linked list :/
 
+			sd->setTFT(device);
+
 			//enable it
 			sd->enabled = 1;
 
