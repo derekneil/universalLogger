@@ -67,7 +67,7 @@
 		#endif
 		int startX = centerX - w/2;
 		int startY = centerY - h/2;
-		Display::device->fillRect(startX , startY, w, h, backgroundColour);
+		tft->fillRect(startX , startY, w, h, backgroundColour);
 	}
 
 #endif

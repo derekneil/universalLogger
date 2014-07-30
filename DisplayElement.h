@@ -2,6 +2,7 @@
 #define DISPLAYELEMENT_H
 
 #include "universalLogger.h"
+#include <Adafruit_ILI9340.h>
 
 class DisplayElement {
 
@@ -10,6 +11,7 @@ class DisplayElement {
 	int centerY=0; // coordinates
 	int w=0;
 	int h=0;
+    Adafruit_ILI9340 *tft;
 
 	DisplayElement();
 

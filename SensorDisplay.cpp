@@ -81,6 +81,11 @@ int SensorDisplay::operator== (const SensorDisplay *param) {
 	}
 }
 
+void SensorDisplay::setTFT(Adafruit_ILI9340 *tft) {
+	viz->tft = tft;
+	stats.setTFT(tft);
+}
+
 /** deletes old viz it points to, assumes ownership of new viz being passed to it */
 void SensorDisplay::setViz(Visualization *viz) {
 	#ifdef DEBUG
