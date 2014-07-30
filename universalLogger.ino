@@ -89,7 +89,7 @@ void drawMainMenu() {
   // calAllBtn.draw();
   
   //TODO listen for touch events in infinite loop
-  if (!(Display::touch->bufferEmpty())) { //this should stay at the beginning or end of a loop
+  if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
     parseMenuTouch();
   }
 
@@ -107,7 +107,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 
   //TODO listen for touch events in infinite loop
 	while (1) {
-		if (!(Display::touch->bufferEmpty())) { //this should stay at the beginning or end of a loop
+		if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
 			parseSensorMenuTouch();
 		}
 	}
@@ -508,7 +508,7 @@ void loop() {
 
   logOutput();
   
-  if (!(Display::touch->bufferEmpty())) { //this should stay at the begining or end of a loop
+  if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
     parseTouch();
   }
   
