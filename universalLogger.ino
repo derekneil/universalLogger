@@ -481,13 +481,13 @@ void setup() {
 
   }
 
-  sensorInputs[NUMINPUTS] = {};
+  Display display(&tft, &ts, NUMREGIONS);
+
   sensorInputs[0] = ForceMeter(0, SERIAL);
   sensorInputs[1] = LinearEncoder(5,6);
   sensorInputs[2] = SensorInput(16, ANALOG);
   sensorInputs[3] = SensorInput(17, DIGITAL);
 
-  Display display(&tft, &ts, NUMREGIONS);
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
 	  display.add( &(sensorInputs[i].shortTermDisplay) );
