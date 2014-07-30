@@ -94,7 +94,7 @@ void SensorDisplay::draw() {
 	#ifdef DEBUG
 		Serial.println(F("SensorDisplay::draw()"));
 	#endif
-	viz->draw();
+	viz->draw(data);
 	stats.draw();
 }
 
@@ -103,7 +103,7 @@ void SensorDisplay::redraw() {
 		Serial.println(F("SensorDisplay::redraw(...)"));
 	#endif
     if (enabled && needsRedraw) {
-		viz->redraw();
+		viz->redraw(data);
 		needsRedraw = false;
     }
 	//individual stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change

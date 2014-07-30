@@ -21,8 +21,8 @@
 
 class SensorInput {
   protected:
-	int type; /** ANALOG | DIGITAL */
-	int pin;
+	int type             = -1; /** ANALOG | DIGITAL */
+	int pin              = -1;
 	int mode             = STATIC; /** STATIC | DYNAMIC */
 	int low              = 10;
 	int high             = 50;
@@ -61,12 +61,24 @@ class SensorInput {
 	SensorDisplay shortTermDisplay;
 	SensorDisplay longTermDisplay;
 
+    SensorInput() :
+		rawData          {RAWDATASIZE},
+		shortTermData    {STDWIDTH},
+		longTermData     {STDWIDTH},
+		shortTermDisplay {&shortTermData},
+		longTermDisplay  {&longTermData}
+    {
+		#ifdef DEBUG
+			Serial.println("SensorInput()");
+		#endif
+    }
+
     SensorInput(int pin, int type) : 
-    rawData          {RAWDATASIZE},
-    shortTermData    {STDWIDTH},
-    longTermData     {STDWIDTH},
-    shortTermDisplay {&shortTermData},
-    longTermDisplay  {&longTermData}
+		rawData          {RAWDATASIZE},
+		shortTermData    {STDWIDTH},
+		longTermData     {STDWIDTH},
+		shortTermDisplay {&shortTermData},
+		longTermDisplay  {&longTermData}
     {
 		#ifdef DEBUG
 			Serial.println("SensorInput(...)");
@@ -114,7 +126,7 @@ class SensorInput {
 				newReading = analogRead(pin-14); // 0-1024
 			}
 			else if (type==DIGITAL) {
-				newReading = pinMode(pin, INPUT_PULLUP); // 0-1
+				newReading = digitalRead(pin); // 0-1
 			}
         }
         return newReading;
@@ -246,20 +258,12 @@ class SensorInput {
         }
     }
 
-//    virtual void reDraw() { //this is kind of confusing since it doesn't actually redraw everything in a SensorInput
-//		#ifdef DEBUG
-//			Serial.println("SensorInput::redraw()");
-//		#endif
-//    	updateViz();
-//    	//shortTerm and longTerm display stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change
-//    }
-
     virtual void updateViz() {
 		#ifdef DEBUG
 			Serial.println("SensorInput::updateViz()");
 		#endif
-		shortTermDisplay.viz->redraw();
-		longTermDisplay.viz->redraw();
+		shortTermDisplay.redraw();
+		longTermDisplay.redraw();
     }
 
     virtual int isEnabled() {
@@ -269,31 +273,15 @@ class SensorInput {
         return shortTermDisplay.enabled || longTermDisplay.enabled;
     }
 
-    virtual static char* logoutHeader() {
-        #ifdef DEBUG
-            Serial.println("SensorInput::logoutHeader()");
-        #endif
-    	return ", cycles, raw.latest, raw.min, raw.avg, raw.max, short.latest, short.min, short.avg, short.max, long.latest, long.min, long.avg, long.max";
-    }
-
-    virtual char* logout() { //TODO make sure this char * stuff doesn't blow up during run time
+    /** calling method responsible for freeing memory */
+    virtual char* logout() {
 		#ifdef DEBUG
 			Serial.println("SensorInput::logout()");
 		#endif
-    	char *output = "TODO";
-    	sprintf(output, ", %d", cycles);
+    	char output[13];
     	if (isEnabled()) {
-    		sprintf(output, ", %d", rawData.latest());
-//    		sprintf(output, ", %d, %d, %.1f, %d", rawData.latest(), rawData.min, rawData.avg, rawData.max);
+			sprintf(output, ", %d, %d", cycles, rawData.latest()); //change headers in
     	}
-
-    	//trimmed output based on Bob's feedback
-//        if (shortTermDisplay.enabled) {
-//        	sprintf(output, ", %d, %d, %.1f, %d", shortTermDisplay.data->latest() , shortTermDisplay.data->min, shortTermDisplay.data->avg, shortTermDisplay.data->max);
-//        }
-//        if (longTermDisplay.enabled) {
-//        	sprintf(output, ", %d, %d, %.1f, %d", longTermDisplay.data->latest() , longTermDisplay.data->min, longTermDisplay.data->avg, longTermDisplay.data->max);
-//        }
         return output;
     }
 

@@ -36,7 +36,6 @@ void setup();
 #define ANALOG 0
 #define DIGITAL 1
 
-
 #define CHARHEIGHT 8
 #define CHARWIDTH 6
 

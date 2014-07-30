@@ -23,13 +23,13 @@ Visualization::~Visualization() {
 	#endif
 } //shut eclipse up
 
-void Visualization::draw() {
+void Visualization::draw(SensorData *data) {
 	#ifdef DEBUG
 		Serial.println(F("Visualization::draw() not implemented yet for this class"));
 	#endif
 }
 
-void Visualization::redraw() {
+void Visualization::redraw(SensorData *data) {
 	#ifdef DEBUG
 		Serial.println(F("Visualization::redraw() not implemented yet for this class"));
 	#endif

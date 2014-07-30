@@ -2,6 +2,7 @@
 #define VISUALIZATION_H
 
 #include "DisplayElement.h"
+#include "SensorData.h"
 
 /** wrapper class for sensor visualizations such as graphs, dials, and on/off etc..  */
 class Visualization : public DisplayElement {
@@ -15,9 +16,9 @@ class Visualization : public DisplayElement {
 
 	virtual ~Visualization();
 
-	virtual void draw();
+	virtual void draw(SensorData *data);
 
-	virtual void redraw();
+	virtual void redraw(SensorData *data);
 
 };
 #endif

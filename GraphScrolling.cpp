@@ -7,7 +7,7 @@
 #include "Display.h"
 #include "SensorData.h"
 
-void GraphScrolling::drawSingleGraphLines(int *startX, int last, int temp) {
+void GraphScrolling::redrawSingleGraphLines(int *startX, int last, int temp) {
   if (last > temp) {
     //erase, aka draw background
     Display::device->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
@@ -102,9 +102,9 @@ Serial.println(F("GraphScrolling::redraw()"));
 
   //loop through all the middle values in the graph
   while( i!=data->index ) {
-	drawSingleGraphLines(&startX, last, temp);
+	redrawSingleGraphLines(&startX, last, temp);
 	if (doubleWidth) {
-	  drawSingleGraphLines(&startX, last, temp);
+	  redrawSingleGraphLines(&startX, last, temp);
 	}
     i++;
     if (i==data->size) { i=0; } //avoids % operation
@@ -117,9 +117,9 @@ Serial.println(F("GraphScrolling::redraw()"));
   }
 
   //draw latest value added to graph with function that determines how to do minimal line draw
-  drawSingleGraphLines(&startX, last, temp);
+  redrawSingleGraphLines(&startX, last, temp);
   if (doubleWidth) {
-    drawSingleGraphLines(&startX, last, temp);
+    redrawSingleGraphLines(&startX, last, temp);
   }
 }
 #endif

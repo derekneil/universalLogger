@@ -2,21 +2,17 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9340.h>
 
-#include <openGLCD.h>
 #include <SdFat.h>
 #include <SdFatUtil.h>
 #include <Time.h>
 #include <Wire.h>
 #include <Adafruit_STMPE610.h>
 
-#include <string.h>
-
 #include "ForceMeter.h"
 #include <Encoder.h>
 #include "LinearEncoder.h"
 #include "SensorInput.h"
 #include "SensorDisplay.h"
-#include "SensorData.h"
 #include "TouchButton.h"
 
 #include "universalLogger.h"
@@ -64,7 +60,7 @@ TouchButton *modeBtn;
 TouchButton *calBtn;
 
 //main screen
-SensorInput *sensorInputs; //array of sensor inputs 
+SensorInput sensorInputs[NUMINPUTS]; //array of sensor inputs
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
@@ -144,39 +140,53 @@ void logError() {
 	#endif
 }
 
+/** one or both inputs may be deleted depending on size */
+char* strSafeCat(char *str1, char* str2) {
+	int len1 = strlen(str1);
+	int len2 = strlen(str2);
+	if (!(len1 >= len1+len2)) {
+		strcat(str1, str2);
+		delete str2;
+		return str1;
+	}
+	else {
+		char output[len1+len2];
+		strcat(output, str1);
+		delete str1;
+		strcat(output, str2);
+		delete str2;
+		return output;
+	}
+}
+
 void logOutput(){
   
   if (logging==true) {
 
-    String logString;
+    char *logStr = (char*) malloc(128*sizeof(char));
 
-    char* datetime;
-    sprintf(datetime, "%04d/%02d/%02d %02d:%02d:%02d", year(), month(), day(), hour(), minute(), second(), micros());
-    logString.append(datetime);
+    sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
     
     for (int i=0; i<NUMINPUTS; i++) {
       if(sensorInputs[i].isEnabled()) {
-        logString.append(sensorInputs[i].logout());
+        logStr = strSafeCat(logStr, sensorInputs[i].logout());
       }
     }
 
     //write to sd card
     if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
-      logFile.println(logString);
+      logFile.println(logStr);
       logFile.close();
     #ifdef DEBUG
-      Serial.println(logString);
+      Serial.println(logStr);
     #endif
     }
     else {
     	logError();
-		delete datetime;
-    	delete logString;
+    	free(logStr);
     	while(1) {}
     }
-
-    delete datetime;
-    delete logString;
+    free(logStr);
 
   }
   
@@ -244,7 +254,25 @@ int startLogging() {
     return 0;
   }
   else {
-	logFile.println(SensorInput::logoutHeader());
+	#ifdef DEBUG
+	  Serial.print(F("datetime, microsr"));
+	#endif
+	logFile.println("datetime, micros");
+	for (int i=0; i<NUMINPUTS; i++) {
+	  if(sensorInputs[i].isEnabled()) {
+		char headerStr[64];
+		sprintf(headerStr, ", cycles-%d, raw.latest-%d",i+1 ,i+1);
+		logFile.println(headerStr);
+		#ifdef DEBUG
+		  Serial.print(headerStr);
+		#endif
+		delete headerStr;
+	  }
+	}
+	logFile.println("");
+	#ifdef DEBUG
+	  Serial.println("");
+	#endif
     logging = true;
     logFile.close();
     return 1;
@@ -254,12 +282,12 @@ int startLogging() {
 void toggleLogging() {
     if (logging==false) {
       if (startLogging()) {
-//        logBtn.setLabel("LOG ON"); //TODO store global variables somewhere
+//        logBtn.setLabel("LOG ON"); //TODO store global variables somewhere for menus
       }
     }
   else {
       logging = false;
-//      logBtn.setLabel("LOG OFF"); //TODO store global variables somewhere
+//      logBtn.setLabel("LOG OFF"); //TODO store global variables somewhere for menus
     }
 }
 
@@ -434,7 +462,7 @@ void setup() {
   while(!ts.begin()){
     tft.println(F("Unable to start touchscreen."));
     #ifdef DEBUG
-      Serial.println("Unable to start touchscreen.");
+      Serial.println(F("Unable to start touchscreen."));
     #endif
     delay(500);
   }

@@ -9,7 +9,7 @@ class GraphScrolling : public Visualization {
 
   private:
 
-    void drawSingleGraphLines(int *startX, int last, int temp);
+    void redrawSingleGraphLines(int *startX, int last, int temp);
 
   public:
 
