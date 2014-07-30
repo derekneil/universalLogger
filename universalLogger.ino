@@ -132,9 +132,9 @@ void pollSensors() {
 }
 
 void logError() {
-	tft.setTextSize(4);
-	tft.setCursor(130, 140);
-	tft.print("LOG ERROR");
+	Display::device->setTextSize(4);
+	Display::device->setCursor(130, 140);
+	Display::device->print("LOG ERROR");
 	#ifdef DEBUG
 		Serial.println(F("...log file error"));
 	#endif

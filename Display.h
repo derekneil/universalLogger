@@ -38,8 +38,6 @@ class Display {
 
 		static Adafruit_STMPE610 *touch;
 
-//		Display();
-
 		Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions);
 
 		~Display();

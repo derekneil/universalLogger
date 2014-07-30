@@ -50,10 +50,10 @@ void Stat::draw() {
 	int startY = centerY-h/2;
 	int textY = startY + (h - CHARHEIGHT)/2;
 	int textX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2;
-	tft->fillRect(startX, startY, w, h, ERASECOLOUR);
-	tft->setCursor(textX, textY);
-	tft->print(label);
-	tft->print(lastValue);
+	Display::device->fillRect(startX, startY, w, h, ERASECOLOUR);
+	Display::device->setCursor(textX, textY);
+	Display::device->print(label);
+	Display::device->print(lastValue);
 }
 
 /** assumes label is already on screen
@@ -69,9 +69,9 @@ void Stat::redraw() {
 	int startY = centerY-h/2;
 	int textY = startY + (h - CHARHEIGHT)/2;
 	int textX = startX + (w - (strlen(lastValue) * CHARWIDTH))/2 + strlen(label)*CHARWIDTH;
-	tft->fillRect(textX, startY, strlen(label)*CHARWIDTH, h, ERASECOLOUR);
-	tft->setCursor(textX, textY);
-	tft->print(lastValue);
+	Display::device->fillRect(textX, startY, strlen(label)*CHARWIDTH, h, ERASECOLOUR);
+	Display::device->setCursor(textX, textY);
+	Display::device->print(lastValue);
 }
 
 void Stat::reset() {
