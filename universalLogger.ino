@@ -61,7 +61,8 @@ TouchButton *modeBtn;
 TouchButton *calBtn;
 
 //main screen
-SensorInput sensorInputs[NUMINPUTS]; //array of sensor inputs
+Display *display;
+SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
@@ -77,7 +78,7 @@ void drawMainScreen() {
 
   for (int i=0; i<NUMREGIONS; i++) {
     //draw each enabled sensorInput from scratch
-    sensorInputs[i].draw();
+    sensorInputs[i]->draw();
   }
 
 }
@@ -138,11 +139,11 @@ void pollSensors() {
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
 
-    if(sensorInputs[i].isEnabled()) {
+    if(sensorInputs[i]->isEnabled()) {
 
-		int newReading = sensorInputs[i].poll();
-		sensorInputs[i].updateDataAndRedrawStats(newReading);
-		sensorInputs[i].updateViz();
+		int newReading = sensorInputs[i]->poll();
+		sensorInputs[i]->updateDataAndRedrawStats(newReading);
+		sensorInputs[i]->updateViz();
     }
   }
 }
@@ -186,8 +187,8 @@ void logOutput(){
     sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
     
     for (int i=0; i<NUMINPUTS; i++) {
-      if(sensorInputs[i].isEnabled()) {
-        logStr = strSafeCat(logStr, size-1, sensorInputs[i].logout());
+      if(sensorInputs[i]->isEnabled()) {
+        logStr = strSafeCat(logStr, size-1, sensorInputs[i]->logout());
       }
     }
 
@@ -217,8 +218,8 @@ void resetAll() {
   	}
 	#endif
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i].isEnabled()) { //XXX should we do for all of them anyways??
-      sensorInputs[i].reset();
+    if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
+      sensorInputs[i]->reset();
     }
   }
 
@@ -239,8 +240,8 @@ void calibrateAll() {
 	#endif
 
   for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i].isEnabled()) { //XXX should we do for all of them anyways??
-      sensorInputs[i].calibrate(); /** only some sensors implement calibrate */
+    if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
+      sensorInputs[i]->calibrate(); /** only some sensors implement calibrate */
     }
   }
 
@@ -287,7 +288,7 @@ int startLogging() {
 	#endif
 	logFile.println("datetime, micros");
 	for (int i=0; i<NUMINPUTS; i++) {
-	  if(sensorInputs[i].isEnabled()) {
+	  if(sensorInputs[i]->isEnabled()) {
 		char headerStr[64];
 		sprintf(headerStr, ", cycles-%d, raw.latest-%d",i+1 ,i+1);
 		logFile.println(headerStr);
@@ -553,16 +554,16 @@ void setup() {
 
   }
 
-  Display display(&tft, &ts, NUMREGIONS);
+  display = new Display(&tft, &ts, NUMREGIONS);
 
-  sensorInputs[0] = ForceMeter(0, SERIAL);
-  sensorInputs[1] = LinearEncoder(5,6);
-  sensorInputs[2] = SensorInput(16, ANALOG);
-  sensorInputs[3] = SensorInput(17, DIGITAL);
+  sensorInputs[0] = new ForceMeter(0, -1);
+  sensorInputs[1] = new LinearEncoder(5,6);
+  sensorInputs[2] = new SensorInput(16, ANALOG);
+  sensorInputs[3] = new SensorInput(17, DIGITAL);
 
   //loop through sensorInputs
   for (int i=0; i<NUMINPUTS; i++) {
-	  display.add( &(sensorInputs[i].shortTermDisplay) );
+	  display->add( &(sensorInputs[i]->shortTermDisplay) );
   }
 
   drawMainScreen();
