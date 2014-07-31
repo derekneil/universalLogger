@@ -151,17 +151,17 @@ void logError() {
 }
 
 /** one or both inputs may be deleted depending on size */
-char* strSafeCat(char *str1, char* str2) {
+char* strSafeCat(char *str1, int safeSize, char* str2) {
 	int len1 = strlen(str1);
 	int len2 = strlen(str2);
-	if (!(len1 >= len1+len2)) {
+	if (safeSize >= (len1+len2)) {
 		strcat(str1, str2);
 		free(str2);
 		return str1;
 	}
 	else {
-		char output[len1+len2];
-		strcat(output, str1);
+		char *output = (char*) malloc((len1+len2+1)*sizeof(char));
+		sprintf(output, "%s", str1);
 		free(str1);
 		strcat(output, str2);
 		free(str2);
@@ -173,13 +173,13 @@ void logOutput(){
   
   if (logging==true) {
 
-    char *logStr = (char*) malloc(128*sizeof(char));
-
+	int size = 128;
+    char *logStr = (char*) malloc(size*sizeof(char));
     sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
     
     for (int i=0; i<NUMINPUTS; i++) {
       if(sensorInputs[i].isEnabled()) {
-        logStr = strSafeCat(logStr, sensorInputs[i].logout());
+        logStr = strSafeCat(logStr, size-1, sensorInputs[i].logout());
       }
     }
 
