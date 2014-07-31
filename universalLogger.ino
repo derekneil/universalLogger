@@ -69,7 +69,9 @@ SensorInput sensorInputs[NUMINPUTS]; //array of sensor inputs
 
 void drawMainScreen() {
 	#ifdef DEBUG
-	  Serial.println(F("drawMainScreen()"));
+	  if (Serial) {
+			Serial.println(F("drawMainScreen()"));
+		}
 	#endif
   tft.fillScreen(BACKGROUNDCOLOUR);
 
@@ -82,7 +84,9 @@ void drawMainScreen() {
 
 void drawMainMenu() {
 	#ifdef DEBUG
-	  Serial.println(F("drawMainMenu()"));
+	  if (Serial) {
+			Serial.println(F("drawMainMenu()"));
+		}
 	#endif
 
   //IMP draw back button
@@ -106,7 +110,9 @@ void drawMainMenu() {
 
 void drawIndividualSensorMenu(SensorInput *si) {
 	#ifdef DEBUG
-	  Serial.println(F("drawMainIndividualSensorMenu(...)"));
+	  if (Serial) {
+			Serial.println(F("drawMainIndividualSensorMenu(...)"));
+		}
 	#endif
 
   //IMP draw back button
@@ -143,7 +149,9 @@ void pollSensors() {
 
 void logError() {
 	#ifdef DEBUG
-		Serial.println(F("...log error"));
+		if (Serial) {
+			Serial.println(F("...log error"));
+		}
 	#endif
 	Display::device->setTextSize(4);
 	Display::device->setCursor(130, 140);
@@ -184,7 +192,9 @@ void logOutput(){
     }
 
     #ifdef DEBUG
-      Serial.println(logStr);
+      if (Serial) {
+        Serial.println(logStr);
+    	}
     #endif
 
     //write to sd card
@@ -201,9 +211,11 @@ void logOutput(){
 }
 
 void resetAll() {
-#ifdef DEBUG
-  Serial.println("resetAll()");
-#endif
+  #ifdef DEBUG
+    if (Serial) {
+  		Serial.println("resetAll()");
+  	}
+	#endif
   for (int i=0; i<NUMINPUTS; i++) {
     if(sensorInputs[i].isEnabled()) { //XXX should we do for all of them anyways??
       sensorInputs[i].reset();
@@ -221,8 +233,10 @@ void resetAll() {
 /** zero inputs for sensors that support it */
 void calibrateAll() {
   #ifdef DEBUG
-    Serial.println("calibrate... ");
-  #endif
+    if (Serial) {
+			Serial.println("calibrate... ");
+  	}
+	#endif
 
   for (int i=0; i<NUMINPUTS; i++) {
     if(sensorInputs[i].isEnabled()) { //XXX should we do for all of them anyways??
@@ -233,33 +247,43 @@ void calibrateAll() {
   delay(500);
   
   #ifdef DEBUG
-    Serial.println(F("... and reset complete"));
-  #endif
+    if (Serial) {
+			Serial.println(F("... and reset complete"));
+  	}
+	#endif
   return;
 }
 
 int startLogging() {
   #ifdef DEBUG
-    Serial.print(F("starting new logfile called "));
-  #endif
+    if (Serial) {
+			Serial.print(F("starting new logfile called "));
+  	}
+	#endif
 
   //filename limited by SDFat library to 8 chars name and 3 chars extension
   sprintf(logFileName, "%02d%02d%02d%02d.csv", day(), hour(), minute(), second());
   #ifdef DEBUG
-    Serial.println(logFileName);
-  #endif
+    if (Serial) {
+			Serial.println(logFileName);
+  	}
+	#endif
   
   if( !logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE) ){
 	  logError();
     #ifdef DEBUG
-      Serial.println(F("...log file error"));
-    #endif
+      if (Serial) {
+  			Serial.println(F("...log file error"));
+      }
+	  #endif
     delay(1000);
     return 0;
   }
   else {
 	#ifdef DEBUG
-	  Serial.print(F("datetime, microsr"));
+	  if (Serial) {
+			Serial.print(F("datetime, microsr"));
+		}
 	#endif
 	logFile.println("datetime, micros");
 	for (int i=0; i<NUMINPUTS; i++) {
@@ -268,14 +292,18 @@ int startLogging() {
 		sprintf(headerStr, ", cycles-%d, raw.latest-%d",i+1 ,i+1);
 		logFile.println(headerStr);
 		#ifdef DEBUG
-		  Serial.print(headerStr);
-		#endif
+		  if (Serial) {
+  			Serial.print(headerStr);
+  		}
+  	#endif
 		delete headerStr;
 	  }
 	}
 	logFile.println("");
 	#ifdef DEBUG
-	  Serial.println("");
+	  if (Serial) {
+			Serial.println("");
+		}
 	#endif
     logging = true;
     logFile.close();
@@ -299,8 +327,10 @@ void emptyTouchBuffer() {
   while(!ts.bufferEmpty()) {
     ts.getPoint();
     #ifdef DEBUG
-      Serial.println(F("empty ts buffer"));
-    #endif
+      if (Serial) {
+  			Serial.println(F("empty ts buffer"));
+      }
+  	#endif
 
   }
 }
@@ -311,22 +341,26 @@ int parseTouchBoilerPlate() {
 	  // Scale using the calibration #'s
 	  // and rotate coordinate system
 	  #ifdef DEBUG
-	    Serial.print(F("\noriginal touch at "));
-	    Serial.print(p.x);
-	    Serial.print(F(", "));
-	    Serial.print(p.y);
-	  #endif
+	    if (Serial) {
+  			Serial.print(F("\noriginal touch at "));
+  	    Serial.print(p.x);
+  	    Serial.print(F(", "));
+  	    Serial.print(p.y);
+  	  }
+  	#endif
 	  p.x = map(p.x, TS_MINY, TS_MAXY, 0, tft.height());
 	  p.y = map(p.y, TS_MINX, TS_MAXX, 0, tft.width());
 	  int y = tft.height() - p.x;
 	  int x = p.y;
 
 	  #ifdef DEBUG
-	    Serial.print(F(". mapped to "));
-	    Serial.print(x);
-	    Serial.print(F(", "));
-	    Serial.println(y);
-	  #endif
+	    if (Serial) {
+  			Serial.print(F(". mapped to "));
+  	    Serial.print(x);
+  	    Serial.print(F(", "));
+  	    Serial.println(y);
+  	  }
+  	#endif
 
 	  emptyTouchBuffer();
 
@@ -351,8 +385,10 @@ void parseSensorMenuTouch() {
 	}
 	else {
 	  #ifdef DEBUG
-		Serial.println(F("ignoring menu touch, to soon after last touch"));
-	  #endif
+  		if (Serial) {
+  			Serial.println(F("ignoring menu touch, to soon after last touch"));
+  	  }
+  	#endif
 	}
 }
 
@@ -367,26 +403,32 @@ void parseMenuTouch() {
 
 		//sample logic to be used for menu touch parsing
 
-		//    if (logBtn.isPushed(x,y)) {
-		//      #ifdef DEBUG
-		//        Serial.println(F("logBtn isPushed"));
-		//      #endif
+		   // if (logBtn.isPushed(x,y)) {
+		   //   #ifdef DEBUG
+		   //     if (Serial) {
+			  //          Serial.println(F("logBtn isPushed"));
+		   //   	}
+	         // #endif
 		//      logBtn.push();
 		//      toggleLogging();
 		//      logBtn.draw();
 		//    }
 		//    else if (modeBtn.isPushed(x,y)) {
 		//      #ifdef DEBUG
-		//        Serial.println(F("modeBtn isPushed"));
-		//      #endif
+		//        if (Serial) {
+			Serial.println(F("modeBtn isPushed"));
+		//      	}
+	         // #endif
 		//      modeBtn.push();
 		//      toggleMode();
 		//      modeBtn.draw();
 		//    }
 		//    else if (calBtn.isPushed(x,y)) {
 		//       #ifdef DEBUG
-		//        Serial.println(F("calBtn isPushed"));
-		//      #endif
+		//        if (Serial) {
+			// Serial.println(F("calBtn isPushed"));
+		//      	}
+	         // #endif
 		//      calBtn.push();
 		//      calibrate();
 		//      calBtn.draw();
@@ -398,8 +440,10 @@ void parseMenuTouch() {
 	}
 	else {
 	  #ifdef DEBUG
-		Serial.println(F("ignoring menu touch, to soon after last touch"));
-	  #endif
+		  if (Serial) {
+		    Serial.println(F("ignoring menu touch, to soon after last touch"));
+	  	}
+    #endif
 	}
 }
 
@@ -420,8 +464,10 @@ void parseTouch() {
 	}
 	else {
 	  #ifdef DEBUG
-		Serial.println(F("ignoring touch, to soon after last touch"));
-	  #endif
+  		if (Serial) {
+  			Serial.println(F("ignoring touch, to soon after last touch"));
+  	  }
+  	#endif
 	}
 
 }
@@ -442,26 +488,32 @@ void setup() {
     //serial console
     Serial.begin(9600);
     while (!Serial) {}
-    Serial.println(F("setup begin"));
-  #endif
+			Serial.println(F("setup begin"));
+	#endif
   
   //setup teensy clock
   setSyncProvider(getTeensy3Time);
 	#ifdef DEBUG
-	  Serial.println(F("set sync provider"));
+	  if (Serial) {
+			Serial.println(F("set sync provider"));
+		}
 	#endif
   
   //setup color lcd
   tft.begin();
 	#ifdef DEBUG
-	  Serial.println(F("tft started"));
+	  if (Serial) {
+			Serial.println(F("tft started"));
+		}
 	#endif
 
   #if defined(__TFT_ILI9340__) && (defined(__MK20DX128__) || defined(__MK20DX256__))
     //want try the fastest?
     tft.setBitrate(24000000);
     #ifdef DEBUG
-      Serial.println(F("setBitrate(24000000)"));
+      if (Serial) {
+			 Serial.println(F("setBitrate(24000000)"));
+    	}
     #endif
   #endif
   tft.fillScreen(YELLOW);
@@ -475,21 +527,27 @@ void setup() {
 
   while(!ts.begin()){
     #ifdef DEBUG
-      Serial.println(F("Unable to start touchscreen."));
-    #endif
+      if (Serial) {
+  			Serial.println(F("Unable to start touchscreen."));
+      }
+  	#endif
     tft.println(F("Unable to start touchscreen."));
     delay(500);
   }
 
   #ifdef DEBUG
-    Serial.println("Touchscreen started.");
-  #endif
+    if (Serial) {
+			Serial.println("Touchscreen started.");
+  	}
+	#endif
   
   SdFile::dateTimeCallback(dateTime);
   while (!sd.begin(sdCS, SPI_HALF_SPEED)) {
     #ifdef DEBUG
-      Serial.println(F("Insert microSD card"));
-    #endif
+      if (Serial) {
+  			Serial.println(F("Insert microSD card"));
+      }
+  	#endif
     tft.println(F("Insert microSD card"));
     delay(500);
 
@@ -510,8 +568,10 @@ void setup() {
   drawMainScreen();
 
   #ifdef DEBUG
-    Serial.println(F("setup complete"));
-  #endif
+    if (Serial) {
+			Serial.println(F("setup complete"));
+  	}
+	#endif
 
 } //end setup()
 

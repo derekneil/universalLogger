@@ -1,6 +1,7 @@
 #ifndef GRAPHHIGHLIGH_H
 #define GRAPHHIGHLIGH_H
 
+#include "universalLogger.h"
 #include "Visualization.h"
 #include "Display.h"
 #include "SensorData.h"
@@ -44,15 +45,19 @@ class GraphHighlight : public Visualization {
     GraphHighlight(int x, int y, int w, int h) : Visualization{x,y,w,h}
     {
 		#ifdef DEBUG
-		  Serial.println(F("GraphHighlighted(....) "));
-		#endif
+		  if (Serial) {
+        Serial.println(F("GraphHighlighted(....) "));
+			}
+    #endif
 
     }
 
     void draw(SensorData *data) {
        #ifdef DEBUG
-         Serial.println(F("GraphHighlighted::draw(....) "));
-       #endif
+         if (Serial) {
+			     Serial.println(F("GraphHighlighted::draw(....) "));
+       	}
+	     #endif
 
         //graph side bars
         Display::device->drawFastVLine(  0, 0, h, TEXTCOLOUR); //XXX make these parametric, see GraphScrolling
@@ -64,8 +69,10 @@ class GraphHighlight : public Visualization {
 
     void redraw(SensorData *data) {
 		#ifdef DEBUG
-		  Serial.println(F("GraphHighlighted::redraw(....) "));
-		#endif
+		  if (Serial) {
+        Serial.println(F("GraphHighlighted::redraw(....) "));
+			}
+    #endif
 
       //int data->array[], const int arrayIndex, const int data->size, const int bumped) {
 

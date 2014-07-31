@@ -19,7 +19,9 @@ class SensorData {
 
     SensorData() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData()"));
+			if (Serial) {
+				Serial.println(F("SensorData()"));
+			}
 		#endif
 		array = new int[size];
 		resetStorageAndAvgAndCount();
@@ -27,7 +29,9 @@ class SensorData {
  
     SensorData(int size) {
 		#ifdef DEBUG
-			Serial.println(F("SensorData(...)"));
+			if (Serial) {
+				Serial.println(F("SensorData(...)"));
+			}
 		#endif
 		this->size = size;
 		array = new int[size];
@@ -35,14 +39,18 @@ class SensorData {
 	}
     virtual ~SensorData() {
 		#ifdef DEBUG
-			Serial.println(F("~SensorData()"));
+			if (Serial) {
+				Serial.println(F("~SensorData()"));
+			}
 		#endif
     	delete array;
     }
 
     virtual void insert(int val) {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::insert(...)"));
+			if (Serial) {
+				Serial.println(F("SensorData::insert(...)"));
+			}
 		#endif
 		bumped = array[index];
 		array[index] = val;
@@ -85,14 +93,18 @@ class SensorData {
 
     virtual int latest() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::latest()"));
+			if (Serial) {
+				Serial.println(F("SensorData::latest()"));
+			}
 		#endif
     	return array[index];
     }
 
     virtual int checkAndResetIndex() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::checkAndResetIndex()"));
+			if (Serial) {
+				Serial.println(F("SensorData::checkAndResetIndex()"));
+			}
 		#endif
 
 		if (index==size) {
@@ -104,7 +116,9 @@ class SensorData {
 
     virtual void resetAvg() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::resetAvg()"));
+			if (Serial) {
+				Serial.println(F("SensorData::resetAvg()"));
+			}
 		#endif
     	last10avg = avg = count = 0;
     }
@@ -112,7 +126,9 @@ class SensorData {
     /** as values are pushed out of the data storage, we need to update values */
     virtual void findMinMax() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::FindMinMax()"));
+			if (Serial) {
+				Serial.println(F("SensorData::FindMinMax()"));
+			}
 		#endif
 		findMin();
 		findMax();
@@ -120,7 +136,9 @@ class SensorData {
 
     virtual void findMin() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::FindMin()"));
+			if (Serial) {
+				Serial.println(F("SensorData::FindMin()"));
+			}
 		#endif
 		if (bumped == min) {
 			min = INT_MAX;
@@ -133,7 +151,9 @@ class SensorData {
     }
     virtual void findMax() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::FindMax()"));
+			if (Serial) {
+				Serial.println(F("SensorData::FindMax()"));
+			}
 		#endif
 		if (bumped == max) {
 			max = INT_MIN;
@@ -147,7 +167,9 @@ class SensorData {
 
     virtual void resetMinMax() {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::resetMinMax()"));
+			if (Serial) {
+				Serial.println(F("SensorData::resetMinMax()"));
+			}
 		#endif
 		min = INT_MIN;
 		max = INT_MAX;
@@ -155,7 +177,9 @@ class SensorData {
 
     virtual void resetStorageAndAvgAndCount(int val=0) {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::resetStorage(...)"));
+			if (Serial) {
+				Serial.println(F("SensorData::resetStorage(...)"));
+			}
 		#endif
   		for(int i=0; i<size; i++){
   			array[i] = val;
@@ -165,7 +189,9 @@ class SensorData {
 
     virtual void reset(int val=0) {
 		#ifdef DEBUG
-			Serial.println(F("SensorData::reset(...)"));
+			if (Serial) {
+				Serial.println(F("SensorData::reset(...)"));
+			}
 		#endif
 		resetStorageAndAvgAndCount(val);
 		bumped = 0;

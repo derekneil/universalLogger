@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include "universalLogger.h"
 #include "Visualization.h"
 #include "SensorData.h"
 #include "DisplayElement.h"
@@ -31,9 +32,11 @@ class Graph : public Visualization {
 
     void draw(SensorData *data) {
        #ifdef DEBUG
-         Serial.print(F("Graph::draw(...) "));
+         if (Serial) {
+			     Serial.print(F("Graph::draw(...) "));
          Serial.println(F(type));
-       #endif
+       	}
+	     #endif
 
       if (type==GRAPHSCROLLING) {
         redrawScrollingGraph(centerX-w/2, centerY-h/2, w, h, data);

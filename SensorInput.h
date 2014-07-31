@@ -37,8 +37,10 @@ class SensorInput {
 
     virtual void redrawStat(Stat *stat, int newVal) {
 //		#ifdef DEBUG
-//			Serial.println("SensorInput::redrawStat()");
-//		#endif
+//			if (Serial) {
+                // Serial.println("SensorInput::redrawStat()");
+//			}
+	   // #endif
 		char tempString[5];
 		sprintf(tempString, "%4d", newVal);
 		delete stat->lastValue; //free memory
@@ -48,8 +50,10 @@ class SensorInput {
 
     virtual void redrawStats(SensorData *sensorData, SensorDisplay *sensorDisplay, int newVal) {
 		#ifdef DEBUG
-			Serial.println("SensorInput::redrawStats(...)");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::redrawStats(...)");
+    			}
+    	#endif
         redrawStat(&(sensorDisplay->stats.latest),    newVal);
         redrawStat(&(sensorDisplay->stats.min),       sensorData->min);
         redrawStat(&(sensorDisplay->stats.avg),       sensorData->avg);
@@ -69,8 +73,10 @@ class SensorInput {
 		longTermDisplay  {&longTermData}
     {
 		#ifdef DEBUG
-			Serial.println("SensorInput()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput()");
+    		}
+    	#endif
     }
 
     SensorInput(int pin, int type) : 
@@ -81,8 +87,10 @@ class SensorInput {
 		longTermDisplay  {&longTermData}
     {
 		#ifdef DEBUG
-			Serial.println("SensorInput(...)");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput(...)");
+    		}
+    	#endif
         this->pin = pin;
         this->type = type;
         if (pin > 0) {
@@ -97,14 +105,18 @@ class SensorInput {
 
     virtual ~SensorInput() {
 		#ifdef DEBUG
-			Serial.println("~SensorInput()");
-		#endif
+			if (Serial) {
+    			Serial.println("~SensorInput()");
+    		}
+    	#endif
     }
 
     virtual void toggleMode() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::toggleMode(...)");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::toggleMode(...)");
+    		}
+    	#endif
         if (mode==DYNAMIC) {
             mode = STATIC;
         }
@@ -118,8 +130,10 @@ class SensorInput {
     */
     virtual int poll() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::poll()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::poll()");
+    		}
+    	#endif
         int newReading = -1;
 		if (pin > -1) {
 			if (type==ANALOG) {
@@ -145,22 +159,28 @@ class SensorInput {
     */
     virtual int intervalLapsed(int newReading) {
 		#ifdef DEBUG
-			Serial.println("SensorInput::intervalLapsed(...)");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::intervalLapsed(...)");
+    		}
+    	#endif
         int lapsed = 0;
 
         if( mode == DYNAMIC ) {
             if (dynamicLock==LOCK && newReading > high) {
                 dynamicLock = UNLOCK;
                 #ifdef DEBUG
-                    Serial.println("interval - dynamicLock UNLOCKED");
-                #endif
+                    if (Serial) {
+            			Serial.println("interval - dynamicLock UNLOCKED");
+                    }
+            	#endif
             }
             else if (dynamicLock==UNLOCK && newReading < low) {
                 dynamicLock = LOCK;
                 #ifdef DEBUG
-                    Serial.println("interval lapsed - dynamicLock LOCKed");
-                #endif
+                    if (Serial) {
+            			Serial.println("interval lapsed - dynamicLock LOCKed");
+                    }
+            	#endif
                 lapsed = 1;
             }
         }
@@ -168,8 +188,10 @@ class SensorInput {
             int timeCheck = micros() - lastIntervalTime;
             if (timeCheck > interval){
                 #ifdef DEBUG
-                    Serial.println("interval lapsed - time up");
-                #endif
+                    if (Serial) {
+            			Serial.println("interval lapsed - time up");
+                    }
+            	#endif
                 lapsed = 1;
             }
         }
@@ -177,8 +199,10 @@ class SensorInput {
         //make sure storage isn't overflowing
         if (rawData.checkAndResetIndex()) {
             #ifdef DEBUG
-                Serial.println("interval still going - wrapping around data storage");
-            #endif
+                if (Serial) {
+        			Serial.println("interval still going - wrapping around data storage");
+                }
+        	#endif
         }
         return lapsed;
     }
@@ -194,8 +218,10 @@ class SensorInput {
     */
     virtual void updateDataAndRedrawStats(int newReading) {
 		#ifdef DEBUG
-			Serial.println("SensorInput::updateDataAndStats(...)");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::updateDataAndStats(...)");
+    		}
+    	#endif
         rawData.insert(newReading);
 
         //see if interval is up or raw data is full
@@ -240,8 +266,10 @@ class SensorInput {
 
     virtual void draw() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::draw()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::draw()");
+    		}
+    	#endif
         if (shortTermDisplay.enabled) {
         	shortTermDisplay.draw();
         }
@@ -252,24 +280,30 @@ class SensorInput {
 
     virtual void updateViz() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::updateViz()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::updateViz()");
+    		}
+    	#endif
 		shortTermDisplay.redraw();
 		longTermDisplay.redraw();
     }
 
     virtual int isEnabled() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::isEnabled()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::isEnabled()");
+    		}
+    	#endif
         return shortTermDisplay.enabled || longTermDisplay.enabled;
     }
 
     /** calling method responsible for freeing memory */
     virtual char* logout() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::logout()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::logout()");
+    		}
+    	#endif
 		char *output = (char*) malloc(16*sizeof(char));
     	if (isEnabled()) {
 			sprintf(output, ", %d, %d", cycles, rawData.latest()); //change headers in
@@ -279,8 +313,10 @@ class SensorInput {
 
     virtual void reset() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::reset()");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::reset()");
+    		}
+    	#endif
         if (mode==DYNAMIC) {
             dynamicLock = LOCK;
         }
@@ -297,8 +333,10 @@ class SensorInput {
 
     virtual void calibrate() {
 		#ifdef DEBUG
-			Serial.println("SensorInput::calibrate() not implemented");
-		#endif
+			if (Serial) {
+    			Serial.println("SensorInput::calibrate() not implemented");
+    		}
+    	#endif
     }
 
 };

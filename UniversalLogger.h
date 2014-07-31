@@ -19,7 +19,6 @@
 #define STDWIDTH 158
 #define STDHEIGHT 118
 
-#define SERIAL -1
 #define ANALOG 0
 #define DIGITAL 1
 

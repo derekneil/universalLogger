@@ -8,7 +8,9 @@
 
 Stats::Stats() : DisplayElement {} {
 	#ifdef DEBUG
-		Serial.println(F("Stats()"));
+		if (Serial) {
+			Serial.println(F("Stats()"));
+		}
 	#endif
 }
 
@@ -25,7 +27,9 @@ Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=S
 	latest    {centerX+119, centerY+20, w/2, h/3}
 {
 	#ifdef DEBUG
-		Serial.println(F("Stats(...)"));
+		if (Serial) {
+			Serial.println(F("Stats(...)"));
+		}
 	#endif
 	min      .label = "min: ";
 	max      .label = "max: ";
@@ -37,7 +41,9 @@ Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=S
 
 int Stats::operator== (const Stats param) {
 	#ifdef DEBUG
-		Serial.println(F("Stats::operator=="));
+		if (Serial) {
+			Serial.println(F("Stats::operator=="));
+		}
 	#endif
 	if (
 			min       == param.min       &&
@@ -57,7 +63,9 @@ int Stats::operator== (const Stats param) {
 /** depricated, you should call locateAndSize */
 void Stats::locate(int centerX, int centerY){
 	#ifdef DEBUG
-		Serial.println(F("Stats::locate(...)"));
+		if (Serial) {
+			Serial.println(F("Stats::locate(...)"));
+		}
 	#endif
 	DisplayElement::locate(centerX,centerY);
 	min       .locate(centerX+40,  centerY+4 );
@@ -70,7 +78,9 @@ void Stats::locate(int centerX, int centerY){
 
 void Stats::locateAndSize(int centerX, int centerY, int w, int h){
 	#ifdef DEBUG
-		Serial.println(F("Stats::locateAndSize(...)"));
+		if (Serial) {
+			Serial.println(F("Stats::locateAndSize(...)"));
+		}
 	#endif
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
 	min       .locateAndSize(centerX+40,  centerY+4,  w/2, h/3);
@@ -83,7 +93,9 @@ void Stats::locateAndSize(int centerX, int centerY, int w, int h){
 
 void Stats::draw() {
 	#ifdef DEBUG
-		Serial.println(F("Stats::draw()"));
+		if (Serial) {
+			Serial.println(F("Stats::draw()"));
+		}
 	#endif
 	min      .draw();
 	max      .draw();
@@ -95,7 +107,9 @@ void Stats::draw() {
 
 void Stats::redraw() {
 	#ifdef DEBUG
-		Serial.println(F("Stats::redraw()"));
+		if (Serial) {
+			Serial.println(F("Stats::redraw()"));
+		}
 	#endif
 	min      .redraw();
 	max      .redraw();

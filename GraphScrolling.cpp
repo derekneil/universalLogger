@@ -23,7 +23,9 @@ void GraphScrolling::redrawSingleGraphLines(int *startX, int last, int temp) {
 
 GraphScrolling::GraphScrolling() {
 	#ifdef DEBUG
-		Serial.println(F("GraphScrolling()"));
+		if (Serial) {
+			Serial.println(F("GraphScrolling()"));
+		}
 	#endif
 
 }
@@ -32,7 +34,9 @@ GraphScrolling::GraphScrolling(int centerX, int centerY, int w, int h) :
 	Visualization {centerX,centerY,w,h}
 {
 	#ifdef DEBUG
-		Serial.println(F("GraphScrolling(...)"));
+		if (Serial) {
+			Serial.println(F("GraphScrolling(...)"));
+		}
 	#endif
 
 }
@@ -40,20 +44,22 @@ GraphScrolling::GraphScrolling(int centerX, int centerY, int w, int h) :
 /** this should only be called once to draw after a screen change,
 * otherwise use redraw for better performance */
 void GraphScrolling::draw(SensorData *data) {
-#ifdef DEBUG
-	Serial.println(F("GraphScrolling::draw()"));
-#endif
+  #ifdef DEBUG
+    if (Serial) {
+      Serial.println(F("GraphScrolling::draw()"));
+    }
+	#endif
   Visualization::clear();
 
-  int startX = centerX-w/2;
-  int startY = centerY-h/2;
+ int startX = centerX-w/2;
+ int startY = centerY-h/2;
 
   //draw graph side bars, these might get redrawn by adjacent sensor display, but that's ok
-  Display::device->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
-  Display::device->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
+ Display::device->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
+ Display::device->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
 
   //draw graph from scratch
-  {
+ {
   int i = data->index + 1;
   if (i==data->size) { i=0; } //avoids % operation
 
@@ -64,29 +70,31 @@ void GraphScrolling::draw(SensorData *data) {
   //loop through all the middle values in the graph
   while( i!=data->index ) {
 
-	Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
-	if (doubleWidth) {
-	  Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
-	}
-	i++;
-	if (i==data->size) { i=0; } //avoids % operation
-	temp = data->array[i]/divider;
-	if(temp < 0) { temp=0; }
+     Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+     if (doubleWidth) {
+       Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+     }
+     i++;
+  	if (i==data->size) { i=0; } //avoids % operation
+  	temp = data->array[i]/divider;
+  	if(temp < 0) { temp=0; }
   }
 
   //draw latest value added to graph
   Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
   if (doubleWidth) {
-	Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+  	Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
   }
-  }
+ }
 
 }
 
 void GraphScrolling::redraw(SensorData *data) {
-#ifdef DEBUG
-Serial.println(F("GraphScrolling::redraw()"));
-#endif
+  #ifdef DEBUG
+    if (Serial) {
+			Serial.println(F("GraphScrolling::redraw()"));
+    }
+	#endif
 
   int i = data->index + 1;
   if (i==data->size) { i=0; }

@@ -1,6 +1,7 @@
 #ifndef VISUALIZATION_H
 #define VISUALIZATION_H
 
+#include "universalLogger.h"
 #include "DisplayElement.h"
 #include "SensorData.h"
 

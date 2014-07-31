@@ -17,7 +17,9 @@
 
 Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
 	#ifdef DEBUG
-		Serial.println(F("Display(...)"));
+		if (Serial) {
+			Serial.println(F("Display(...)"));
+		}
 	#endif
 	device     = tft;
 	touch      = ts;
@@ -27,46 +29,54 @@ Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
 	SDs = new SensorDisplay[regions];
 
 	 #ifdef DEBUG
-		Serial.print("tft height: ");
-		 Serial.print(device->height());
-		 if (device->height()==SCREENHEIGHT) {
-		   Serial.println(" as expected :)");
-		 }
-		 else {
-		   Serial.print(" does not match ");
-		   Serial.print(SCREENHEIGHT);
-		   Serial.println(" DANGER!!!!");
-		 }
-		 Serial.print("tft width: ");
-		 Serial.print(device->width());
-			 if (device->width()==SCREENWIDTH) {
-		   Serial.println(" as expected :)");
-		 }
-		 else {
-		   Serial.print(" does not match ");
-		   Serial.print(SCREENWIDTH);
-		   Serial.println(" DANGER!!!!");
-		 }
-	   #endif
+		if (Serial) {
+			Serial.print("tft height: ");
+			Serial.print(device->height());
+			if (device->height()==SCREENHEIGHT) {
+				Serial.println(" as expected :)");
+			}
+			else {
+				Serial.print(" does not match ");
+				Serial.print(SCREENHEIGHT);
+				Serial.println(" DANGER!!!!");
+			}
+			Serial.print("tft width: ");
+			Serial.print(device->width());
+			if (device->width()==SCREENWIDTH) {
+				Serial.println(" as expected :)");
+			}
+			else {
+				Serial.print(" does not match ");
+				Serial.print(SCREENWIDTH);
+				Serial.println(" DANGER!!!!");
+			}
+	   	}
+	#endif
 }
 
 Display::~Display() {
 	#ifdef DEBUG
-		Serial.println(F("~Display()"));
+		if (Serial) {
+			Serial.println(F("~Display()"));
+		}
 	#endif
 	delete SDs;
 }
 
 int Display::hasSpace() {
 	#ifdef DEBUG
-		Serial.print(F("Display::hasSpace()"));
+		if (Serial) {
+			Serial.print(F("Display::hasSpace()"));
+		}
 	#endif
 	return numSDs<numRegions;
 }
 
 int Display::remove(SensorDisplay *sd) {
 	#ifdef DEBUG
-		Serial.println(F("Display::remove(...)"));
+		if (Serial) {
+			Serial.println(F("Display::remove(...)"));
+		}
 	#endif
 	//loop through array of active SensorDisplays
 	for (int i=0; i<numRegions; i++ ) {
@@ -89,7 +99,9 @@ int Display::remove(SensorDisplay *sd) {
 
 void Display::updateDisplayLayout() {
 	#ifdef DEBUG
-		Serial.println(F("Display::changeDisplayLayout()"));
+		if (Serial) {
+			Serial.println(F("Display::changeDisplayLayout()"));
+		}
 	#endif
 
 	switch (numSDs) {
@@ -135,7 +147,9 @@ void Display::updateDisplayLayout() {
 
 int Display::add(SensorDisplay *sd) {
 	#ifdef DEBUG
-		Serial.println(F("Display::add(...)"));
+		if (Serial) {
+			Serial.println(F("Display::add(...)"));
+		}
 	#endif
 	if (!hasSpace()) {
 		return false;
