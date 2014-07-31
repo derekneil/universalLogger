@@ -1,3 +1,5 @@
+#include "universalLogger.h"
+
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9340.h>
@@ -8,14 +10,13 @@
 #include <Wire.h>
 #include <Adafruit_STMPE610.h>
 
+#include "Display.h"
 #include "ForceMeter.h"
 #include <Encoder.h>
 #include "LinearEncoder.h"
 #include "SensorInput.h"
 #include "SensorDisplay.h"
 #include "TouchButton.h"
-
-#include "universalLogger.h"
 
 #if defined(__SAM3X8E__)
     #undef __FlashStringHelper::F(string_literal)
@@ -67,6 +68,9 @@ SensorInput sensorInputs[NUMINPUTS]; //array of sensor inputs
 
 
 void drawMainScreen() {
+	#ifdef DEBUG
+	  Serial.println(F("drawMainScreen()"));
+	#endif
   tft.fillScreen(BACKGROUNDCOLOUR);
 
   for (int i=0; i<NUMREGIONS; i++) {
@@ -77,6 +81,9 @@ void drawMainScreen() {
 }
 
 void drawMainMenu() {
+	#ifdef DEBUG
+	  Serial.println(F("drawMainMenu()"));
+	#endif
 
   //IMP draw back button
 
@@ -98,6 +105,9 @@ void drawMainMenu() {
 }
 
 void drawIndividualSensorMenu(SensorInput *si) {
+	#ifdef DEBUG
+	  Serial.println(F("drawMainIndividualSensorMenu(...)"));
+	#endif
 
   //IMP draw back button
 
@@ -132,12 +142,12 @@ void pollSensors() {
 }
 
 void logError() {
+	#ifdef DEBUG
+		Serial.println(F("...log error"));
+	#endif
 	Display::device->setTextSize(4);
 	Display::device->setCursor(130, 140);
 	Display::device->print("LOG ERROR");
-	#ifdef DEBUG
-		Serial.println(F("...log file error"));
-	#endif
 }
 
 /** one or both inputs may be deleted depending on size */
@@ -146,15 +156,15 @@ char* strSafeCat(char *str1, char* str2) {
 	int len2 = strlen(str2);
 	if (!(len1 >= len1+len2)) {
 		strcat(str1, str2);
-		delete str2;
+		free(str2);
 		return str1;
 	}
 	else {
 		char output[len1+len2];
 		strcat(output, str1);
-		delete str1;
+		free(str1);
 		strcat(output, str2);
-		delete str2;
+		free(str2);
 		return output;
 	}
 }
@@ -173,21 +183,19 @@ void logOutput(){
       }
     }
 
-    //write to sd card
-    if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
-      logFile.println(logStr);
-      logFile.close();
     #ifdef DEBUG
       Serial.println(logStr);
     #endif
-    }
-    else {
+
+    //write to sd card
+    if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
     	logError();
     	free(logStr);
     	while(1) {}
     }
+	logFile.println(logStr);
+	logFile.close();
     free(logStr);
-
   }
   
 }
@@ -439,9 +447,15 @@ void setup() {
   
   //setup teensy clock
   setSyncProvider(getTeensy3Time);
+	#ifdef DEBUG
+	  Serial.println(F("set sync provider"));
+	#endif
   
   //setup color lcd
   tft.begin();
+	#ifdef DEBUG
+	  Serial.println(F("tft started"));
+	#endif
 
   #if defined(__TFT_ILI9340__) && (defined(__MK20DX128__) || defined(__MK20DX256__))
     //want try the fastest?
@@ -450,16 +464,20 @@ void setup() {
       Serial.println(F("setBitrate(24000000)"));
     #endif
   #endif
+  tft.fillScreen(YELLOW);
+  tft.fillScreen(GREEN);
+  tft.fillScreen(RED);
+  tft.fillScreen(MAGENTA);
   tft.fillScreen(BACKGROUNDCOLOUR);
   tft.setTextColor(TEXTCOLOUR);
   tft.setTextSize(1);
   tft.setRotation(1);
 
   while(!ts.begin()){
-    tft.println(F("Unable to start touchscreen."));
     #ifdef DEBUG
       Serial.println(F("Unable to start touchscreen."));
     #endif
+    tft.println(F("Unable to start touchscreen."));
     delay(500);
   }
 
@@ -469,11 +487,11 @@ void setup() {
   
   SdFile::dateTimeCallback(dateTime);
   while (!sd.begin(sdCS, SPI_HALF_SPEED)) {
-    tft.println(F("Insert microSD card"));
-    delay(500);
     #ifdef DEBUG
       Serial.println(F("Insert microSD card"));
     #endif
+    tft.println(F("Insert microSD card"));
+    delay(500);
 
   }
 
@@ -508,5 +526,7 @@ void loop() {
     parseTouch();
   }
   
+  //FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
+
 } //end loop()
 

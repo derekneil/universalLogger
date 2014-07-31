@@ -55,7 +55,7 @@ class SensorData {
 			avg /= count;
 		}
 		else if (count>size) {
-			(avg*size - bumped + val) / size;
+			avg = (avg*size - bumped + val) / size;
 		}
 
 		//update last10avg

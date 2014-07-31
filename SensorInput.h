@@ -270,7 +270,7 @@ class SensorInput {
 		#ifdef DEBUG
 			Serial.println("SensorInput::logout()");
 		#endif
-    	char output[13];
+		char *output = (char*) malloc(16*sizeof(char));
     	if (isEnabled()) {
 			sprintf(output, ", %d, %d", cycles, rawData.latest()); //change headers in
     	}

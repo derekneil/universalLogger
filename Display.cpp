@@ -28,7 +28,7 @@ Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
 
 	 #ifdef DEBUG
 		Serial.print("tft height: ");
-		 Serial.print(device->`height());
+		 Serial.print(device->height());
 		 if (device->height()==SCREENHEIGHT) {
 		   Serial.println(" as expected :)");
 		 }
