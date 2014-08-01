@@ -5,17 +5,15 @@
 #include "universalLogger.h"
 #include "SensorDisplay.h"
 #include <Adafruit_ILI9340.h>
-//#include <Adafruit_STMPE610.h> //library doesn't have ifndef check in the header....
+#include <Adafruit_STMPE610.h>
 
 	int                Display::numSDs;
-	int                Display::lastNumSDs;
-	SensorDisplay     *Display::SDs;
 	int                Display::numRegions;
 
 	Adafruit_ILI9340  *Display::device;
 	Adafruit_STMPE610 *Display::touch;
 
-Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
+Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts) {
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("Display(...)"));
@@ -24,9 +22,7 @@ Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions) {
 	device     = tft;
 	touch      = ts;
 	numSDs     = 0;
-	lastNumSDs = -1;
-	numRegions = regions;
-	SDs = new SensorDisplay[regions];
+	numRegions = NUMREGIONS;
 
 	 #ifdef DEBUG
 		if (Serial) {
@@ -66,7 +62,7 @@ Display::~Display() {
 int Display::hasSpace() {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.print(F("Display::hasSpace()"));
+			Serial.println(F("Display::hasSpace()"));
 		}
 	#endif
 	return numSDs<numRegions;
@@ -81,14 +77,13 @@ int Display::remove(SensorDisplay *sd) {
 	//loop through array of active SensorDisplays
 	for (int i=0; i<numRegions; i++ ) {
 		//match the one we're looking for
-		if (SDs[i] == sd && sd->enabled) {
+		if (sd->enabled && SDs[i] == sd) {
 
 			//disable it
 			sd->enabled = 0;
 
 			//set this memory address in the array as blank
-			SDs[i] = NULL; //TODO figure out best way to have empty spots in the array of SensorDisplay's or use a linked list :/
-			lastNumSDs = numSDs;
+			SDs[i] = nullptr;
 			numSDs--;
 			updateDisplayLayout();
 			return true;
@@ -100,7 +95,7 @@ int Display::remove(SensorDisplay *sd) {
 void Display::updateDisplayLayout() {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("Display::changeDisplayLayout()"));
+			Serial.println(F("Display::updateDisplayLayout()"));
 		}
 	#endif
 
@@ -108,39 +103,39 @@ void Display::updateDisplayLayout() {
 
 		case 1:
 			// single full screen SensorDisplay
-			SDs[0].locateAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);
-			SDs[0].viz->doubleWidth = true;
+			SDs[0]->locateAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);
+			SDs[0]->viz->doubleWidth = true;
 			break;
 
 		case 2:
 			//two equal size tall SensorDisplay's
-			SDs[0].locateAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
-			SDs[0].viz->doubleWidth = false;
-			SDs[1].locateAndSize(CENTER_X2, CENTER_Y, HALFWIDTH, FULLHEIGHT);
-			SDs[1].viz->doubleWidth = false;
+			SDs[0]->locateAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
+			SDs[0]->viz->doubleWidth = false;
+			SDs[1]->locateAndSize(CENTER_X2, CENTER_Y, HALFWIDTH, FULLHEIGHT);
+			SDs[1]->viz->doubleWidth = false;
 			break;
 
 		case 3:
 			//first Sensor Display is full height
-			SDs[0].locateAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
-			SDs[0].viz->doubleWidth = false;
+			SDs[0]->locateAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
+			SDs[0]->viz->doubleWidth = false;
 			//other two are half height
-			SDs[1].locateAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
-			SDs[1].viz->doubleWidth = false;
-			SDs[2].locateAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
-			SDs[2].viz->doubleWidth = false;
+			SDs[1]->locateAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
+			SDs[1]->viz->doubleWidth = false;
+			SDs[2]->locateAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
+			SDs[2]->viz->doubleWidth = false;
 			break;
 
 		case 4:
 			//four equal size SensorDisplay's
-			SDs[0].locateAndSize(CENTER_X1, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
-			SDs[0].viz->doubleWidth = false;
-			SDs[1].locateAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
-			SDs[1].viz->doubleWidth = false;
-			SDs[2].locateAndSize(CENTER_X1, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
-			SDs[2].viz->doubleWidth = false;
-			SDs[3].locateAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
-			SDs[3].viz->doubleWidth = false;
+			SDs[0]->locateAndSize(CENTER_X1, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
+			SDs[0]->viz->doubleWidth = false;
+			SDs[1]->locateAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
+			SDs[1]->viz->doubleWidth = false;
+			SDs[2]->locateAndSize(CENTER_X1, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
+			SDs[2]->viz->doubleWidth = false;
+			SDs[3]->locateAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
+			SDs[3]->viz->doubleWidth = false;
 			break;
 	}
 }
@@ -155,15 +150,14 @@ int Display::add(SensorDisplay *sd) {
 		return false;
 	}
 	for (int i=0; i<numRegions; i++ ) {
-		// see if there's space
-		if (SDs[i] == NULL) { //TODO figure out best way to have empty spots in the array of SensorDisplay's or use a linked list :/
+		// find first free spot
+		if (SDs[i]==nullptr) {
 
 			//enable it
 			sd->enabled = 1;
 
 			//set this memory address in the array
 			SDs[i] = sd;
-			lastNumSDs = numSDs;
 			numSDs++;
 			updateDisplayLayout();
 			return true;

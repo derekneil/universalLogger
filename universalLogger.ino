@@ -554,7 +554,7 @@ void setup() {
 
   }
 
-  display = new Display(&tft, &ts, NUMREGIONS);
+  display = new Display(&tft, &ts);
 
   sensorInputs[0] = new ForceMeter(0, -1);
   sensorInputs[1] = new LinearEncoder(5,6);

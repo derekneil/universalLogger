@@ -27,7 +27,7 @@ class ForceMeter : public SensorInput {
 		{
 			#ifdef DEBUG
 				if (Serial) {
-					Serial.print(F("ForceMeter()"));
+					Serial.println(F("ForceMeter()"));
 				}
 			#endif
 			LOADCELL.begin(19200, SERIAL_8N1_RXINV_TXINV);	
