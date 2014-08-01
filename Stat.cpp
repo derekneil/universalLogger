@@ -23,13 +23,12 @@ Stat::~Stat() {
 			Serial.println(F("~Stat() "));
 		}
 	#endif
-	delete label;
-	delete lastValue;
+//	free(label);    //FIXME memory leak???? code was hanging here, and with delete
+//	free(lastValue);
 }
 
 int Stat::operator== (const Stat param) {
-	if (
-			centerX   == param.centerX   &&
+	if (	centerX   == param.centerX   &&
 			centerY   == param.centerY   &&
 			w         == param.w         &&
 			h         == param.h         &&
@@ -86,7 +85,7 @@ void Stat::redraw() {
 }
 
 void Stat::reset() {
-	delete lastValue;
+//	delete lastValue;	//FIXME memory leak???? code was hanging here, and with delete
 	lastValue = "";
 }
 

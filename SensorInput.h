@@ -64,6 +64,7 @@ class SensorInput {
   public:
 	SensorDisplay shortTermDisplay;
 	SensorDisplay longTermDisplay;
+	char *label = nullptr;
 
     SensorInput() :
 		rawData          {RAWDATASIZE},
@@ -96,9 +97,11 @@ class SensorInput {
         if (pin > 0) {
             if (type==DIGITAL) {
                 pinMode(pin, INPUT_PULLUP);
+                label = "digital";
             }
             else if (type==ANALOG) {
                 pinMode(pin, INPUT);
+                label = "analog";
             }
         }
     }

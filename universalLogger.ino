@@ -19,8 +19,8 @@
 #include "TouchButton.h"
 
 #if defined(__SAM3X8E__)
-    #undef __FlashStringHelper::F(string_literal)
-    #define F(string_literal) string_literal
+#undef __FlashStringHelper::F(string_literal)
+#define F(string_literal) string_literal
 #endif
 
 const int divider = 5; // = (max expected input ~1000 )/ GRAPHHEIGHT //FIXME divider update based on max input seen?
@@ -40,8 +40,10 @@ Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
 #define TS_MAXY 4000
 #define MINTOUCHINTERVAL 500
 int lastTouchTime = 0;
+int touchX = 0;
+int touchY = 0;
 #ifdef DEBUG
-  uint8_t checkBit = 0;
+uint8_t checkBit = 0;
 #endif
 
 //SD card reader
@@ -55,14 +57,12 @@ SdFat sd;
 SdFile logFile;
 char logFileName[13]; //limited by 8.3 fat filesystem naming :(
 
+//main screen
+	Display *display;
+SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
+
 //menu screen
 TouchButton *logBtn;
-TouchButton *modeBtn;
-TouchButton *calBtn;
-
-//main screen
-Display *display;
-SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
@@ -70,82 +70,211 @@ SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
 
 void drawMainScreen() {
 	#ifdef DEBUG
-	  if (Serial) {
+		if (Serial) {
 			Serial.println(F("drawMainScreen()"));
 		}
 	#endif
-  tft.fillScreen(BACKGROUNDCOLOUR);
 
-  for (int i=0; i<NUMREGIONS; i++) {
-    //draw each enabled sensorInput from scratch
-    sensorInputs[i]->draw();
-  }
+	//clear the screen of what ever was there
+	tft.fillScreen(BACKGROUNDCOLOUR);
+	tft.setTextSize(1);
 
+	for (int i=0; i<NUMREGIONS; i++) {
+		sensorInputs[i]->draw(); //XXX each of these checks to see if it's active, alternatively Display could have something that loops through it's regions and just calls draw on those...
+	}
 }
 
 void drawMainMenu() {
 	#ifdef DEBUG
-	  if (Serial) {
+		if (Serial) {
 			Serial.println(F("drawMainMenu()"));
 		}
 	#endif
 
-  //IMP draw back button
+	tft.fillScreen(YELLOW);
+	tft.setTextSize(2);
 
-  //IMP draw LOG label & toggle switch
-  // logBtn.draw();
+	TouchButton backBtn(  CENTER_X1, CENTER_Y1-30, "Back");
+	backBtn.draw();
+	if (logging==false) {
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "LOG OFF");
+	}
+	else {
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "LOG ON");
+	}
 
-  //IMP draw global RESET, MODE, CALIBRATE buttons
-  // resetAllBtn.draw();
-  // modeAllBtn.draw();
-  // calAllBtn.draw();
-  
-  //IMP listen for touch events in infinite loop
-  if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
-    parseMenuTouch();
-  }
+	TouchButton calAllBtn(  CENTER_X2-10, CENTER_Y1-30, "Calibrate All");
+	TouchButton resetAllBtn(CENTER_X2-10, CENTER_Y1+30, "Reset All");
+	//TouchButton modeAllBtn(CENTER_X2-40, 100, "Mode All");
+	logBtn->draw();
+	resetAllBtn.draw();
+	calAllBtn.draw();
+	// modeAllBtn.draw();
 
-  //IMP touching back button breaks out of loop to return 
 
+	#ifdef DEBUG
+		Stats stats(CENTER_X, CENTER_Y2, STDWIDTH, STATHEIGHT*2);
+	#endif
+
+	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
+
+	//XXX make this parametric to the number of inputs... and put them in a pretty order...
+	inputButtons[0] = new TouchButton(CENTER_X1, CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
+	inputButtons[1] = new TouchButton(CENTER_X1, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
+	inputButtons[2] = new TouchButton(CENTER_X2, CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
+	inputButtons[3] = new TouchButton(CENTER_X2, CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
+
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("drawMainMenu() listen for menu touch"));
+		}
+	#endif
+
+	while (1) {
+		if (!(ts.bufferEmpty())) {
+			if (parseTouchBoilerPlate()) {
+
+				if (backBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("backBtn isPushed"));
+						}
+					#endif
+					backBtn.push();
+					break; //break out of this menu's touch loop
+				}
+				else if (logBtn->isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+					if (Serial) {
+						Serial.println(F("logBtn isPushed"));
+					}
+					#endif
+					logBtn->push();
+					toggleLogging();
+					logBtn->draw();
+				}
+//				else if (modeBtn.isPushed(touchX,touchY)) {
+//					#ifdef DEBUG
+//						if (Serial) {
+//							Serial.println(F("modeBtn isPushed"));
+//						}
+//					#endif
+//					modeBtn.push();
+//					toggleMode();
+//					modeBtn.draw();
+//				}
+				else if (calAllBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("calAllBtn isPushed"));
+						}
+					#endif
+					calAllBtn.push();
+					calibrateAll();
+					calAllBtn.draw();
+				}
+				else if (resetAllBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("resetAllBtn isPushed"));
+						}
+					#endif
+					resetAllBtn.push();
+					resetAll();
+					resetAllBtn.draw();
+				}
+
+				else{
+					for (int i=0; i<NUMINPUTS; i++) {
+						if (inputButtons[i]->isPushed(touchX,touchY)) {
+							#ifdef DEBUG
+								if (Serial) {
+									Serial.print(inputButtons[i]->getLabel());
+									Serial.println(F("Btn isPushed"));
+								}
+							#endif
+							inputButtons[i]->push();
+							drawIndividualSensorMenu(inputButtons[i]->obj);
+							break;
+						}
+					}
+				}
+
+				//some buttons seemed to get pushed again for some reason...
+				emptyTouchBuffer();
+
+			}
+			else {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println(F("ignoring menu touch, to soon after last touch"));
+					}
+				#endif
+			}
+		}
+	} // close whiLe
 }
 
 void drawIndividualSensorMenu(SensorInput *si) {
 	#ifdef DEBUG
-	  if (Serial) {
-			Serial.println(F("drawMainIndividualSensorMenu(...)"));
-		}
+	if (Serial) {
+		Serial.print(F("drawMainIndividualSensorMenu(...) "));
+		Serial.println(si->label);
+	}
 	#endif
 
-  //IMP draw back button
+	tft.fillScreen(GREEN);
 
-  //IMP draw controls for each of the inputs for a sensor
+	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
+	backBtn.draw();
 
-  //IMP draw specialized controls for loadcell and linearEnc???
+	//IMP draw controls for each of the inputs for a sensor
 
-  //IMP listen for touch events in infinite loop
+	//IMP draw specialized controls for loadcell and linearEnc???
+
 	while (1) {
-		if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
-			parseSensorMenuTouch();
-		}
-	}
+		if (!(ts.bufferEmpty())) {
+			if (parseTouchBoilerPlate()) {
 
-  //IMP touching back button breaks out of loop to return 
+				if (backBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("backBtn isPushed"));
+						}
+					#endif
+					backBtn.push();
+					break; //break out of this menu's touch loop
+				}
+
+				//IMP implement touch buttons for all the SensorInput variables we want to control
+
+			}
+			else {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println(F("ignoring menu touch, to soon after last touch"));
+					}
+				#endif
+			}
+		}
+	}//end while
+
 }
 
 //-----------------------------------------------------------------------------
 
 void pollSensors() {
 
-  //loop through sensorInputs
-  for (int i=0; i<NUMINPUTS; i++) {
+	//loop through sensorInputs
+	for (int i=0; i<NUMINPUTS; i++) {
 
-    if(sensorInputs[i]->isEnabled()) {
+		if(sensorInputs[i]->isEnabled()) {
 
-		int newReading = sensorInputs[i]->poll();
-		sensorInputs[i]->updateDataAndRedrawStats(newReading);
-		sensorInputs[i]->updateViz();
-    }
-  }
+			int newReading = sensorInputs[i]->poll();
+			sensorInputs[i]->updateDataAndRedrawStats(newReading);
+			sensorInputs[i]->updateViz();
+		}
+	}
 }
 
 void logError() {
@@ -179,273 +308,199 @@ char* strSafeCat(char *str1, int safeSize, char* str2) {
 }
 
 void logOutput(){
-  
-  if (logging==true) {
 
-	int size = 128;
-    char *logStr = (char*) malloc(size*sizeof(char));
-    sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
-    
-    for (int i=0; i<NUMINPUTS; i++) {
-      if(sensorInputs[i]->isEnabled()) {
-        logStr = strSafeCat(logStr, size-1, sensorInputs[i]->logout());
-      }
-    }
+	if (logging==true) {
 
-    #ifdef DEBUG
-      if (Serial) {
-        Serial.println(logStr);
-    	}
-    #endif
+		int size = 128;
+		char *logStr = (char*) malloc(size*sizeof(char));
+		sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
 
-    //write to sd card
-    if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
-    	logError();
-    	free(logStr);
-    	while(1) {}
-    }
-	logFile.println(logStr);
-	logFile.close();
-    free(logStr);
-  }
-  
+		for (int i=0; i<NUMINPUTS; i++) {
+			if(sensorInputs[i]->isEnabled()) {
+				logStr = strSafeCat(logStr, size-1, sensorInputs[i]->logout());
+			}
+		}
+
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(logStr);
+			}
+		#endif
+
+		//write to sd card
+		if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
+			logError();
+			free(logStr);
+			while(1) {}
+		}
+		logFile.println(logStr);
+		logFile.close();
+		free(logStr);
+	}
+
 }
 
 void resetAll() {
-  #ifdef DEBUG
-    if (Serial) {
-  		Serial.println("resetAll()");
-  	}
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println("resetAll()");
+		}
 	#endif
-  for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
-      sensorInputs[i]->reset();
-    }
-  }
+	for (int i=0; i<NUMINPUTS; i++) {
+		if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
+			sensorInputs[i]->reset();
+		}
+	}
 
-  //XXX what about starting a new log file? should we ask the user with a pop up window?
-		//draw yes/no screen
-		//if yes
-		  //stop logging
-		  //start logging
-		//drawMainMenu()
+	//XXX what about starting a new log file? should we ask the user with a pop up window?
+	//draw yes/no screen
+	//if yes
+	//stop logging
+	//start logging
+	//drawMainMenu()
 }
 
 /** zero inputs for sensors that support it */
 void calibrateAll() {
-  #ifdef DEBUG
-    if (Serial) {
-			Serial.println("calibrate... ");
-  	}
+	#ifdef DEBUG
+	if (Serial) {
+		Serial.println("calibrate... ");
+	}
 	#endif
 
-  for (int i=0; i<NUMINPUTS; i++) {
-    if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
-      sensorInputs[i]->calibrate(); /** only some sensors implement calibrate */
-    }
-  }
+	for (int i=0; i<NUMINPUTS; i++) {
+		if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
+			sensorInputs[i]->calibrate(); /** only some sensors implement calibrate */
+		}
+	}
 
-  delay(500);
-  
-  #ifdef DEBUG
-    if (Serial) {
+	delay(500);
+
+	#ifdef DEBUG
+		if (Serial) {
 			Serial.println(F("... and reset complete"));
-  	}
+		}
 	#endif
-  return;
+	return;
 }
 
 int startLogging() {
-  #ifdef DEBUG
-    if (Serial) {
+	#ifdef DEBUG
+		if (Serial) {
 			Serial.print(F("starting new logfile called "));
-  	}
+		}
 	#endif
 
-  //filename limited by SDFat library to 8 chars name and 3 chars extension
-  sprintf(logFileName, "%02d%02d%02d%02d.csv", day(), hour(), minute(), second());
-  #ifdef DEBUG
-    if (Serial) {
+	//filename limited by SDFat library to 8 chars name and 3 chars extension
+	sprintf(logFileName, "%02d%02d%02d%02d.csv", day(), hour(), minute(), second());
+	#ifdef DEBUG
+		if (Serial) {
 			Serial.println(logFileName);
-  	}
-	#endif
-  
-  if( !logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE) ){
-	  logError();
-    #ifdef DEBUG
-      if (Serial) {
-  			Serial.println(F("...log file error"));
-      }
-	  #endif
-    delay(1000);
-    return 0;
-  }
-  else {
-	#ifdef DEBUG
-	  if (Serial) {
-			Serial.print(F("datetime, microsr"));
 		}
 	#endif
-	logFile.println("datetime, micros");
-	for (int i=0; i<NUMINPUTS; i++) {
-	  if(sensorInputs[i]->isEnabled()) {
-		char headerStr[64];
-		sprintf(headerStr, ", cycles-%d, raw.latest-%d",i+1 ,i+1);
-		logFile.println(headerStr);
+
+	if( !logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE) ){
+		logError();
 		#ifdef DEBUG
-		  if (Serial) {
-  			Serial.print(headerStr);
-  		}
-  	#endif
-		delete headerStr;
-	  }
+			if (Serial) {
+				Serial.println(F("...log file error"));
+			}
+		#endif
+		delay(1000);
+		return 0;
 	}
-	logFile.println("");
-	#ifdef DEBUG
-	  if (Serial) {
-			Serial.println("");
+	else { //add column header to new logfile
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("datetime, microsr"));
+			}
+		#endif
+		logFile.print("datetime, micros");
+		for (int i=0; i<NUMINPUTS; i++) {
+			if(sensorInputs[i]->isEnabled()) {
+				char headerStr[64];
+				sprintf(headerStr, ", cycles-%d, raw.latest-%d",i+1 ,i+1);
+				logFile.print(headerStr);
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.print(headerStr);
+					}
+				#endif
+//				delete headerStr;
+			}
 		}
-	#endif
-    logging = true;
-    logFile.close();
-    return 1;
-  }
+		logFile.println("");
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println("");
+			}
+		#endif
+		logging = true;
+		logFile.close();
+		return 1;
+	}
 }
 
 void toggleLogging() {
-    if (logging==false) {
-      if (startLogging()) {
-//        logBtn.setLabel("LOG ON"); //IMP store global variables somewhere for menus
-      }
-    }
-  else {
-      logging = false;
-//      logBtn.setLabel("LOG OFF"); //IMP store global variables somewhere for menus
-    }
+	if (logging==false) {
+		if (startLogging()) {
+			logBtn->setLabel("LOG ON");
+		}
+	}
+	else {
+		logging = false;
+		logBtn->setLabel("LOG OFF");
+	}
 }
 
 void emptyTouchBuffer() {
-  while(!ts.bufferEmpty()) {
-    ts.getPoint();
-    #ifdef DEBUG
-      if (Serial) {
-  			Serial.println(F("empty ts buffer"));
-      }
-  	#endif
+	while(!ts.bufferEmpty()) {
+		ts.getPoint();
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("empty ts buffer"));
+		}
+	#endif
 
-  }
+	}
 }
 
 int parseTouchBoilerPlate() {
-	  // Retrieve a point
-	  TS_Point p = ts.getPoint();
-	  // Scale using the calibration #'s
-	  // and rotate coordinate system
-	  #ifdef DEBUG
-	    if (Serial) {
-  			Serial.print(F("\noriginal touch at "));
-  	    Serial.print(p.x);
-  	    Serial.print(F(", "));
-  	    Serial.print(p.y);
-  	  }
-  	#endif
-	  p.x = map(p.x, TS_MINY, TS_MAXY, 0, tft.height());
-	  p.y = map(p.y, TS_MINX, TS_MAXX, 0, tft.width());
-	  int y = tft.height() - p.x;
-	  int x = p.y;
-
-	  #ifdef DEBUG
-	    if (Serial) {
-  			Serial.print(F(". mapped to "));
-  	    Serial.print(x);
-  	    Serial.print(F(", "));
-  	    Serial.println(y);
-  	  }
-  	#endif
-
-	  emptyTouchBuffer();
-
-	  //make sure we don't get duplicate touches
-	  int newTouchTime = millis();
-	  if((newTouchTime > lastTouchTime + MINTOUCHINTERVAL) ){
-	    lastTouchTime = newTouchTime;
-	    return true;
-	  }
-	  return false;
-}
-
-void parseSensorMenuTouch() {
-	if (parseTouchBoilerPlate()) {
-
-		//----------START LOGIC BLOCK--------------
-
-    //IMP implement touch buttons for all the SensorInput variables we want to control
-
-		//----------END LOGIC BLOCK----------------
-
+	// Retrieve a point
+	TS_Point p = ts.getPoint();
+	// Scale using the calibration 	#'s
+	// and rotate coordinate system
+	#ifdef DEBUG
+	if (Serial) {
+		Serial.print(F("\noriginal touch at "));
+		Serial.print(p.x);
+		Serial.print(F(", "));
+		Serial.print(p.y);
 	}
-	else {
-	  #ifdef DEBUG
-  		if (Serial) {
-  			Serial.println(F("ignoring menu touch, to soon after last touch"));
-  	  }
-  	#endif
+	#endif
+	p.x = map(p.x, TS_MINY, TS_MAXY, 0, tft.height());
+	p.y = map(p.y, TS_MINX, TS_MAXX, 0, tft.width());
+	touchY = tft.height() - p.x; //YES, THESE MAP BACKWARDS!!! TY = PX..
+	touchX = p.y;                //YES, THESE MAP BACKWARDS!!! TX = PY
+
+	#ifdef DEBUG
+	if (Serial) {
+		Serial.print(F(". mapped to "));
+		Serial.print(touchX);
+		Serial.print(F(", "));
+		Serial.println(touchY);
 	}
-}
+	#endif
 
-void parseMenuTouch() {
-	if (parseTouchBoilerPlate()) {
+	emptyTouchBuffer();
 
-		//----------START LOGIC BLOCK--------------
-
-    //IMP implement touch buttons for all the global options we want to control
-
-    //IMP implement touch buttons for accessing menu for a particular SensorInput
-
-		//sample logic to be used for menu touch parsing
-
-		   // if (logBtn.isPushed(x,y)) {
-		   //   #ifdef DEBUG
-		   //     if (Serial) {
-			  //          Serial.println(F("logBtn isPushed"));
-		   //   	}
-	         // #endif
-		//      logBtn.push();
-		//      toggleLogging();
-		//      logBtn.draw();
-		//    }
-		//    else if (modeBtn.isPushed(x,y)) {
-		//      #ifdef DEBUG
-		//        if (Serial) {
-			Serial.println(F("modeBtn isPushed"));
-		//      	}
-	         // #endif
-		//      modeBtn.push();
-		//      toggleMode();
-		//      modeBtn.draw();
-		//    }
-		//    else if (calBtn.isPushed(x,y)) {
-		//       #ifdef DEBUG
-		//        if (Serial) {
-			// Serial.println(F("calBtn isPushed"));
-		//      	}
-	         // #endif
-		//      calBtn.push();
-		//      calibrate();
-		//      calBtn.draw();
-		//      emptyTouchBuffer(); //just to make sure
-		//    }
-
-			//----------END LOGIC BLOCK----------------
-
+	//make sure we don't get duplicate touches
+	int newTouchTime = millis();
+	if((newTouchTime > lastTouchTime + MINTOUCHINTERVAL) ){
+		lastTouchTime = newTouchTime;
+		return true;
 	}
-	else {
-	  #ifdef DEBUG
-		  if (Serial) {
-		    Serial.println(F("ignoring menu touch, to soon after last touch"));
-	  	}
-    #endif
-	}
+	return false;
 }
 
 
@@ -454,21 +509,17 @@ void parseTouch() {
 
 	if (parseTouchBoilerPlate()) {
 
-		//----------START LOGIC BLOCK--------------
-
 		drawMainMenu(); /** menu handles all it's own touch and navigation */
-
+		emptyTouchBuffer();
 		drawMainScreen();
-
-		//----------END LOGIC BLOCK----------------
 
 	}
 	else {
-	  #ifdef DEBUG
-  		if (Serial) {
-  			Serial.println(F("ignoring touch, to soon after last touch"));
-  	  }
-  	#endif
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("ignoring touch, to soon after last touch"));
+		}
+	#endif
 	}
 
 }
@@ -477,101 +528,98 @@ time_t getTeensy3Time() { return Teensy3Clock.get(); }
 
 // User provided date time callback function
 void dateTime(uint16_t* date, uint16_t* time) {
-  time_t now();
-  *date = FAT_DATE(year(), month(), day());
-  *time = FAT_TIME(hour(), minute(), second());
+	time_t now();
+	*date = FAT_DATE(year(), month(), day());
+	*time = FAT_TIME(hour(), minute(), second());
 }
 
 //-----------------------------------------------------------------------------
 
 void setup() {
-  #ifdef DEBUG
-    //serial console
-    Serial.begin(9600);
-    while (!Serial) {}
+	#ifdef DEBUG
+		//serial console
+		Serial.begin(9600);
+		while (!Serial) {}
 			Serial.println(F("setup begin"));
 	#endif
-  
-  //setup teensy clock
-  setSyncProvider(getTeensy3Time);
-	#ifdef DEBUG
-	  if (Serial) {
+
+	//setup teensy clock
+	setSyncProvider(getTeensy3Time);
+		#ifdef DEBUG
+		if (Serial) {
 			Serial.println(F("set sync provider"));
 		}
 	#endif
-  
-  //setup color lcd
-  tft.begin();
+
+	//setup color lcd
+	tft.begin();
 	#ifdef DEBUG
-	  if (Serial) {
+		if (Serial) {
 			Serial.println(F("tft started"));
 		}
 	#endif
 
-  #if defined(__TFT_ILI9340__) && (defined(__MK20DX128__) || defined(__MK20DX256__))
-    //want try the fastest?
-    tft.setBitrate(24000000);
-    #ifdef DEBUG
-      if (Serial) {
-			 Serial.println(F("setBitrate(24000000)"));
-    	}
-    #endif
-  #endif
-  tft.fillScreen(YELLOW);
-  tft.fillScreen(GREEN);
-  tft.fillScreen(RED);
-  tft.fillScreen(MAGENTA);
-  tft.fillScreen(BACKGROUNDCOLOUR);
-  tft.setTextColor(TEXTCOLOUR);
-  tft.setTextSize(1);
-  tft.setRotation(1);
-
-  while(!ts.begin()){
-    #ifdef DEBUG
-      if (Serial) {
-  			Serial.println(F("Unable to start touchscreen."));
-      }
-  	#endif
-    tft.println(F("Unable to start touchscreen."));
-    delay(500);
-  }
-
-  #ifdef DEBUG
-    if (Serial) {
-			Serial.println("Touchscreen started.");
-  	}
+	#if defined(__TFT_ILI9340__) && (defined(__MK20DX128__) || defined(__MK20DX256__))
+		tft.setBitrate(24000000);
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F("setBitrate(24000000)"));
+			}
+		#endif
 	#endif
-  
-  SdFile::dateTimeCallback(dateTime);
-  while (!sd.begin(sdCS, SPI_HALF_SPEED)) {
-    #ifdef DEBUG
-      if (Serial) {
-  			Serial.println(F("Insert microSD card"));
-      }
-  	#endif
-    tft.println(F("Insert microSD card"));
-    delay(500);
+	tft.fillScreen(YELLOW);
+	tft.fillScreen(GREEN);
+	tft.fillScreen(RED);
+	tft.fillScreen(MAGENTA);
+	tft.fillScreen(BACKGROUNDCOLOUR);
+	tft.setTextColor(TEXTCOLOUR);
+	tft.setRotation(1);
 
-  }
+	while(!ts.begin()){
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F("Unable to start touchscreen."));
+			}
+		#endif
+		tft.println(F("Unable to start touchscreen."));
+		delay(500);
+	}
 
-  display = new Display(&tft, &ts);
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println("Touchscreen started.");
+		}
+	#endif
 
-  sensorInputs[0] = new ForceMeter(0, -1);
-  sensorInputs[1] = new LinearEncoder(5,6);
-  sensorInputs[2] = new SensorInput(16, ANALOG);
-  sensorInputs[3] = new SensorInput(17, DIGITAL);
+	SdFile::dateTimeCallback(dateTime);
+	while (!sd.begin(sdCS, SPI_HALF_SPEED)) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F("Insert microSD card"));
+			}
+		#endif
+		tft.println(F("Insert microSD card"));
+		delay(500);
+	}
 
-  //loop through sensorInputs
-  for (int i=0; i<NUMINPUTS; i++) {
-	  display->add( &(sensorInputs[i]->shortTermDisplay) );
-  }
+	display = new Display(&tft, &ts);
 
-  drawMainScreen();
+	sensorInputs[0] = new ForceMeter(0, -1);
+	sensorInputs[1] = new LinearEncoder(5, 6);
+	sensorInputs[2] = new SensorInput(16, ANALOG);
+	sensorInputs[3] = new SensorInput(17, DIGITAL);
 
-  #ifdef DEBUG
-    if (Serial) {
-			Serial.println(F("setup complete"));
-  	}
+	//loop through sensorInputs
+	for (int i=0; i<NUMINPUTS; i++) {
+		display->add( &(sensorInputs[i]->shortTermDisplay) );
+	}
+
+	drawMainScreen();
+
+	#ifdef DEBUG
+	if (Serial) {
+		Serial.println(F("setup complete"));
+	}
 	#endif
 
 } //end setup()
@@ -579,15 +627,17 @@ void setup() {
 
 void loop() {
 
-  pollSensors();
+	delay(2000); //FIXME debug code
 
-  logOutput();
-  
-  if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
-    parseTouch();
-  }
-  
-  //FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
+	pollSensors();
+
+	logOutput();
+
+	if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
+		parseTouch();
+	}
+
+	//FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
 
 } //end loop()
 

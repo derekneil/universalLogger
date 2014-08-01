@@ -22,6 +22,8 @@ class Stats : public DisplayElement {
 	/** this is setup for a 158x24 stats display area */
 	Stats(int centerX, int centerY, int w, int h);
 
+	~Stats();
+
 	int operator== (const Stats param);
 
 	/** depricated, you should call locateAndSize */

@@ -6,23 +6,6 @@
 #include <Adafruit_ILI9340.h>
 #include <Adafruit_STMPE610.h>
 
-#define SCREENWIDTH 320
-#define SCREENHEIGHT 240
-
-#define CENTER_X SCREENWIDTH/2-1
-#define CENTER_X1 80
-#define CENTER_X2 239
-
-#define CENTER_Y SCREENHEIGHT/2-1
-#define CENTER_Y1 59
-#define CENTER_Y2 177
-
-#define HALFHEIGHT STDHEIGHT // = CENTER_Y-1
-#define FULLHEIGHT 238 // = 118 * 2 + 2
-
-#define HALFWIDTH STDWIDTH // = CENTER_X-1
-#define FULLWIDTH 318 // = 158 * 2 + 2
-
 class Display {
 	protected:
 		static int numSDs;

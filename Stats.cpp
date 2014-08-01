@@ -39,6 +39,14 @@ Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=S
 	latest   .label = "latest: ";
 }
 
+Stats::~Stats() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("~Stats()"));
+		}
+	#endif
+}
+
 int Stats::operator== (const Stats param) {
 	#ifdef DEBUG
 		if (Serial) {
@@ -83,12 +91,14 @@ void Stats::locateAndSize(int centerX, int centerY, int w, int h){
 		}
 	#endif
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
-	min       .locateAndSize(centerX+40,  centerY+4,  w/2, h/3);
-	max       .locateAndSize(centerX+40,  centerY+12, w/2, h/3);
-	interval  .locateAndSize(centerX+40,  centerY+20, w/2, h/3);
-	avg       .locateAndSize(centerX+119, centerY+4,  w/2, h/3);
-	last10avg .locateAndSize(centerX+119, centerY+12, w/2, h/3);
-	latest    .locateAndSize(centerX+119, centerY+20, w/2, h/3);
+	int startX = centerX - w/2;
+	int startY = centerY - h/2;
+	min       .locateAndSize(startX+40,  startY,    w/2, h/3);
+	max       .locateAndSize(startX+40,  startY+4,  w/2, h/3);
+	interval  .locateAndSize(startX+40,  startY+12, w/2, h/3);
+	avg       .locateAndSize(startX+119, startY,    w/2, h/3);
+	last10avg .locateAndSize(startX+119, startY+4,  w/2, h/3);
+	latest    .locateAndSize(startX+119, startY+12, w/2, h/3);
 }
 
 void Stats::draw() {
