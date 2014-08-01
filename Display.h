@@ -26,29 +26,28 @@
 class Display {
 	protected:
 		static int numSDs;
-		static int lastNumSDs;
-		static SensorDisplay *SDs;
 		static int numRegions;
+		SensorDisplay *SDs[NUMREGIONS] = {nullptr} ;
 
 	public:
+
 		/** other classes need access to print stuff
 		 * this saves having to make a whole new interface
 		 * that just duplicates and calls the underlying device */
 		static Adafruit_ILI9340 *device;
-
 		static Adafruit_STMPE610 *touch;
 
-		Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts, int regions);
+		Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts);
 
 		~Display();
 
 		static int hasSpace();
 
-		static int remove(SensorDisplay *sd);
+		int remove(SensorDisplay *sd);
 
-		static void updateDisplayLayout();
+		void updateDisplayLayout();
 
-		static int add(SensorDisplay *sd);
+		int add(SensorDisplay *sd);
 
 };
 #endif

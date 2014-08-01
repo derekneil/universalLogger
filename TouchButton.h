@@ -1,6 +1,7 @@
 #ifndef TOUCHBUTTON_H
 #define TOUCHBUTTON_H
 
+#include "universalLogger.h"
 #include "Touch.h"
 #include "Display.h"
 
@@ -12,8 +13,8 @@
 #ifdef DEBUG
   #define ERASECOLOUR ILI9340_RED
 #endif
-  #define ERASECOLOUR ILI9340_BLUE
 #ifndef DEBUG
+  #define ERASECOLOUR ILI9340_BLUE
 #endif
 #define BUTTONCOLOUR ILI9340_WHITE
 #define BUTTONPUSHEDCOLOUR ILI9340_MAGENTA
@@ -32,27 +33,33 @@ class TouchButton : public TouchElement{
     TouchButton(int x, int y, int w, int h, char* label="") : TouchElement {x,y,w,h}
     {
 		#ifdef DEBUG
-		  Serial.print(F("TouchButton(...) "));
-		  Serial.println(F(label));
-		#endif
+		  if (Serial) {
+  			Serial.print(F("TouchButton(...) "));
+  		  Serial.println(F(label));
+  		}
+  	#endif
 		this->label = label;
     }
 
     void setLabel(char *newLabel) {
       #ifdef DEBUG
-        Serial.print(F("TouchButton::setLabel() "));
-        Serial.print(F(label));
-        Serial.print(F(" to "));
-        Serial.println(F(newLabel));
-      #endif
+        if (Serial) {
+  			 Serial.print(F("TouchButton::setLabel() "));
+          Serial.print(F(label));
+          Serial.print(F(" to "));
+          Serial.println(F(newLabel));
+        }
+  	  #endif
       this->label = newLabel;
     }
 
     void draw() {
       #ifdef DEBUG
-        Serial.print(F("TouchButton::draw() "));
-        Serial.println(F(label));
-      #endif
+        if (Serial) {
+    			Serial.print(F("TouchButton::draw() "));
+          Serial.println(F(label));
+        }
+    	#endif
       int startX = centerX-w/2;
       int startY = centerY-h/2;
       int r = 4;
@@ -71,9 +78,11 @@ class TouchButton : public TouchElement{
 
     void push() {
       #ifdef DEBUG
-        Serial.print(F("TouchButton::push() "));
-        Serial.println(F(label));
-      #endif
+        if (Serial) {
+    			Serial.print(F("TouchButton::push() "));
+          Serial.println(F(label));
+        }
+    	#endif
       int startX = centerX-w/2;
       int startY = centerY-h/2;
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);

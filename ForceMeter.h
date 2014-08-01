@@ -1,6 +1,7 @@
 #ifndef FORCEMETER_H
 #define FORCEMETER_H
 
+#include "universalLogger.h"
 #include "SensorInput.h"
 
 #ifndef LOADCELL
@@ -25,14 +26,18 @@ class ForceMeter : public SensorInput {
 			SensorInput{pin, type}
 		{
 			#ifdef DEBUG
-				Serial.print(F("ForceMeter()"));
+				if (Serial) {
+					Serial.println(F("ForceMeter()"));
+				}
 			#endif
 			LOADCELL.begin(19200, SERIAL_8N1_RXINV_TXINV);	
 		}
 
 		int poll() {
 			#ifdef DEBUG
-				Serial.print(F("ForceMeter::poll()"));
+				if (Serial) {
+					Serial.print(F("ForceMeter::poll()"));
+				}
 			#endif
 			if (LOADCELL.available() > 0) {
 
@@ -89,7 +94,9 @@ class ForceMeter : public SensorInput {
 
 		void reset() {
 			#ifdef DEBUG
-				Serial.print(F("ForceMeter::reset()"));
+				if (Serial) {
+					Serial.print(F("ForceMeter::reset()"));
+				}
 			#endif
 			loadCellReadingState = DIGITS;
 			loadCellReadingInt = 0;

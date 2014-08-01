@@ -1,6 +1,7 @@
 #ifndef SENSORDISPLAY_H
 #define SENSORDISPLAY_H
 
+#include "universalLogger.h"
 #include "DisplayElement.h"
 #include "Visualization.h"
 #include "SensorData.h"

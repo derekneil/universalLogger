@@ -1,6 +1,7 @@
 #ifndef SENSORDISPLAY
 #define SENSORDISPLAY
 
+#include "universalLogger.h"
 #include "SensorDisplay.h"
 #include "DisplayElement.h"
 #include "Visualization.h"
@@ -16,7 +17,9 @@ SensorDisplay::SensorDisplay() :
 //			data { new SensorData() }
 {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay()"));
+		if (Serial) {
+			Serial.println(F("SensorDisplay()"));
+		}
 	#endif
 }
 
@@ -27,14 +30,18 @@ SensorDisplay::SensorDisplay(SensorData *dataSource) :
 	stats                   {0,0,STDWIDTH,STATHEIGHT}
 {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay(...)"));
+		if (Serial) {
+			Serial.println(F("SensorDisplay(...)"));
+		}
 	#endif
 	data = dataSource;
 }
 
 SensorDisplay::~SensorDisplay() {
 	#ifdef DEBUG
-		Serial.println(F("~SensorDisplay()"));
+		if (Serial) {
+			Serial.println(F("~SensorDisplay()"));
+		}
 	#endif
 	delete viz;
 	//delete stats; //not required since it's not a pointer
@@ -43,7 +50,9 @@ SensorDisplay::~SensorDisplay() {
 
 SensorDisplay& SensorDisplay::operator= (SensorDisplay *param) {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay::operator="));
+		if (Serial) {
+			Serial.println(F("SensorDisplay::operator="));
+		}
 	#endif
 	// SensorDisplay newSensorDisplay;
 	// newSensorDisplay.enabled = param->enabled;
@@ -61,7 +70,9 @@ SensorDisplay& SensorDisplay::operator= (SensorDisplay *param) {
 
 int SensorDisplay::operator== (const SensorDisplay *param) {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay::operator=="));
+		if (Serial) {
+			Serial.println(F("SensorDisplay::operator=="));
+		}
 	#endif
 	if (
 		enabled     == param->enabled     &&
@@ -84,7 +95,9 @@ int SensorDisplay::operator== (const SensorDisplay *param) {
 /** deletes old viz it points to, assumes ownership of new viz being passed to it */
 void SensorDisplay::setViz(Visualization *viz) {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay::setViz(...)"));
+		if (Serial) {
+			Serial.println(F("SensorDisplay::setViz(...)"));
+		}
 	#endif
 	delete viz;
 	this->viz = viz;
@@ -92,7 +105,9 @@ void SensorDisplay::setViz(Visualization *viz) {
 
 void SensorDisplay::draw() {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay::draw()"));
+		if (Serial) {
+			Serial.println(F("SensorDisplay::draw()"));
+		}
 	#endif
 	viz->draw(data);
 	stats.draw();
@@ -100,7 +115,9 @@ void SensorDisplay::draw() {
 
 void SensorDisplay::redraw() {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay::redraw(...)"));
+		if (Serial) {
+			Serial.println(F("SensorDisplay::redraw(...)"));
+		}
 	#endif
     if (enabled && needsRedraw) {
 		viz->redraw(data);
@@ -112,8 +129,10 @@ void SensorDisplay::redraw() {
 /** the calling code is responsible for calling redraw after calling this function */
 // void locate(int x, int y) {
 // 	#ifdef DEBUG
-// 		Serial.println(F("SensorDisplay::locate(...)"));
-// 	#endif
+// 		if (Serial) {
+			// Serial.println(F("SensorDisplay::locate(...)"));
+// 		}
+	// #endif
 // 	DisplayElement::locate(x,y);
 // 	viz->locate(x, y-STATHEIGHT/2);
 // 	stats.locate(x, y /* can't do this without the height */ );
@@ -123,7 +142,9 @@ void SensorDisplay::redraw() {
 /** the calling code is responsible for calling redraw after calling this function */
 void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
 	#ifdef DEBUG
-		Serial.println(F("SensorDisplay::locateAndSize(...)"));
+		if (Serial) {
+			Serial.println(F("SensorDisplay::locateAndSize(...)"));
+		}
 	#endif
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
 	viz->locateAndSize(centerX, centerY-STATHEIGHT/2, w, h-STATHEIGHT);

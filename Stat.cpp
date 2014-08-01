@@ -9,13 +9,20 @@ Stat::Stat(int centerX, int centerY, int w, int h, char* label) :
 	DisplayElement {centerX,centerY,w,h}
 {
 	#ifdef DEBUG
-	  Serial.println(F("Stat(...) "));
+	  if (Serial) {
+			Serial.println(F("Stat(...) "));
+		}
 	#endif
 	this->label = label;
 	lastValue = "";
 }
 
 Stat::~Stat() {
+	#ifdef DEBUG
+	  if (Serial) {
+			Serial.println(F("~Stat() "));
+		}
+	#endif
 	delete label;
 	delete lastValue;
 }
@@ -42,8 +49,10 @@ int Stat::operator== (const Stat param) {
  * print lastValue */
 void Stat::draw() {
 	#ifdef DEBUG
-		Serial.print(F("Stat::draw() "));
+		if (Serial) {
+			Serial.print(F("Stat::draw() "));
 		Serial.println(F(label));
+		}
 	#endif
 
 	int startX = centerX-w/2;
@@ -61,8 +70,10 @@ void Stat::draw() {
  * prints new lastValue in it's place */
 void Stat::redraw() {
 	#ifdef DEBUG
-	  Serial.print(F("Stat::redraw() "));
-	  Serial.println(F(label));
+		if (Serial) {
+			Serial.print(F("Stat::redraw() "));
+	  		Serial.println(F(label));
+		}
 	#endif
 
 	int startX = centerX-w/2;

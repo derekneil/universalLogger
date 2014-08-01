@@ -1,6 +1,7 @@
 #ifndef GRAPH_H
 #define GRAPH_H
 
+#include "universalLogger.h"
 #include "Visualization.h"
 #include "SensorData.h"
 #include "DisplayElement.h"
@@ -31,9 +32,11 @@ class Graph : public Visualization {
 
     void draw(SensorData *data) {
        #ifdef DEBUG
-         Serial.print(F("Graph::draw(...) "));
+         if (Serial) {
+			     Serial.print(F("Graph::draw(...) "));
          Serial.println(F(type));
-       #endif
+       	}
+	     #endif
 
       if (type==GRAPHSCROLLING) {
         redrawScrollingGraph(centerX-w/2, centerY-h/2, w, h, data);
@@ -106,7 +109,7 @@ class Graph : public Visualization {
       if (i==data->size) { i=0; } //avoids % operation
 
       //setup values and use bumped for graphing oldest value in graph
-      int temp = data->array[i]/divider; //TODO divider....
+      int temp = data->array[i]/divider; //FIXME divider....
       if(temp < 0) { temp=0; }
       int lastI = -1;
       int last = data->bumped / divider;

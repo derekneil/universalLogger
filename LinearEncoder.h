@@ -1,6 +1,7 @@
 #ifndef LINEARENCODER_H
 #define LINEARENCODER_H
 
+#include "universalLogger.h"
 #include <Encoder.h>
 #include "SensorInput.h"
 
@@ -16,26 +17,34 @@ class LinearEncoder : public SensorInput {
 			probe {pinA, pinB}
 		{
 			#ifdef DEBUG
-				Serial.println("LinearEncoder(...)");
+				if (Serial) {
+					Serial.println("LinearEncoder(...)");
+				}
 			#endif
 		}
 
 		int poll() {
 			#ifdef DEBUG
-				Serial.println("LinearEncoder::poll()");
+				if (Serial) {
+					Serial.println("LinearEncoder::poll()");
+				}
 			#endif
 			return probe.read();
 		}
 		void reset() {
 			#ifdef DEBUG
-				Serial.println("LinearEncoder::reset()");
+				if (Serial) {
+					Serial.println("LinearEncoder::reset()");
+				}
 			#endif
 			calibrate();
 			SensorInput::reset();
 		}
 		void calibrate() {
 			#ifdef DEBUG
-				Serial.println("LinearEncoder::calibrate()");
+				if (Serial) {
+					Serial.println("LinearEncoder::calibrate()");
+				}
 			#endif
 			probe.write(0);
 		}

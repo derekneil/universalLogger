@@ -14,7 +14,7 @@ class GraphScrolling : public Visualization {
   public:
 
     int doubleWidth = 0;
-    int divider     = 5; //TODO update this based on some programming magic
+    int divider     = 5; //FIXME divider... update this based on some programming magic
 
     GraphScrolling();
 
