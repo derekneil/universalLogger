@@ -309,7 +309,7 @@ class SensorInput {
     	#endif
 		char *output = (char*) malloc(16*sizeof(char));
     	if (isEnabled()) {
-			sprintf(output, ", %d, %d", cycles, rawData.latest()); //change headers in
+			sprintf(output, ", %d, %d", shortTermData.count, rawData.latest()); //change headers in
     	}
         return output;
     }

@@ -46,8 +46,8 @@ class TouchButton : public TouchElement{
     	TouchElement {
     		centerX,
     		centerY,
-    		strlen(label)*CHARWIDTH*(Display::device->getTextSize())+CHARWIDTH*2,
-    		CHARHEIGHT*(Display::device->getTextSize()+2)
+    		strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
+    		CHARHEIGHT*(MENUTEXTSIZE+2)
     	}
     {
 		#ifdef DEBUG
@@ -63,8 +63,8 @@ class TouchButton : public TouchElement{
     	TouchElement {
     		centerX,
     		centerY,
-    		strlen(label)*CHARWIDTH*(Display::device->getTextSize())+CHARWIDTH,
-    		CHARHEIGHT*(Display::device->getTextSize()+1)
+    		strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
+    		CHARHEIGHT*(MENUTEXTSIZE+2)
     	}
     {
 		#ifdef DEBUG
@@ -77,7 +77,12 @@ class TouchButton : public TouchElement{
 		this->obj = obj;
     }
     TouchButton(int centerX, int centerY, int w, int h, char* label="") :
-    	TouchElement {centerX,centerY,w,h}
+    	TouchElement {
+			centerX,
+			centerY,
+			strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
+			CHARHEIGHT*(MENUTEXTSIZE+1)
+    	}
     {
 		#ifdef DEBUG
 		  if (Serial) {
@@ -99,8 +104,8 @@ class TouchButton : public TouchElement{
   	  #endif
 //      free (label); //FIXME memory leak???? code was hanging here, and with delete
       label = newLabel;
-      w = strlen(label)*CHARWIDTH*(Display::device->getTextSize())+CHARWIDTH;
-      h = CHARHEIGHT*(Display::device->getTextSize()+1);
+      w = strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2;
+      h = CHARHEIGHT*(MENUTEXTSIZE+2);
     }
     char* getLabel() {
       #ifdef DEBUG
@@ -119,19 +124,19 @@ class TouchButton : public TouchElement{
 				Serial.println(F(label));
 			}
 		#endif
-      int startX = centerX-w/2;
-      int startY = centerY-h/2;
-      Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
-      Display::device->drawFastHLine(startX+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
-      Display::device->drawFastVLine(startX -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
-      Display::device->drawCircleHelper(startX+r -shaddow, startY+r -shaddow, r, 1, shaddowColour); //top left corner
-      Display::device->drawCircleHelper(startX+w-r-1 -shaddow, startY+r -shaddow, r, 2, shaddowColour); //top right corner
-      Display::device->drawCircleHelper(startX+r -shaddow, startY+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
-      Display::device->drawRoundRect(startX, startY, w, h, r, colour);
-      int newY = startY + (h - CHARHEIGHT)/2;
-      int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
-      Display::device->setCursor(newX, newY);
-      Display::device->print(label);
+		int startX = centerX-w/2;
+		int startY = centerY-h/2;
+		Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
+		Display::device->drawFastHLine(startX+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
+		Display::device->drawFastVLine(startX -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
+		Display::device->drawCircleHelper(startX+r -shaddow, startY+r -shaddow, r, 1, shaddowColour); //top left corner
+		Display::device->drawCircleHelper(startX+w-r-1 -shaddow, startY+r -shaddow, r, 2, shaddowColour); //top right corner
+		Display::device->drawCircleHelper(startX+r -shaddow, startY+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
+		Display::device->drawRoundRect(startX, startY, w, h, r, colour);
+		int newY = startY + (h - CHARHEIGHT*MENUTEXTSIZE)/2;
+		int newX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
+		Display::device->setCursor(newX, newY);
+		Display::device->print(label);
     }
 
     void push() {
@@ -145,8 +150,8 @@ class TouchButton : public TouchElement{
       int startY = centerY-h/2;
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
       Display::device->drawRoundRect(startX, startY, w, h, r, shaddowColour);
-      int newY = startY + (h - CHARHEIGHT)/2;
-      int newX = startX + (w - (strlen(label) * CHARWIDTH))/2;
+      int newY = startY + (h - CHARHEIGHT * MENUTEXTSIZE)/2;
+      int newX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
       Display::device->setCursor(newX, newY);
       Display::device->print(label);
       delay(500);

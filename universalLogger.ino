@@ -84,6 +84,24 @@ void drawMainScreen() {
 	}
 }
 
+#define mSize 7
+class Menu {
+  private:
+	int mIndex = 0;
+	DisplayElement *m[mSize] = { nullptr };
+  public:
+	Menu() {}
+	~Menu() {}
+	void add(DisplayElement *el) { if (mIndex< mSize) { m[mIndex++] = el; } }
+	void draw() {
+		Display::device->fillScreen(MENUCOLOUR);
+		Display::device->setTextSize(2);
+		for (int i=0; i<mSize; i++){
+			m[i]->draw();
+		}
+	}
+};
+
 void drawMainMenu() {
 	#ifdef DEBUG
 		if (Serial) {
@@ -91,38 +109,34 @@ void drawMainMenu() {
 		}
 	#endif
 
-	tft.fillScreen(YELLOW);
-	tft.setTextSize(2);
+	Menu menu;
 
 	TouchButton backBtn(  CENTER_X1, CENTER_Y1-30, "Back");
-	backBtn.draw();
+	menu.add(&backBtn);
+
 	if (logging==false) {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "LOG OFF");
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log OFF");
 	}
 	else {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "LOG ON");
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log ON");
 	}
+	menu.add(logBtn);
 
-	TouchButton calAllBtn(  CENTER_X2-10, CENTER_Y1-30, "Calibrate All");
-	TouchButton resetAllBtn(CENTER_X2-10, CENTER_Y1+30, "Reset All");
-	//TouchButton modeAllBtn(CENTER_X2-40, 100, "Mode All");
-	logBtn->draw();
-	resetAllBtn.draw();
-	calAllBtn.draw();
-	// modeAllBtn.draw();
-
-
-	#ifdef DEBUG
-		Stats stats(CENTER_X, CENTER_Y2, STDWIDTH, STATHEIGHT*2);
-	#endif
+	TouchButton resetAllBtn(CENTER_X2, CENTER_Y1+30, "Reset All");
+	menu.add(&resetAllBtn);
 
 	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
 
-	//XXX make this parametric to the number of inputs... and put them in a pretty order...
+	//XXX make this parametric to the number of inputs... and put them in a pretty order based on the number instead of manually tweaking
 	inputButtons[0] = new TouchButton(CENTER_X1, CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
-	inputButtons[1] = new TouchButton(CENTER_X1, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
+	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
 	inputButtons[2] = new TouchButton(CENTER_X2, CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
 	inputButtons[3] = new TouchButton(CENTER_X2, CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
+	for (int i=0; i<NUMINPUTS; i++) {
+		menu.add(inputButtons[i]);
+	}
+
+	menu.draw();
 
 	#ifdef DEBUG
 		if (Serial) {
@@ -153,26 +167,6 @@ void drawMainMenu() {
 					toggleLogging();
 					logBtn->draw();
 				}
-//				else if (modeBtn.isPushed(touchX,touchY)) {
-//					#ifdef DEBUG
-//						if (Serial) {
-//							Serial.println(F("modeBtn isPushed"));
-//						}
-//					#endif
-//					modeBtn.push();
-//					toggleMode();
-//					modeBtn.draw();
-//				}
-				else if (calAllBtn.isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-						if (Serial) {
-							Serial.println(F("calAllBtn isPushed"));
-						}
-					#endif
-					calAllBtn.push();
-					calibrateAll();
-					calAllBtn.draw();
-				}
 				else if (resetAllBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
@@ -195,6 +189,8 @@ void drawMainMenu() {
 							#endif
 							inputButtons[i]->push();
 							drawIndividualSensorMenu(inputButtons[i]->obj);
+
+							menu.draw(); //redraw this menu
 							break;
 						}
 					}
@@ -223,10 +219,16 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	}
 	#endif
 
-	tft.fillScreen(GREEN);
+	tft.fillScreen(MENUCOLOUR);
+	tft.setTextSize(2);
 
 	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
+
+
+
+	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
+	resetBtn.draw();
 
 	//IMP draw controls for each of the inputs for a sensor
 
@@ -245,8 +247,21 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					backBtn.push();
 					break; //break out of this menu's touch loop
 				}
+				else if (resetBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("resetAllBtn isPushed"));
+						}
+					#endif
+					resetBtn.push();
+					resetBtn.obj->reset();
+					resetBtn.draw();
+				}
 
 				//IMP implement touch buttons for all the SensorInput variables we want to control
+
+				//some buttons seemed to get pushed again for some reason...
+				emptyTouchBuffer();
 
 			}
 			else {
@@ -360,29 +375,29 @@ void resetAll() {
 	//drawMainMenu()
 }
 
-/** zero inputs for sensors that support it */
-void calibrateAll() {
-	#ifdef DEBUG
-	if (Serial) {
-		Serial.println("calibrate... ");
-	}
-	#endif
-
-	for (int i=0; i<NUMINPUTS; i++) {
-		if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
-			sensorInputs[i]->calibrate(); /** only some sensors implement calibrate */
-		}
-	}
-
-	delay(500);
-
-	#ifdef DEBUG
-		if (Serial) {
-			Serial.println(F("... and reset complete"));
-		}
-	#endif
-	return;
-}
+///** zero inputs for sensors that support it */
+//void calibrateAll() {
+//	#ifdef DEBUG
+//	if (Serial) {
+//		Serial.println("calibrate... ");
+//	}
+//	#endif
+//
+//	for (int i=0; i<NUMINPUTS; i++) {
+//		if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
+//			sensorInputs[i]->calibrate(); /** only some sensors implement calibrate */
+//		}
+//	}
+//
+//	delay(500);
+//
+//	#ifdef DEBUG
+//		if (Serial) {
+//			Serial.println(F("... and reset complete"));
+//		}
+//	#endif
+//	return;
+//}
 
 int startLogging() {
 	#ifdef DEBUG

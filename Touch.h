@@ -17,8 +17,8 @@ class TouchElement : public DisplayElement {
 	}
 
 
-    TouchElement(int x, int y, int w, int h) :
-    	DisplayElement {x,y,w,h}
+    TouchElement(int centerX, int centerY, int w, int h) :
+    	DisplayElement {centerX,centerY,w,h}
     {
 		#ifdef DEBUG
 			if (Serial) {
