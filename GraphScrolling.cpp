@@ -55,8 +55,8 @@ void GraphScrolling::draw(SensorData *data) {
  int startY = centerY-h/2;
 
   //draw graph side bars, these might get redrawn by adjacent sensor display, but that's ok
- Display::device->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
- Display::device->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
+// Display::device->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
+// Display::device->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
 
   //draw graph from scratch
  {

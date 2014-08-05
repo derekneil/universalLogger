@@ -159,7 +159,7 @@ void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
 	viz->locateAndSize(centerX, centerY-STATHEIGHT/2, w, h-STATHEIGHT);
 	int statsCenterY = centerY + (h-STATHEIGHT)/2 + STATHEIGHT/2;
-	stats.locateAndSize(centerX, statsCenterY, w, STATHEIGHT);
+	stats.locateAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 
 void SensorDisplay::reset() {

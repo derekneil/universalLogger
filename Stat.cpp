@@ -54,6 +54,8 @@ void Stat::draw() {
 		}
 	#endif
 
+	//FIXME this is a mess, there's startX's and centerX's all over the place in the call stack for this
+
 	int startX = centerX-w/2;
 	int startY = centerY-h/2;
 	int textY = startY + (h - CHARHEIGHT)/2;
@@ -74,6 +76,8 @@ void Stat::redraw() {
 	  		Serial.println(F(label));
 		}
 	#endif
+
+	//FIXME this is a mess, there's startX's and centerX's all over the place in the call stack for this
 
 	int startX = centerX-w/2;
 	int startY = centerY-h/2;

@@ -5,8 +5,6 @@
 #include "DisplayElement.h"
 #include "Stat.h"
 
-#define STATHEIGHT 24
-
 class Stats : public DisplayElement {
 
   public:

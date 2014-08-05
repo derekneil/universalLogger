@@ -19,12 +19,12 @@ Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=S
 
 	DisplayElement {centerX,centerY,w,h},
 
-	min       {centerX+40,  centerY+4,  w/2, h/3},
-	max       {centerX+40,  centerY+12, w/2, h/3},
-	interval  {centerX+40,  centerY+20, w/2, h/3},
-	avg       {centerX+119, centerY+4,  w/2, h/3},
-	last10avg {centerX+119, centerY+12, w/2, h/3},
-	latest    {centerX+119, centerY+20, w/2, h/3}
+	min       {centerX+40,  centerY-h/3, w/2, h/3},
+	max       {centerX+40,  centerY,     w/2, h/3},
+	interval  {centerX+40,  centerY+h/3, w/2, h/3},
+	avg       {centerX+119, centerY-h/3, w/2, h/3},
+	last10avg {centerX+119, centerY,     w/2, h/3},
+	latest    {centerX+119, centerY+h/3, w/2, h/3}
 {
 	#ifdef DEBUG
 		if (Serial) {
@@ -33,10 +33,10 @@ Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=S
 	#endif
 	min      .label = "min: ";
 	max      .label = "max: ";
-	interval .label = "interval: ";
+	interval .label = "int: ";
 	avg      .label = "avg: ";
-	last10avg.label = "last10avg: ";
-	latest   .label = "latest: ";
+	last10avg.label = "10avg: ";
+	latest   .label = "last: ";
 }
 
 Stats::~Stats() {
@@ -76,12 +76,12 @@ void Stats::locate(int centerX, int centerY){
 		}
 	#endif
 	DisplayElement::locate(centerX,centerY);
-	min       .locate(centerX+40,  centerY+4 );
-	max       .locate(centerX+40,  centerY+12);
-	interval  .locate(centerX+40,  centerY+20);
-	avg       .locate(centerX+119, centerY+4 );
-	last10avg .locate(centerX+119, centerY+12);
-	latest    .locate(centerX+119, centerY+20);
+	min       .locate(centerX+40,  centerY-h/3 );
+	max       .locate(centerX+40,  centerY);
+	interval  .locate(centerX+40,  centerY+h/3);
+	avg       .locate(centerX+119, centerY-h/3 );
+	last10avg .locate(centerX+119, centerY);
+	latest    .locate(centerX+119, centerY+h/3);
 }
 
 void Stats::locateAndSize(int centerX, int centerY, int w, int h){
@@ -93,12 +93,12 @@ void Stats::locateAndSize(int centerX, int centerY, int w, int h){
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
 	int startX = centerX - w/2;
 	int startY = centerY - h/2;
-	min       .locateAndSize(startX+40,  startY,    w/2, h/3);
-	max       .locateAndSize(startX+40,  startY+4,  w/2, h/3);
-	interval  .locateAndSize(startX+40,  startY+12, w/2, h/3);
-	avg       .locateAndSize(startX+119, startY,    w/2, h/3);
-	last10avg .locateAndSize(startX+119, startY+4,  w/2, h/3);
-	latest    .locateAndSize(startX+119, startY+12, w/2, h/3);
+	min       .locateAndSize(startX+40,  startY-h/3, w/2, h/3);
+	max       .locateAndSize(startX+40,  startY,     w/2, h/3);
+	interval  .locateAndSize(startX+40,  startY+h/3, w/2, h/3);
+	avg       .locateAndSize(startX+119, startY-h/3, w/2, h/3);
+	last10avg .locateAndSize(startX+119, startY,     w/2, h/3);
+	latest    .locateAndSize(startX+119, startY+h/3, w/2, h/3);
 }
 
 void Stats::draw() {

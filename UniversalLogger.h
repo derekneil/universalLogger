@@ -11,7 +11,7 @@
 
 #define DEBUG
 
-#define NUMINPUTS 4
+#define NUMINPUTS 2
 #define NUMREGIONS NUMINPUTS
 
 #define LOADCELL Serial1
@@ -52,19 +52,21 @@
 #define SCREENWIDTH 320
 #define SCREENHEIGHT 240
 
-#define CENTER_X SCREENWIDTH/2-1
+#define CENTER_X SCREENWIDTH/2
 #define CENTER_X1 80
-#define CENTER_X2 239
+#define CENTER_X2 240
 
-#define CENTER_Y SCREENHEIGHT/2-1
-#define CENTER_Y1 59
-#define CENTER_Y2 177
+#define CENTER_Y SCREENHEIGHT/2
+#define CENTER_Y1 60
+#define CENTER_Y2 180
 
 #define HALFHEIGHT STDHEIGHT // = CENTER_Y-1
-#define FULLHEIGHT 238 // = 118 * 2 + 2
+#define FULLHEIGHT 238 // = STDHEIGHT * 2 + 2
 
 #define HALFWIDTH STDWIDTH // = CENTER_X-1
-#define FULLWIDTH 318 // = 158 * 2 + 2
+#define FULLWIDTH 318 // = STDWIDTH * 2 + 2
+
+#define STATHEIGHT 30
 
 
 //end of add your includes here
