@@ -10,9 +10,9 @@ class SensorData {
     int *array; //XXX need to add more accessor methods that don't take O(n) access time to hide the data structure from other classes
     int size   = STDWIDTH;
     int index  = 0;
-    int min    = INT_MIN;
+    int min    = INT_MAX;
     double avg = 0;
-    int max    = INT_MAX;
+    int max    = INT_MIN;
     int bumped = 0;
     int count  = 0;
     double last10avg = 0;
@@ -30,7 +30,9 @@ class SensorData {
     SensorData(int size) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData(...)"));
+				Serial.print(F("SensorData( "));
+				Serial.print(size);
+				Serial.println(F(" )"));
 			}
 		#endif
 		this->size = size;
@@ -49,7 +51,9 @@ class SensorData {
     virtual void insert(int val) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData::insert(...)"));
+				Serial.print(F("SensorData::insert( "));
+				Serial.print(val);
+				Serial.println(F(" )"));
 			}
 		#endif
 		bumped = array[index];
@@ -72,7 +76,7 @@ class SensorData {
 			last10avg = avg;
 		}
 		else {
-			last10avg = (last10avg*10 - bumped + val) / 10;
+			last10avg = (last10avg*10.0 - bumped + val) / 10.0;
 		}
 
 		//update max
@@ -95,7 +99,8 @@ class SensorData {
     virtual int latest() {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData::latest()"));
+				Serial.print(F("SensorData::latest() "));
+				Serial.println(array[index]);
 			}
 		#endif
     	return array[index];
@@ -172,26 +177,30 @@ class SensorData {
 				Serial.println(F("SensorData::resetMinMax()"));
 			}
 		#endif
-		min = INT_MIN;
-		max = INT_MAX;
+		min = INT_MAX;
+		max = INT_MIN;
     }
 
     virtual void resetStorageAndAvgAndCount(int val=0) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData::resetStorage(...)"));
+				Serial.print(F("SensorData::resetStorage( "));
+				Serial.print(val);
+				Serial.println(F(" )"));
 			}
 		#endif
   		for(int i=0; i<size; i++){
   			array[i] = val;
   		}
-  		index = last10avg = avg = count = bumped = 0;
+  		last10avg = avg = index = count = bumped = 0;
     }
 
     virtual void reset(int val=0) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData::reset(...)"));
+				Serial.print(F("SensorData::reset( "));
+				Serial.print(val);
+				Serial.println(F(" )"));
 			}
 		#endif
 		resetStorageAndAvgAndCount(val);

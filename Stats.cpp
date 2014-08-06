@@ -128,9 +128,14 @@ void Stats::redraw() {
 }
 
 void Stats::reset() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("Stats::reset()"));
+		}
+	#endif
 	min      .reset();
 	max      .reset();
-	interval .reset();
+//	interval .reset();
 	avg      .reset();
 	last10avg.reset();
 	latest   .reset();

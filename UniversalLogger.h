@@ -28,9 +28,9 @@
 // for reference only
 #define	BLACK   0x0000
 #define	BLUE    0x001F
-#define	RED     0xF800
 #define	GREEN   0x07E0
 #define CYAN    0x07FF
+#define	RED     0xF800
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
@@ -49,7 +49,7 @@
 	#define ERASECOLOUR BACKGROUNDCOLOUR
 #endif
 
-#define SCREENWIDTH 320 //X
+#define SCREENWIDTH 320  //X
 #define SCREENHEIGHT 240 //Y
 
 #define CENTER_X SCREENWIDTH/2
@@ -80,6 +80,8 @@ void setup();
 #endif
 
 //add your function definitions for the project universalLogger here
+
+void drawMainMenu();
 
 
 //Do not add code below this line

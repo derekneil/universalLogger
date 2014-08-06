@@ -125,7 +125,11 @@ void SensorDisplay::draw() {
 void SensorDisplay::redraw() {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("SensorDisplay::redraw(...)"));
+			Serial.print(F("SensorDisplay::redraw(...)"));
+			Serial.print(F("   enabled: "));
+			Serial.print(enabled);
+			Serial.print(F("   needsRedraw: "));
+			Serial.println(needsRedraw);
 		}
 	#endif
     if (enabled && needsRedraw) {
@@ -156,8 +160,9 @@ void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
 		}
 	#endif
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
-	viz->locateAndSize(centerX, centerY-STATHEIGHT/2, w, h-STATHEIGHT);
-	int statsCenterY = viz->getCenterY() + (h-STATHEIGHT)/2 + STATHEIGHT/2;
+	int vizCenterY = centerY-STATHEIGHT/2;
+	viz->locateAndSize(centerX, vizCenterY, w, h-STATHEIGHT);
+	int statsCenterY = vizCenterY + (h-STATHEIGHT)/2 + STATHEIGHT/2;
 	stats.locateAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 

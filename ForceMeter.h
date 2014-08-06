@@ -16,7 +16,7 @@
 class ForceMeter : public SensorInput {
 	protected:
 		int loadCellReadingState = COMPLETE;
-		char loadCellReading[6]  = {' ','0','0','0','0','0'};
+		char loadCellReading[7]  = {' ','0','0','0','0','0'};
 		int loadCellReadingInt   = 0;
 		int loadCellReadingIndex = 0;
 
@@ -37,7 +37,7 @@ class ForceMeter : public SensorInput {
 		int poll() {
 			#ifdef DEBUG
 				if (Serial) {
-					Serial.print(F("ForceMeter::poll()"));
+					Serial.println(F("ForceMeter::poll()"));
 				}
 			#endif
 			if (LOADCELL.available() > 0) {

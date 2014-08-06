@@ -2,7 +2,7 @@
 #define TOUCHBUTTON_H
 
 #include "universalLogger.h"
-#include "Touch.h"
+#include "TouchElement.h"
 #include "Display.h"
 
 #define BUTTONCOLOUR WHITE

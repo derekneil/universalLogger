@@ -13,9 +13,9 @@
 #define STATIC 0
 #define DYNAMIC 1
 
-#define AVGDETECTION 0
-#define PEAKDETECTION 1
-#define MINDETECTION 2
+#define MINDETECTION 1
+#define AVGDETECTION 2
+#define PEAKDETECTION 3
 
 #define RAWDATASIZE STDWIDTH*5 //allows for 158*5 = 790 / ~65 readings per second = up to 10 seconds of draw data for an interval
 
@@ -30,7 +30,7 @@ class SensorInput {
 	int interval         = 1000000; /** default to 1 second */
 	int lastIntervalTime = 0;
 	int cycles           = 0;
-	int filter           = MINDETECTION; /** MIN | AVG | MAX */
+	int filter           = AVGDETECTION; /** MIN | AVG | MAX */
 	SensorData rawData;
 	SensorData shortTermData;
 	SensorData longTermData;
@@ -41,16 +41,23 @@ class SensorInput {
                 // Serial.println("SensorInput::redrawStat()");
 //			}
 	   // #endif
-		char tempString[5];
-		sprintf(tempString, "%4d", newVal);
-		stat->setValue(tempString);
-		stat->redraw();
+		char *newValStr = (char*) malloc(6*sizeof(char));
+		sprintf(newValStr, "%4d", newVal);
+		if (strcmp(newValStr, stat->getValue()) != 0) {
+			stat->setValue(newValStr);
+			stat->redraw();
+		}
+		else {
+			free(newValStr);
+		}
     }
 
     virtual void redrawStats(SensorData *sensorData, SensorDisplay *sensorDisplay, int newVal) {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput::redrawStats(...)");
+    			Serial.print(F("SensorInput::redrawStats(... "));
+				Serial.print(newVal);
+				Serial.println(F(" )"));
     			}
     	#endif
         redrawStat(&(sensorDisplay->stats.latest),    newVal);
@@ -77,6 +84,8 @@ class SensorInput {
     			Serial.println("SensorInput()");
     		}
     	#endif
+
+		setInterval();
     }
 
     SensorInput(int pin, int type) : 
@@ -88,9 +97,14 @@ class SensorInput {
     {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput(...)");
+    			Serial.println(F("SensorInput( "));
+				Serial.print(pin);
+				Serial.print(F(", "));
+				Serial.print(type);
+				Serial.println(F(" )"));
     		}
     	#endif
+		setInterval();
         this->pin = pin;
         this->type = type;
         if (pin > 0) {
@@ -116,14 +130,24 @@ class SensorInput {
     virtual void toggleMode() {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput::toggleMode(...)");
+    			Serial.println("SensorInput::toggleMode()");
     		}
     	#endif
         if (mode==DYNAMIC) {
             mode = STATIC;
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.println(F("mode = STATIC"));
+				}
+			#endif
         }
         else {
             mode = DYNAMIC;
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.println(F("mode = DYNAMIC"));
+				}
+			#endif
         }
     }
 
@@ -136,7 +160,7 @@ class SensorInput {
     			Serial.println("SensorInput::poll()");
     		}
     	#endif
-        int newReading = -1;
+        int newReading = INT_MIN;
 		if (pin > -1) {
 			if (type==ANALOG) {
 				newReading = analogRead(pin-14); // 0-1024
@@ -159,10 +183,12 @@ class SensorInput {
     to the size of the data storage for the min, avg, max observed
     during that cycle
     */
-    virtual int intervalLapsed(int newReading) {
+    virtual int checkInterval(int newReading) {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput::intervalLapsed(...)");
+    			Serial.print(F("SensorInput::checkInterval( "));
+    			Serial.print(newReading);
+    			Serial.println(F(" )"));
     		}
     	#endif
         int lapsed = 0;
@@ -221,26 +247,49 @@ class SensorInput {
     virtual void updateDataAndRedrawStats(int newReading) {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput::updateDataAndStats(...)");
+    			Serial.print(F("SensorInput::updateDataAndStats( "));
+				Serial.print(newReading);
+				Serial.println(F(" )  "));
     		}
     	#endif
         rawData.insert(newReading);
 
         //see if interval is up or raw data is full
-        if (intervalLapsed(newReading)) {
+        if (checkInterval(newReading)) {
             cycles++;
             int currentFiltered = INT_MIN;
 
             if (filter==MINDETECTION) {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println("MINDETECTION");
+					}
+				#endif
                 currentFiltered = rawData.min;
             }
             else if (filter==AVGDETECTION) {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println("AVGDETECTION");
+					}
+				#endif
                 currentFiltered = rawData.avg;
             }
             else if (filter==PEAKDETECTION) {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println("PEAKDETECTION");
+					}
+				#endif
                 currentFiltered = rawData.max;
             }
             rawData.reset();
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.print(F("currentFiltered: "));
+					Serial.println(currentFiltered);
+				}
+			#endif
 
             //see if we have new value
             if (currentFiltered!=INT_MAX && currentFiltered!=INT_MIN) {
@@ -341,5 +390,35 @@ class SensorInput {
     	#endif
     }
 
+	int getInterval() const {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println("SensorInput::getInterval()");
+			}
+		#endif
+		return interval;
+	}
+
+	void setInterval(int interval = 1000000) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println("SensorInput::setInterval(...)");
+			}
+		#endif
+		this->interval = interval;
+		char *intervalStr = (char*) malloc(6*sizeof(char));
+		sprintf(intervalStr, "%0.1f s", interval/1000000.0);
+		shortTermDisplay.stats.interval.setValue(intervalStr);
+//		shortTermDisplay.stats.interval.redraw(); //FIXME should calling method be responsible for this???
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print("interval stat ");
+				Serial.println(intervalStr);
+			}
+		#endif
+
+		//IMP what about the longTermDisplay? interval * shortTermdataStorageSize?
+		//what about if we switch to linked list variable length "timed experiment" storage?
+	}
 };
 #endif

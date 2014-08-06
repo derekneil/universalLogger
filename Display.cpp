@@ -154,7 +154,7 @@ int Display::add(SensorDisplay *sd) {
 		if (SDs[i]==nullptr) {
 
 			//enable it
-			sd->enabled = 1;
+			sd->enabled = true;
 
 			//set this memory address in the array
 			SDs[i] = sd;

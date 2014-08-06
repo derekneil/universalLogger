@@ -19,6 +19,11 @@ class Stat : public DisplayElement {
 
     int operator== (const Stat param);
 
+    /** make sure initial draw has room for 5 char stat */
+    void defaultValue();
+
+    char* getValue() { return value; }
+
     /** place current value in last value,
      * then update value with new value */
     void setValue(char* newValue);

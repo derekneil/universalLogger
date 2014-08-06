@@ -18,6 +18,10 @@
 #include "SensorDisplay.h"
 #include "TouchButton.h"
 
+#ifdef DEBUG
+	int loopCounter = 0;
+#endif
+
 #if defined(__SAM3X8E__)
 #undef __FlashStringHelper::F(string_literal)
 #define F(string_literal) string_literal
@@ -62,231 +66,6 @@ TouchButton *logBtn;
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
-
-
-void drawMainScreen() {
-	#ifdef DEBUG
-		if (Serial) {
-			Serial.println(F("drawMainScreen()"));
-		}
-	#endif
-
-	//clear the screen of what ever was there
-	tft.fillScreen(BACKGROUNDCOLOUR);
-	tft.setTextSize(1);
-
-	for (int i=0; i<NUMREGIONS; i++) {
-		sensorInputs[i]->draw(); //XXX each of these checks to see if it's active, alternatively Display could have something that loops through it's regions and just calls draw on those...
-	}
-}
-
-#define mSize 7
-class Menu {
-  private:
-	int mIndex = 0;
-	DisplayElement *m[mSize] = { nullptr };
-  public:
-	Menu() {}
-	~Menu() {}
-	void add(DisplayElement *el) { if (mIndex< mSize) { m[mIndex++] = el; } }
-	void draw() {
-		Display::device->fillScreen(MENUCOLOUR);
-		Display::device->setTextSize(2);
-		for (int i=0; i<mSize; i++){
-			m[i]->draw();
-		}
-	}
-};
-
-void drawMainMenu() {
-	#ifdef DEBUG
-		if (Serial) {
-			Serial.println(F("drawMainMenu()"));
-		}
-	#endif
-
-	Menu menu;
-
-	TouchButton backBtn(  CENTER_X1, CENTER_Y1-30, "Back");
-	menu.add(&backBtn);
-
-	if (logging==false) {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log OFF");
-	}
-	else {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log ON");
-	}
-	menu.add(logBtn);
-
-	TouchButton resetAllBtn(CENTER_X2, CENTER_Y1+30, "Reset All");
-	menu.add(&resetAllBtn);
-
-	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
-
-	//XXX make this parametric to the number of inputs... and put them in a pretty order based on the number instead of manually tweaking
-	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
-	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
-	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
-	inputButtons[3] = new TouchButton(CENTER_X2,    CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
-	for (int i=0; i<NUMINPUTS; i++) {
-		menu.add(inputButtons[i]);
-	}
-
-	menu.draw();
-
-	#ifdef DEBUG
-		if (Serial) {
-			Serial.println(F("drawMainMenu() listen for menu touch"));
-		}
-	#endif
-
-	while (1) {
-		if (!(ts.bufferEmpty())) {
-			if (parseTouchBoilerPlate()) {
-
-				if (backBtn.isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-						if (Serial) {
-							Serial.println(F("backBtn isPushed"));
-						}
-					#endif
-					backBtn.push();
-					break; //break out of this menu's touch loop
-				}
-				else if (logBtn->isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-					if (Serial) {
-						Serial.println(F("logBtn isPushed"));
-					}
-					#endif
-					logBtn->push();
-					toggleLogging();
-					logBtn->draw();
-				}
-				else if (resetAllBtn.isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-						if (Serial) {
-							Serial.println(F("resetAllBtn isPushed"));
-						}
-					#endif
-					resetAllBtn.push();
-					resetAll();
-					resetAllBtn.draw();
-				}
-
-				else{
-					for (int i=0; i<NUMINPUTS; i++) {
-						if (inputButtons[i]->isPushed(touchX,touchY)) {
-							#ifdef DEBUG
-								if (Serial) {
-									Serial.print(inputButtons[i]->getLabel());
-									Serial.println(F("Btn isPushed"));
-								}
-							#endif
-							inputButtons[i]->push();
-							drawIndividualSensorMenu(inputButtons[i]->obj);
-
-							menu.draw(); //redraw this menu
-							break;
-						}
-					}
-				}
-
-				//some buttons seemed to get pushed again for some reason...
-				emptyTouchBuffer();
-
-			}
-			else {
-				#ifdef DEBUG
-					if (Serial) {
-						Serial.println(F("ignoring menu touch, to soon after last touch"));
-					}
-				#endif
-			}
-		}
-	} // close whiLe
-}
-
-void drawIndividualSensorMenu(SensorInput *si) {
-	#ifdef DEBUG
-	if (Serial) {
-		Serial.print(F("drawMainIndividualSensorMenu(...) "));
-		Serial.println(si->label);
-	}
-	#endif
-
-	tft.fillScreen(MENUCOLOUR);
-	tft.setTextSize(2);
-
-	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
-	backBtn.draw();
-
-
-
-	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
-	resetBtn.draw();
-
-	//IMP draw controls for each of the inputs for a sensor
-
-	//IMP draw specialized controls for loadcell and linearEnc???
-
-	while (1) {
-		if (!(ts.bufferEmpty())) {
-			if (parseTouchBoilerPlate()) {
-
-				if (backBtn.isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-						if (Serial) {
-							Serial.println(F("backBtn isPushed"));
-						}
-					#endif
-					backBtn.push();
-					break; //break out of this menu's touch loop
-				}
-				else if (resetBtn.isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-						if (Serial) {
-							Serial.println(F("resetAllBtn isPushed"));
-						}
-					#endif
-					resetBtn.push();
-					resetBtn.obj->reset();
-					resetBtn.draw();
-				}
-
-				//IMP implement touch buttons for all the SensorInput variables we want to control
-
-				//some buttons seemed to get pushed again for some reason...
-				emptyTouchBuffer();
-
-			}
-			else {
-				#ifdef DEBUG
-					if (Serial) {
-						Serial.println(F("ignoring menu touch, to soon after last touch"));
-					}
-				#endif
-			}
-		}
-	}//end while
-
-}
-
-//-----------------------------------------------------------------------------
-
-void pollSensors() {
-
-	//loop through sensorInputs
-	for (int i=0; i<NUMINPUTS; i++) {
-
-		if(sensorInputs[i]->isEnabled()) {
-
-			int newReading = sensorInputs[i]->poll();
-			sensorInputs[i]->updateDataAndRedrawStats(newReading);
-			sensorInputs[i]->updateViz();
-		}
-	}
-}
 
 void logError() {
 	#ifdef DEBUG
@@ -514,6 +293,22 @@ int parseTouchBoilerPlate() {
 	return false;
 }
 
+void drawMainScreen() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("drawMainScreen()"));
+		}
+	#endif
+
+	//clear the screen of what ever was there
+	tft.fillScreen(BACKGROUNDCOLOUR);
+	tft.setTextSize(1);
+
+	for (int i=0; i<NUMREGIONS; i++) {
+		sensorInputs[i]->draw(); //XXX each of these checks to see if it's active, alternatively Display could have something that loops through it's regions and just calls draw on those...
+	}
+}
+
 
 /** would be great to reuse this with a different*/
 void parseTouch() {
@@ -535,6 +330,225 @@ void parseTouch() {
 
 }
 
+//-----------------------------------------------------------------------------
+
+void drawIndividualSensorMenu(SensorInput *si) {
+	#ifdef DEBUG
+	if (Serial) {
+		Serial.print(F("drawMainIndividualSensorMenu(...) "));
+		Serial.println(si->label);
+	}
+	#endif
+
+	tft.fillScreen(MENUCOLOUR);
+	tft.setTextSize(2);
+
+	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
+	backBtn.draw();
+
+	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
+	resetBtn.draw();
+
+	//IMP draw controls for each of the inputs for a sensor
+
+//	TouchButtonSelect* filterSelect, modeSelect, shortTermType, longTermType;
+//
+//	filterSelect = new TouchButtonSelect( CENTER_X1, CENTER_Y1+30, "Filter: ", si, "MIN", "AVG", "MAX");
+//	filterSelect->selectedOption(si->filter);
+//	filterSelect->draw();
+//
+//	modeSelect = new TouchButtonSelect( CENTER_X1, CENTER_Y1+30, "Mode: ", si, "STATIC", "DYNAMIC");
+//	modeSelect->selectedOption(si->mode);
+//	modeBtn->draw();
+
+//	TouchNumberInput* interval, highPass, lowPass, shotTermPos, longTermPos;
+
+	//IMP draw specialized controls for loadcell and linearEnc???
+
+	while (1) {
+		if (!(ts.bufferEmpty())) {
+			if (parseTouchBoilerPlate()) {
+
+				if (backBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("backBtn isPushed"));
+						}
+					#endif
+					backBtn.push();
+					break; //break out of this menu's touch loop
+				}
+				else if (resetBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("resetAllBtn isPushed"));
+						}
+					#endif
+					resetBtn.push();
+					resetBtn.obj->reset();
+					resetBtn.draw();
+				}
+
+				//IMP implement touch buttons for all the SensorInput variables we want to control
+
+				//some buttons seemed to get pushed again for some reason...
+				emptyTouchBuffer();
+
+			}
+			else {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println(F("ignoring menu touch, to soon after last touch"));
+					}
+				#endif
+			}
+		}
+	}//end while
+}
+
+#define mSize 7
+class Menu {
+  private:
+	int mIndex = 0;
+	DisplayElement *m[mSize] = { nullptr };
+  public:
+	Menu() {}
+	~Menu() {}
+	void add(DisplayElement *el) { if (mIndex< mSize) { m[mIndex++] = el; } }
+	void draw() {
+		Display::device->fillScreen(MENUCOLOUR);
+		Display::device->setTextSize(2);
+		for (int i=0; i<mSize; i++){
+			m[i]->draw();
+		}
+	}
+};
+
+void drawMainMenu() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("drawMainMenu()"));
+		}
+	#endif
+
+	Menu menu;
+
+	TouchButton backBtn(  CENTER_X1, CENTER_Y1-30, "Back");
+	menu.add(&backBtn);
+
+	if (logging==false) {
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log OFF");
+	}
+	else {
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log ON");
+	}
+	menu.add(logBtn);
+
+	TouchButton resetAllBtn(CENTER_X2, CENTER_Y1+30, "Reset All");
+	menu.add(&resetAllBtn);
+
+	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
+
+	//XXX make this parametric to the number of inputs... and put them in a pretty order based on the number instead of manually tweaking
+	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
+	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
+	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
+	inputButtons[3] = new TouchButton(CENTER_X2,    CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
+	for (int i=0; i<NUMINPUTS; i++) {
+		menu.add(inputButtons[i]);
+	}
+
+	menu.draw();
+
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("drawMainMenu() listen for menu touch"));
+		}
+	#endif
+
+	while (1) {
+		if (!(ts.bufferEmpty())) {
+			if (parseTouchBoilerPlate()) {
+
+				if (backBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("backBtn isPushed"));
+						}
+					#endif
+					backBtn.push();
+					break; //break out of this menu's touch loop
+				}
+				else if (logBtn->isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+					if (Serial) {
+						Serial.println(F("logBtn isPushed"));
+					}
+					#endif
+					logBtn->push();
+					toggleLogging();
+					logBtn->draw();
+				}
+				else if (resetAllBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("resetAllBtn isPushed"));
+						}
+					#endif
+					resetAllBtn.push();
+					resetAll();
+					resetAllBtn.draw();
+				}
+
+				else{
+					for (int i=0; i<NUMINPUTS; i++) {
+						if (inputButtons[i]->isPushed(touchX,touchY)) {
+							#ifdef DEBUG
+								if (Serial) {
+									Serial.print(inputButtons[i]->getLabel());
+									Serial.println(F("Btn isPushed"));
+								}
+							#endif
+							inputButtons[i]->push();
+							drawIndividualSensorMenu(inputButtons[i]->obj);
+
+							menu.draw(); //redraw this menu
+							break;
+						}
+					}
+				}
+
+				//some buttons seemed to get pushed again for some reason...
+				emptyTouchBuffer();
+
+			}
+			else {
+				#ifdef DEBUG
+					if (Serial) {
+						Serial.println(F("ignoring menu touch, to soon after last touch"));
+					}
+				#endif
+			}
+		}
+	} // close whiLe
+}
+
+void pollSensors() {
+
+	//loop through sensorInputs
+	for (int i=0; i<NUMINPUTS; i++) {
+
+		if(sensorInputs[i]->isEnabled()) {
+
+			int newReading = sensorInputs[i]->poll();
+			sensorInputs[i]->updateDataAndRedrawStats(newReading);
+			sensorInputs[i]->updateViz();
+		}
+	}
+}
+
+
+
 time_t getTeensy3Time() { return Teensy3Clock.get(); }
 
 // User provided date time callback function
@@ -551,7 +565,7 @@ void setup() {
 		//serial console
 		Serial.begin(9600);
 		while (!Serial) {}
-			Serial.println(F("setup begin"));
+			Serial.println(F(" -- setup begin -- \n"));
 	#endif
 
 	//setup teensy clock
@@ -628,9 +642,22 @@ void setup() {
 	drawMainScreen();
 
 	#ifdef DEBUG
-	if (Serial) {
-		Serial.println(F("setup complete"));
-	}
+		//verify viz layout
+		for (int i=0; i<NUMINPUTS; i++) {
+			int x = sensorInputs[i]->shortTermDisplay.viz->getCenterX();
+			int y = sensorInputs[i]->shortTermDisplay.viz->getCenterY();
+			int h2 = sensorInputs[i]->shortTermDisplay.viz->getH() /2 ;
+			for (int j=i+1; j>0; j--) {
+				Display::device->drawFastVLine(x=x+5, y, h2, RED);
+			}
+		}
+	#endif
+
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("\n\n --setup complete --"));
+		}
+//		delay(2000);
 	#endif
 
 } //end setup()
@@ -638,7 +665,14 @@ void setup() {
 
 void loop() {
 
-	delay(2000); //FIXME debug code
+	#ifdef DEBUG
+		if (Serial) {
+			delay(1000);
+			Serial.print(F("\n\n --loop"));
+			Serial.print(loopCounter++);
+			Serial.println(F(" -- \n"));
+		}
+	#endif
 
 	pollSensors();
 
