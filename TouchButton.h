@@ -5,21 +5,8 @@
 #include "Touch.h"
 #include "Display.h"
 
-#define CHARWIDTH 6
-#define CHARHEIGHT 8
-#define BACKGROUNDCOLOUR ILI9340_BLUE
-#define TEXTCOLOUR ILI9340_WHITE
-
-#ifdef DEBUG
-  #define ERASECOLOUR ILI9340_RED
-#endif
-#ifndef DEBUG
-  #define ERASECOLOUR ILI9340_BLUE
-#endif
-#define BUTTONCOLOUR ILI9340_WHITE
-#define BUTTONPUSHEDCOLOUR ILI9340_MAGENTA
-#define RADIUS 4
-#define SHADDOW ILI9340_BLACK
+#define BUTTONCOLOUR WHITE
+#define BUTTONPUSHEDCOLOUR MAGENTA
 
 class TouchButton : public TouchElement{
   protected:
@@ -27,7 +14,7 @@ class TouchButton : public TouchElement{
     int r             = 4;
     int colour        = BUTTONCOLOUR;
     int shaddow       = 2;
-    int shaddowColour = 0; //zero is usually black
+    int shaddowColour = BLACK;
 
   public:
 

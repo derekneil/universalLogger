@@ -10,7 +10,7 @@
 void GraphScrolling::redrawSingleGraphLines(int *startX, int last, int temp) {
   if (last > temp) {
     //erase, aka draw background
-    Display::device->drawFastVLine((*startX)++, h-last, last-temp, BACKGROUNDCOLOUR);
+    Display::device->drawFastVLine((*startX)++, h-last, last-temp, BLACK);
   }
   else if (last < temp) {
     //add, aka draw white

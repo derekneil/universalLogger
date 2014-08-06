@@ -24,7 +24,6 @@ SensorDisplay::SensorDisplay() :
 }
 
 SensorDisplay::SensorDisplay(SensorData *dataSource) :
-	//not really worth changing all these constructors, they might be used a different way later
 	DisplayElement          {0,0,STDWIDTH,STDHEIGHT},
 	viz { new GraphScrolling(0,0,STDWIDTH,STDHEIGHT-STATHEIGHT) },
 	stats                   {0,0,STDWIDTH,STATHEIGHT}
@@ -158,7 +157,7 @@ void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
 	#endif
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
 	viz->locateAndSize(centerX, centerY-STATHEIGHT/2, w, h-STATHEIGHT);
-	int statsCenterY = centerY + (h-STATHEIGHT)/2 + STATHEIGHT/2;
+	int statsCenterY = viz->getCenterY() + (h-STATHEIGHT)/2 + STATHEIGHT/2;
 	stats.locateAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 

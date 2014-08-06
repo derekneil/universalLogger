@@ -43,8 +43,7 @@ class SensorInput {
 	   // #endif
 		char tempString[5];
 		sprintf(tempString, "%4d", newVal);
-		delete stat->lastValue; //free memory
-		stat->lastValue = tempString;
+		stat->setValue(tempString);
 		stat->redraw();
     }
 

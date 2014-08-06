@@ -24,6 +24,8 @@
 		this->centerY=centerY;
 		this->w=w;
 		this->h=h;
+		this->startX=centerX-w/2;
+		this->startY=centerY-h/2;
 	}
 
 	DisplayElement::~DisplayElement() {
@@ -43,6 +45,8 @@
 		#endif
 		this->centerX=centerX;
 		this->centerY=centerY;
+		this->startX=centerX-w/2;
+		this->startY=centerY-h/2;
 	}
 
 	void DisplayElement::locateAndSize(int centerX, int centerY, int w, int h)
@@ -56,6 +60,8 @@
 		this->centerY=centerY;
 		this->w=w;
 		this->h=h;
+		this->startX=centerX-w/2;
+		this->startY=centerY-h/2;
 	}
 
 	void DisplayElement::draw() {
@@ -75,15 +81,13 @@
 	}
 
 	/** assumes upper left 0,0 start point */
-	void DisplayElement::clear(int backgroundColour) {
+	void DisplayElement::clear(int colour /**=BACKGROUNDCOLOUR*/) {
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.println(F("DisplayElement::clear(...)"));
 			}
 		#endif
-		int startX = centerX - w/2;
-		int startY = centerY - h/2;
-		Display::device->fillRect(startX , startY, w, h, backgroundColour);
+		Display::device->fillRect(startX , startY, w, h, colour);
 	}
 
 #endif

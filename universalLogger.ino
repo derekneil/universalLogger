@@ -27,7 +27,6 @@ const int divider = 5; // = (max expected input ~1000 )/ GRAPHHEIGHT //FIXME div
 #define lcd_cs 10
 #define lcd_dc 9
 #define lcd_rst -1
-const int shaddow = 2;
 
 Adafruit_ILI9340 tft = Adafruit_ILI9340(lcd_cs, lcd_dc, lcd_rst);
 
@@ -42,9 +41,6 @@ Adafruit_STMPE610 ts = Adafruit_STMPE610(STMPE_CS);
 int lastTouchTime = 0;
 int touchX = 0;
 int touchY = 0;
-#ifdef DEBUG
-uint8_t checkBit = 0;
-#endif
 
 //SD card reader
 // MOSI - pin 11
@@ -128,10 +124,10 @@ void drawMainMenu() {
 	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
 
 	//XXX make this parametric to the number of inputs... and put them in a pretty order based on the number instead of manually tweaking
-	inputButtons[0] = new TouchButton(CENTER_X1, CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
+	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
 	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
-	inputButtons[2] = new TouchButton(CENTER_X2, CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
-	inputButtons[3] = new TouchButton(CENTER_X2, CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
+	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
+	inputButtons[3] = new TouchButton(CENTER_X2,    CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
 	for (int i=0; i<NUMINPUTS; i++) {
 		menu.add(inputButtons[i]);
 	}
