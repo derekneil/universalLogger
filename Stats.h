@@ -5,8 +5,6 @@
 #include "DisplayElement.h"
 #include "Stat.h"
 
-#define STATHEIGHT 24
-
 class Stats : public DisplayElement {
 
   public:
@@ -21,6 +19,8 @@ class Stats : public DisplayElement {
 
 	/** this is setup for a 158x24 stats display area */
 	Stats(int centerX, int centerY, int w, int h);
+
+	~Stats();
 
 	int operator== (const Stats param);
 

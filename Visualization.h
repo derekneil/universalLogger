@@ -21,5 +21,7 @@ class Visualization : public DisplayElement {
 
 	virtual void redraw(SensorData *data);
 
+	virtual void clear(int colour=BLACK);
+
 };
 #endif

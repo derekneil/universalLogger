@@ -43,8 +43,7 @@ class SensorInput {
 	   // #endif
 		char tempString[5];
 		sprintf(tempString, "%4d", newVal);
-		delete stat->lastValue; //free memory
-		stat->lastValue = tempString;
+		stat->setValue(tempString);
 		stat->redraw();
     }
 
@@ -64,6 +63,7 @@ class SensorInput {
   public:
 	SensorDisplay shortTermDisplay;
 	SensorDisplay longTermDisplay;
+	char *label = nullptr;
 
     SensorInput() :
 		rawData          {RAWDATASIZE},
@@ -96,9 +96,11 @@ class SensorInput {
         if (pin > 0) {
             if (type==DIGITAL) {
                 pinMode(pin, INPUT_PULLUP);
+                label = "digital";
             }
             else if (type==ANALOG) {
                 pinMode(pin, INPUT);
+                label = "analog";
             }
         }
     }
@@ -306,7 +308,7 @@ class SensorInput {
     	#endif
 		char *output = (char*) malloc(16*sizeof(char));
     	if (isEnabled()) {
-			sprintf(output, ", %d, %d", cycles, rawData.latest()); //change headers in
+			sprintf(output, ", %d, %d", shortTermData.count, rawData.latest()); //change headers in
     	}
         return output;
     }

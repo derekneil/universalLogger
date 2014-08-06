@@ -24,7 +24,6 @@ SensorDisplay::SensorDisplay() :
 }
 
 SensorDisplay::SensorDisplay(SensorData *dataSource) :
-	//not really worth changing all these constructors, they might be used a different way later
 	DisplayElement          {0,0,STDWIDTH,STDHEIGHT},
 	viz { new GraphScrolling(0,0,STDWIDTH,STDHEIGHT-STATHEIGHT) },
 	stats                   {0,0,STDWIDTH,STATHEIGHT}
@@ -71,7 +70,7 @@ SensorDisplay& SensorDisplay::operator= (SensorDisplay *param) {
 int SensorDisplay::operator== (const SensorDisplay *param) {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("SensorDisplay::operator=="));
+			Serial.print(F("SensorDisplay::operator=="));
 		}
 	#endif
 	if (
@@ -85,9 +84,19 @@ int SensorDisplay::operator== (const SensorDisplay *param) {
 		viz         == param->viz         &&
 		stats       == param->stats
 	) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F(" ... objects different"));
+			}
+		#endif
 		return true;
 	}
 	else {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F(" ... objects same"));
+			}
+		#endif
 		return false;
 	}
 }
@@ -148,8 +157,8 @@ void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
 	#endif
 	DisplayElement::locateAndSize(centerX,centerY,w,h);
 	viz->locateAndSize(centerX, centerY-STATHEIGHT/2, w, h-STATHEIGHT);
-	int statsY = centerY + (h-STATHEIGHT)/2 + STATHEIGHT/2;
-	stats.locateAndSize(centerX, statsY, w, STATHEIGHT);
+	int statsCenterY = viz->getCenterY() + (h-STATHEIGHT)/2 + STATHEIGHT/2;
+	stats.locateAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 
 void SensorDisplay::reset() {

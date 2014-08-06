@@ -9,7 +9,7 @@
 #include "Arduino.h"
 //add your includes for the project universalLogger here
 
-#define DEBUG
+//#define DEBUG
 
 #define NUMINPUTS 4
 #define NUMREGIONS NUMINPUTS
@@ -35,17 +35,38 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
+#define MENUCOLOUR MAGENTA
+#define MENUTEXTSIZE 2
+#define BACKGROUNDCOLOUR BLUE
+#define TEXTCOLOUR WHITE
+#define TEXTSIZE 1
+
 #ifdef DEBUG
 	#define ERASECOLOUR RED
 #endif
 
 #ifndef ERASECOLOUR
-	#define ERASECOLOUR BLACK
+	#define ERASECOLOUR BACKGROUNDCOLOUR
 #endif
 
-#define BACKGROUNDCOLOUR BLACK
-#define TEXTCOLOUR WHITE
+#define SCREENWIDTH 320 //X
+#define SCREENHEIGHT 240 //Y
 
+#define CENTER_X SCREENWIDTH/2
+#define CENTER_X1 80
+#define CENTER_X2 240
+
+#define CENTER_Y SCREENHEIGHT/2
+#define CENTER_Y1 60
+#define CENTER_Y2 180
+
+#define HALFHEIGHT STDHEIGHT // = CENTER_Y-1
+#define FULLHEIGHT 238 // = STDHEIGHT * 2 + 2
+
+#define HALFWIDTH STDWIDTH // = CENTER_X-1
+#define FULLWIDTH 318 // = STDWIDTH * 2 + 2
+
+#define STATHEIGHT 30
 
 
 //end of add your includes here

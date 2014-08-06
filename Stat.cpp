@@ -14,7 +14,7 @@ Stat::Stat(int centerX, int centerY, int w, int h, char* label) :
 		}
 	#endif
 	this->label = label;
-	lastValue = "";
+	lastValue = value = "00000"; //make sure initial draw has room for 5 char stat
 }
 
 Stat::~Stat() {
@@ -23,16 +23,16 @@ Stat::~Stat() {
 			Serial.println(F("~Stat() "));
 		}
 	#endif
-	delete label;
-	delete lastValue;
+//	free(label);    //FIXME memory leak???? code was hanging here, and with delete
+//	free(lastValue);
+//	free(value);
 }
 
 int Stat::operator== (const Stat param) {
-	if (
-			centerX   == param.centerX   &&
+	if (	centerX   == param.centerX   &&
 			centerY   == param.centerY   &&
 			w         == param.w         &&
-			h         == param.h         &&
+			h         == param.h         && //startX and startY not needed since they're computed values
 			colour    == param.colour    &&
 			label     == param.label     &&
 			lastValue == param.lastValue
@@ -42,6 +42,14 @@ int Stat::operator== (const Stat param) {
 	else {
 		return false;
 	}
+}
+
+/** place current value in last value,
+ * then update value with new value */
+void Stat::setValue(char* newValue) {
+//	delete lastValue; //FIXME memory leak??? code hangs when it tries to run....
+	lastValue = value;
+	value = newValue;
 }
 
 /** erase entire space for stat
@@ -55,14 +63,12 @@ void Stat::draw() {
 		}
 	#endif
 
-	int startX = centerX-w/2;
-	int startY = centerY-h/2;
 	int textY = startY + (h - CHARHEIGHT)/2;
 	int textX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2;
 	Display::device->fillRect(startX, startY, w, h, ERASECOLOUR);
 	Display::device->setCursor(textX, textY);
 	Display::device->print(label);
-	Display::device->print(lastValue);
+	Display::device->print(value);
 }
 
 /** assumes label is already on screen
@@ -76,18 +82,16 @@ void Stat::redraw() {
 		}
 	#endif
 
-	int startX = centerX-w/2;
-	int startY = centerY-h/2;
 	int textY = startY + (h - CHARHEIGHT)/2;
 	int textX = startX + (w - (strlen(lastValue) * CHARWIDTH))/2 + strlen(label)*CHARWIDTH;
-	Display::device->fillRect(textX, startY, strlen(label)*CHARWIDTH, h, ERASECOLOUR);
+	Display::device->fillRect(textX, startY, strlen(lastValue)*CHARWIDTH, h, ERASECOLOUR); //only erase previous stat value
 	Display::device->setCursor(textX, textY);
-	Display::device->print(lastValue);
+	Display::device->print(value); //only print new value
 }
 
 void Stat::reset() {
-	delete lastValue;
-	lastValue = "";
+//	delete lastValue;	//FIXME memory leak???? code was hanging here, and with delete
+	lastValue = value = "00000";
 }
 
 #endif

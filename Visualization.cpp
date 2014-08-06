@@ -46,4 +46,13 @@ void Visualization::redraw(SensorData *data) {
 	#endif
 }
 
+void Visualization::clear(int colour/**=BLACK*/) {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("Visualization::clear()"));
+		}
+	#endif
+	DisplayElement::clear(colour);
+}
+
 #endif

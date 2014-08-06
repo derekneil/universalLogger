@@ -6,17 +6,22 @@
 
 class Stat : public DisplayElement {
   protected:
+    char *lastValue;
+    char *value;
 
   public:
     int colour = TEXTCOLOUR;
     char *label;
-    char *lastValue;
 
     Stat(int centerX=0, int centerY=0, int w=0, int h=0, char* label="");
 
     ~Stat();
 
     int operator== (const Stat param);
+
+    /** place current value in last value,
+     * then update value with new value */
+    void setValue(char* newValue);
 
     /** erase entire space for stat
      * print label

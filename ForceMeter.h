@@ -30,6 +30,7 @@ class ForceMeter : public SensorInput {
 					Serial.println(F("ForceMeter()"));
 				}
 			#endif
+			SensorInput::label = "ForceMeter";
 			LOADCELL.begin(19200, SERIAL_8N1_RXINV_TXINV);	
 		}
 
@@ -95,7 +96,7 @@ class ForceMeter : public SensorInput {
 		void reset() {
 			#ifdef DEBUG
 				if (Serial) {
-					Serial.print(F("ForceMeter::reset()"));
+					Serial.println(F("ForceMeter::reset()"));
 				}
 			#endif
 			loadCellReadingState = DIGITS;

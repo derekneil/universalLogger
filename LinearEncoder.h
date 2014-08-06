@@ -21,6 +21,7 @@ class LinearEncoder : public SensorInput {
 					Serial.println("LinearEncoder(...)");
 				}
 			#endif
+			SensorInput::label = "LinearEncoder";
 		}
 
 		int poll() {
