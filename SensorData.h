@@ -15,6 +15,10 @@ class SensorData {
     int max    = INT_MIN;
     int bumped = 0;
     int count  = 0;
+
+    int last10[10]   = {0};
+    int last10Index  = 0;
+    int last10bumped = 0;
     double last10avg = 0;
 
     SensorData() {
@@ -57,8 +61,13 @@ class SensorData {
 			}
 		#endif
 		bumped = array[index];
-		array[index] = val;
-		index++;
+		array[index++] = val;
+
+		last10bumped = last10[last10Index];
+		last10[last10Index++] = val;
+		if (last10Index > 9) {
+			last10Index = 0;
+		}
 
 		//update avg
 		if (count<size) {
@@ -76,7 +85,7 @@ class SensorData {
 			last10avg = avg;
 		}
 		else {
-			last10avg = (last10avg*10.0 - bumped + val) / 10.0;
+			last10avg = (last10avg*10.0 - last10bumped + val) / 10.0;
 		}
 
 		//update max

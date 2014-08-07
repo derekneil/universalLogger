@@ -10,6 +10,7 @@
 //add your includes for the project universalLogger here
 
 //#define DEBUG
+//#define MICRODEBUG
 
 #define NUMINPUTS 4
 #define NUMREGIONS NUMINPUTS
