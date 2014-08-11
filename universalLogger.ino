@@ -17,6 +17,7 @@
 #include "SensorInput.h"
 #include "SensorDisplay.h"
 #include "TouchButton.h"
+#include "TouchSelect.h"
 
 #ifdef DEBUG
 	int loopCounter = 0;
@@ -27,7 +28,6 @@
 #define F(string_literal) string_literal
 #endif
 
-const int divider = 5; // = (max expected input ~1000 )/ GRAPHHEIGHT //FIXME divider update based on max input seen?
 #define lcd_cs 10
 #define lcd_dc 9
 #define lcd_rst -1
@@ -351,9 +351,9 @@ void drawIndividualSensorMenu(SensorInput *si) {
 
 	//IMP draw controls for each of the inputs for a sensor
 
-//	TouchButtonSelect* filterSelect, modeSelect, shortTermType, longTermType;
-//
-//	filterSelect = new TouchButtonSelect( CENTER_X1, CENTER_Y1+30, "Filter: ", si, "MIN", "AVG", "MAX");
+	TouchSelect* filterSelect, modeSelect, shortTermType, longTermType;
+
+	filterSelect = new TouchSelect( CENTER_X1, CENTER_Y1+30, "Filter: ", si, 3, "MIN", "AVG", "MAX");
 //	filterSelect->selectedOption(si->filter);
 //	filterSelect->draw();
 //
@@ -361,7 +361,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 //	modeSelect->selectedOption(si->mode);
 //	modeBtn->draw();
 
-//	TouchNumberInput* interval, highPass, lowPass, shotTermPos, longTermPos;
+//	TouchNumber* interval, highPass, lowPass, shotTermPos, longTermPos;
 
 	//IMP draw specialized controls for loadcell and linearEnc???
 
@@ -667,7 +667,7 @@ void loop() {
 
 	#ifdef DEBUG
 		if (Serial) {
-			delay(1000);
+			delay(100);
 			Serial.print(F("\n\n --loop"));
 			Serial.print(loopCounter++);
 			Serial.println(F(" -- \n"));

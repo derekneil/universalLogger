@@ -16,6 +16,8 @@ class DisplayElement {
 
 	DisplayElement();
 
+	DisplayElement(int startX, int startY);
+
 	DisplayElement(int centerX, int centerY, int w, int h);
 
 	virtual ~DisplayElement();
@@ -23,6 +25,8 @@ class DisplayElement {
 	virtual void locate(int centerX, int centerY);
 
 	virtual void locateAndSize(int centerX, int centerY, int w, int h);
+
+	virtual void size(int w, int h);
 
 	virtual void draw();
 

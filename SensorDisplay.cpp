@@ -133,7 +133,13 @@ void SensorDisplay::redraw() {
 		}
 	#endif
     if (enabled && needsRedraw) {
-		viz->redraw(data);
+    	if (divider != dividerChk) {
+    		dividerChk = divider;
+    		viz->draw(data, divider);
+    	}
+    	else {
+			viz->redraw(data);
+    	}
 		needsRedraw = false;
     }
 	//individual stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change
@@ -168,6 +174,8 @@ void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
 
 void SensorDisplay::reset() {
 	stats.reset();
+	int needsRedraw = 0;
+	int divider     = 1;
 }
 
 #endif

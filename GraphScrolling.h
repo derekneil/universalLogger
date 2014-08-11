@@ -14,7 +14,7 @@ class GraphScrolling : public Visualization {
   public:
 
     int doubleWidth = 0;
-    int divider     = 5; //FIXME divider... update this based on some programming magic
+    int divider = 1;
 
     GraphScrolling();
 
@@ -23,6 +23,8 @@ class GraphScrolling : public Visualization {
 	/** this should only be called once to draw after a screen change,
 	 * otherwise use redraw for better performance */
     void draw(SensorData *data);
+
+    void draw(SensorData *data, int newDivider);
 
     void redraw(SensorData *data);
 };

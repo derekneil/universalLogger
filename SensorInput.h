@@ -67,6 +67,36 @@ class SensorInput {
         redrawStat(&(sensorDisplay->stats.last10avg), sensorData->last10avg);
     }
 
+  	void checkDivider(int val, SensorDisplay *sd) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("SensorInput::checkDivider( "));
+				Serial.print(val);
+				Serial.print(F(" )  val/divider "));
+				Serial.print(val);
+				Serial.print(F(" / "));
+				Serial.print(sd->divider);
+				Serial.print(F(" = "));
+				Serial.print(val/sd->divider);
+				Serial.print(F(" < h: "));
+				Serial.println(sd->viz->getH());
+			}
+		#endif
+  		while (val/sd->divider > sd->viz->getH() ) {
+  			(sd->divider)++;
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.print(F("val/divider "));
+					Serial.print(val);
+					Serial.print(F(" / "));
+					Serial.print(sd->divider);
+					Serial.print(F(" = "));
+					Serial.println(val/sd->divider);
+				}
+			#endif
+  		}
+  	}
+
   public:
 	SensorDisplay shortTermDisplay;
 	SensorDisplay longTermDisplay;
@@ -262,7 +292,7 @@ class SensorInput {
             if (filter==MINDETECTION) {
 				#ifdef DEBUG
 					if (Serial) {
-						Serial.println("MINDETECTION");
+						Serial.print("MINDETECTION");
 					}
 				#endif
                 currentFiltered = rawData.min;
@@ -270,7 +300,7 @@ class SensorInput {
             else if (filter==AVGDETECTION) {
 				#ifdef DEBUG
 					if (Serial) {
-						Serial.println("AVGDETECTION");
+						Serial.print("AVGDETECTION");
 					}
 				#endif
                 currentFiltered = rawData.avg;
@@ -278,22 +308,23 @@ class SensorInput {
             else if (filter==PEAKDETECTION) {
 				#ifdef DEBUG
 					if (Serial) {
-						Serial.println("PEAKDETECTION");
+						Serial.print("PEAKDETECTION");
 					}
 				#endif
                 currentFiltered = rawData.max;
             }
-            rawData.reset();
 			#ifdef DEBUG
 				if (Serial) {
-					Serial.print(F("currentFiltered: "));
+					Serial.print(F(" currentFiltered: "));
 					Serial.println(currentFiltered);
 				}
 			#endif
+            rawData.reset();
 
             //see if we have new value
             if (currentFiltered!=INT_MAX && currentFiltered!=INT_MIN) {
                 shortTermData.insert(currentFiltered);
+				checkDivider(currentFiltered, &shortTermDisplay);
                 if (shortTermDisplay.enabled) {
                 	redrawStats(&shortTermData, &shortTermDisplay, currentFiltered);
                 	shortTermDisplay.needsRedraw = true;
@@ -303,9 +334,11 @@ class SensorInput {
                 if (shortTermData.checkAndResetIndex()) {
 
                 	//save last shortTermData cycle average to long term
-                    longTermData.insert(shortTermData.avg);
+                	int shortAvg = shortTermData.avg;
+                    longTermData.insert(shortAvg);
+                    checkDivider(shortAvg, &longTermDisplay);
                     if (longTermDisplay.enabled) {
-                    	redrawStats(&longTermData, &longTermDisplay, shortTermData.avg);
+                    	redrawStats(&longTermData, &longTermDisplay, shortAvg);
                     	longTermDisplay.needsRedraw = true;
                     }
 
@@ -412,7 +445,7 @@ class SensorInput {
 //		shortTermDisplay.stats.interval.redraw(); //FIXME should calling method be responsible for this???
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.print("interval stat ");
+				Serial.print("interval stat: ");
 				Serial.println(intervalStr);
 			}
 		#endif

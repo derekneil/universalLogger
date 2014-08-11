@@ -11,10 +11,25 @@ class TouchElement : public DisplayElement {
 	TouchElement() {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("Touch()"));
+				Serial.println(F("TouchElement()"));
 			}
 		#endif
 	}
+
+    TouchElement(int startX, int startY) :
+    	DisplayElement {startX, startY}
+    {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("TouchElement( "));
+				Serial.print(startX);
+				Serial.print(F(", "));
+				Serial.print(startY);
+				Serial.println(F(" )"));
+			}
+		#endif
+
+    }
 
 
     TouchElement(int centerX, int centerY, int w, int h) :
@@ -22,7 +37,15 @@ class TouchElement : public DisplayElement {
     {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("Touch(...)"));
+				Serial.println(F("TouchElement( "));
+				Serial.print(centerX);
+				Serial.print(F(", "));
+				Serial.print(centerY);
+				Serial.print(F(", "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
 			}
 		#endif
 
@@ -31,17 +54,21 @@ class TouchElement : public DisplayElement {
     virtual int isPushed(int tx, int ty) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("Touch::isPushed()"));
+				Serial.println(F("TouchElement::isPushed( "));
+				Serial.print(tx);
+				Serial.print(F(", "));
+				Serial.print(ty);
+				Serial.println(F(" )"));
 			}
 		#endif
-		return tx > centerX - w/2  &&  tx < centerX + w/2
-			 && ty > centerY - h/2  &&  ty < centerY + h/2;
+		return tx > startX  &&  tx < startX + w
+			 && ty > startY  &&  ty < startY + h;
     }
 
     virtual void push() {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("Touch::push() not implemented yet for this class"));
+				Serial.println(F("TouchElement::push() not implemented yet for this class"));
 			}
 		#endif
     }

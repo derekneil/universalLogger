@@ -11,7 +11,9 @@ class SensorDisplay : public DisplayElement {
 
 	public:
 		int enabled     = 0;
-		int needsRedraw = 0;
+		int needsRedraw = false;
+		int divider     = 1;
+		int dividerChk  = divider;
 		SensorData *data;   /** reference to externally owned data */
 		Visualization *viz; /** GRAPH | DIAL | ONOFF set by menu control, but owned by this class*/
 		Stats stats;        /** block of numerical outputs */

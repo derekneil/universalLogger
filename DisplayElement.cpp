@@ -13,6 +13,19 @@
 		#endif
 	}
 
+	//** for left aligned things */
+	DisplayElement::DisplayElement(int startX, int startY)
+	{
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F("DisplayElement(...)"));
+			}
+		#endif
+		this->startX=startX;
+		this->startY=startY;
+	}
+
+	/** for center aligned things */
 	DisplayElement::DisplayElement(int centerX, int centerY, int w, int h)
 	{
 		#ifdef DEBUG
@@ -62,6 +75,35 @@
 		this->h=h;
 		this->startX=centerX-w/2;
 		this->startY=centerY-h/2;
+	}
+
+	/** should only be called on left justified elements
+	 * also sets startX&Y if they're 0 or defaults to centerX&Y */
+	void DisplayElement::size(int w, int h)
+	{
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("DisplayElement::size( "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
+			}
+		#endif
+		this->w=w;
+		this->h=h;
+		if (startX==0 && startY==0) {
+			this->startX=centerX-w/2;
+			this->startY=centerY-h/2;
+		}
+
+		/** FIXME this can' be used transparently with left
+		 * and centered things can it? Maybe rename to
+		 * sizeLeftJustified() */
+		else { //if (centerX==0 && centerY==0) {
+			this->centerX=startX+w/2;
+			this->centerY=startY+h/2;
+		}
 	}
 
 	void DisplayElement::draw() {

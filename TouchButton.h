@@ -29,6 +29,16 @@ class TouchButton : public TouchElement{
 		#endif
     }
 
+    TouchButton(char* label=""){
+		#ifdef DEBUG
+		  if (Serial) {
+			  Serial.print(F("TouchButton( label ) "));
+			  Serial.println(F(label));
+		  }
+		#endif
+		this->label = label;
+    }
+
     TouchButton(int centerX, int centerY, char* label="") :
     	TouchElement {
     		centerX,
@@ -111,8 +121,6 @@ class TouchButton : public TouchElement{
 				Serial.println(F(label));
 			}
 		#endif
-		int startX = centerX-w/2;
-		int startY = centerY-h/2;
 		Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
 		Display::device->drawFastHLine(startX+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
 		Display::device->drawFastVLine(startX -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
@@ -133,8 +141,6 @@ class TouchButton : public TouchElement{
     			Serial.println(F(label));
         }
       #endif
-      int startX = centerX-w/2;
-      int startY = centerY-h/2;
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
       Display::device->drawRoundRect(startX, startY, w, h, r, shaddowColour);
       int newY = startY + (h - CHARHEIGHT * MENUTEXTSIZE)/2;

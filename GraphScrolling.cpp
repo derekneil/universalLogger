@@ -68,9 +68,9 @@ void GraphScrolling::draw(SensorData *data) {
   //loop through all the middle values in the graph
   while( i!=data->index ) {
 
-     Display::device->drawFastVLine(graphStartX++, startY, temp, TEXTCOLOUR);
+     Display::device->drawFastVLine(graphStartX++, startY-h, temp, TEXTCOLOUR);
      if (doubleWidth) {
-       Display::device->drawFastVLine(graphStartX++, startY, temp, TEXTCOLOUR);
+       Display::device->drawFastVLine(graphStartX++, startY-h, temp, TEXTCOLOUR);
      }
      i++;
   	if (i==data->size) { i=0; } //avoids % operation
@@ -79,12 +79,17 @@ void GraphScrolling::draw(SensorData *data) {
   }
 
   //draw latest value added to graph
-  Display::device->drawFastVLine(graphStartX++, startY, temp, TEXTCOLOUR);
+  Display::device->drawFastVLine(graphStartX++, startY-h, temp, TEXTCOLOUR);
   if (doubleWidth) {
-  	Display::device->drawFastVLine(graphStartX++, startY, temp, TEXTCOLOUR);
+  	Display::device->drawFastVLine(graphStartX++, startY-h, temp, TEXTCOLOUR);
   }
  }
 
+}
+
+void GraphScrolling::draw(SensorData *data, int newDivider) {
+	divider = newDivider;
+	draw(data);
 }
 
 void GraphScrolling::redraw(SensorData *data) {
