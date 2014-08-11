@@ -13,24 +13,26 @@
 #define STATIC 0
 #define DYNAMIC 1
 
-#define MINDETECTION 1
-#define AVGDETECTION 2
-#define PEAKDETECTION 3
+#define MINDETECTION 0
+#define AVGDETECTION 1
+#define PEAKDETECTION 2
 
 #define RAWDATASIZE STDWIDTH*5 //allows for 158*5 = 790 / ~65 readings per second = up to 10 seconds of draw data for an interval
 
 class SensorInput {
+  public:
+	int mode             = STATIC; /** STATIC | DYNAMIC */
+	int interval         = 1000000; /** default to 1 second */
+	int filter           = AVGDETECTION; /** MIN | AVG | MAX */
+
   protected:
 	int type             = -1; /** ANALOG | DIGITAL */
 	int pin              = -1;
-	int mode             = STATIC; /** STATIC | DYNAMIC */
 	int low              = 10;
 	int high             = 50;
 	int dynamicLock      = LOCK;
-	int interval         = 1000000; /** default to 1 second */
 	int lastIntervalTime = 0;
 	int cycles           = 0;
-	int filter           = AVGDETECTION; /** MIN | AVG | MAX */
 	SensorData rawData;
 	SensorData shortTermData;
 	SensorData longTermData;
@@ -411,6 +413,7 @@ class SensorInput {
         shortTermDisplay.reset();
         longTermDisplay.reset();
 
+        cycles = 0;
         lastIntervalTime = micros();
 
     }

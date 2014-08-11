@@ -16,20 +16,34 @@ class TouchButton : public TouchElement{
     int shaddow       = 2;
     int shaddowColour = BLACK;
 
+	size_t buildW(char* label) {
+		return strlen(label) * CHARWIDTH * MENUTEXTSIZE + CHARWIDTH * 2;
+	}
+	size_t buildH(char* label) {
+		return CHARHEIGHT*(MENUTEXTSIZE+2);
+	}
+
   public:
 
     SensorInput *obj = nullptr;
 
-    TouchButton() {
-		#ifdef DEBUG
-		  if (Serial) {
-			  Serial.print(F("TouchButton(...) "));
-			  Serial.println(F(label));
-		  }
-		#endif
-    }
+//    TouchButton() {
+//		#ifdef DEBUG
+//		  if (Serial) {
+//			  Serial.print(F("TouchButton(...) "));
+//			  Serial.println(F(label));
+//		  }
+//		#endif
+//    }
 
-    TouchButton(char* label=""){
+    TouchButton(char* label="") :
+    	TouchElement {
+    		0,
+    		0,
+    		buildW(label),
+    		buildH(label)
+    	}
+    {
 		#ifdef DEBUG
 		  if (Serial) {
 			  Serial.print(F("TouchButton( label ) "));
@@ -43,8 +57,8 @@ class TouchButton : public TouchElement{
     	TouchElement {
     		centerX,
     		centerY,
-    		strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
-    		CHARHEIGHT*(MENUTEXTSIZE+2)
+    		buildW(label),
+    		buildH(label)
     	}
     {
 		#ifdef DEBUG
@@ -60,8 +74,8 @@ class TouchButton : public TouchElement{
     	TouchElement {
     		centerX,
     		centerY,
-    		strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
-    		CHARHEIGHT*(MENUTEXTSIZE+2)
+    		buildW(label),
+    		buildH(label)
     	}
     {
 		#ifdef DEBUG
@@ -77,7 +91,7 @@ class TouchButton : public TouchElement{
     	TouchElement {
 			centerX,
 			centerY,
-			strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
+			buildW(label),
 			CHARHEIGHT*(MENUTEXTSIZE+1)
     	}
     {
@@ -101,8 +115,8 @@ class TouchButton : public TouchElement{
   	  #endif
 //      free (label); //FIXME memory leak???? code was hanging here, and with delete
       label = newLabel;
-      w = strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2;
-      h = CHARHEIGHT*(MENUTEXTSIZE+2);
+      w = buildW(label);
+      h = buildH(label);
     }
     char* getLabel() {
       #ifdef DEBUG
@@ -149,6 +163,18 @@ class TouchButton : public TouchElement{
       Display::device->print(label);
       delay(500);
     }
+
+//    void (TouchButton::*pushAction)(); //for use with function pointer
+
+//    function<void ()> pushAction; //depends on #include <functional> which i guess we don't have access too
+//    void setPushAction( function<void ()> newPushAction) {
+//    	pushAction = newPushAction;
+//    }
+
+//    template<typename Func> 			//for use with generic function that takes
+//    void pushAction(Func func) {		//specific function as argument
+//    	func();
+//    }
 
 };
 #endif

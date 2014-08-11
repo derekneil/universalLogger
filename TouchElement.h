@@ -7,6 +7,8 @@
 class TouchElement : public DisplayElement {
 
   public:
+	int lastTx=0;
+	int lastTy=0;
 
 	TouchElement() {
 		#ifdef DEBUG
@@ -61,6 +63,8 @@ class TouchElement : public DisplayElement {
 				Serial.println(F(" )"));
 			}
 		#endif
+		lastTx = tx;
+		lastTy = ty;
 		return tx > startX  &&  tx < startX + w
 			 && ty > startY  &&  ty < startY + h;
     }

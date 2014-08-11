@@ -159,17 +159,17 @@ void SensorDisplay::redraw() {
 // }
 
 /** the calling code is responsible for calling redraw after calling this function */
-void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
+void SensorDisplay::locateCenterAndSize(int centerX, int centerY, int w, int h) {
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("SensorDisplay::locateAndSize(...)"));
 		}
 	#endif
-	DisplayElement::locateAndSize(centerX,centerY,w,h);
+	DisplayElement::locateCenterAndSize(centerX,centerY,w,h);
 	int vizCenterY = centerY-STATHEIGHT/2;
-	viz->locateAndSize(centerX, vizCenterY, w, h-STATHEIGHT);
+	viz->locateCenterAndSize(centerX, vizCenterY, w, h-STATHEIGHT);
 	int statsCenterY = vizCenterY + (h-STATHEIGHT)/2 + STATHEIGHT/2;
-	stats.locateAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
+	stats.locateCenterAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 
 void SensorDisplay::reset() {

@@ -22,11 +22,17 @@ class DisplayElement {
 
 	virtual ~DisplayElement();
 
-	virtual void locate(int centerX, int centerY);
+	virtual void locateCenter(int centerX, int centerY);
 
-	virtual void locateAndSize(int centerX, int centerY, int w, int h);
+	virtual void locateCenterAndSize(int centerX, int centerY, int w, int h);
 
-	virtual void size(int w, int h);
+	virtual void locateLeft(int startX, int startY);
+
+	virtual void locateLeftAndSize(int startX, int startY, int w, int h);
+
+	virtual void sizeAndSetCenter(int w, int h);
+
+	virtual void sizeAndSetStart(int w, int h);
 
 	virtual void draw();
 
@@ -34,12 +40,12 @@ class DisplayElement {
 
 	virtual void clear(int colour=BACKGROUNDCOLOUR);
 
-	int getCenterX() const { return centerX; }
-	int getCenterY() const { return centerY; }
-	int getH() const { return h; }
 	int getStartX() const { return startX; }
 	int getStartY() const { return startY; }
+	int getCenterX() const { return centerX; }
+	int getCenterY() const { return centerY; }
 	int getW() const { return w; }
+	int getH() const { return h; }
 	
 };
 #endif

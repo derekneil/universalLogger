@@ -38,7 +38,7 @@ class SensorDisplay : public DisplayElement {
 //		virtual void locate(int x, int y);
 
 		/** the calling code is responsible for calling redraw after calling this function */
-	    virtual void locateAndSize(int centerX, int centerY, int w, int h);
+	    virtual void locateCenterAndSize(int centerX, int centerY, int w, int h);
 
 	    virtual void reset();
 
