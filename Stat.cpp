@@ -112,7 +112,7 @@ void Stat::reset() {
 		}
 	#endif
 	free(lastValue);
-	free(lastValue);
+	free(value);
 	defaultValue();
 }
 
