@@ -7,17 +7,17 @@
 #include "Display.h"
 #include "SensorData.h"
 
-void GraphScrolling::redrawSingleGraphLines(int *startX, int last, int temp) {
+void GraphScrolling::redrawSingleGraphLines(int *graphStartX, int last, int temp) {
   if (last > temp) {
     //erase, aka draw background
-    Display::device->drawFastVLine((*startX)++, h-last, last-temp, BLACK);
+    Display::device->drawFastVLine((*graphStartX)++, startY+(h-last), last-temp, BLACK);
   }
   else if (last < temp) {
     //add, aka draw white
-    Display::device->drawFastVLine((*startX)++, h-temp, temp-last, TEXTCOLOUR);
+    Display::device->drawFastVLine((*graphStartX)++, startY+(h-temp), temp-last, TEXTCOLOUR);
   }
   else {
-    (*startX)++;
+    (*graphStartX)++;
   }
 }
 
@@ -35,7 +35,15 @@ GraphScrolling::GraphScrolling(int centerX, int centerY, int w, int h) :
 {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("GraphScrolling(...)"));
+			Serial.println(F("GraphScrolling( "));
+			Serial.print(centerX);
+			Serial.print(F(", "));
+			Serial.print(centerY);
+			Serial.print(F(", "));
+			Serial.print(w);
+			Serial.print(F(", "));
+			Serial.print(h);
+			Serial.println(F(" )"));
 		}
 	#endif
 
@@ -46,20 +54,12 @@ GraphScrolling::GraphScrolling(int centerX, int centerY, int w, int h) :
 void GraphScrolling::draw(SensorData *data) {
   #ifdef DEBUG
     if (Serial) {
-      Serial.println(F("GraphScrolling::draw()"));
+      Serial.println(F("GraphScrolling::draw(...)"));
     }
 	#endif
   Visualization::clear();
 
- int startX = centerX-w/2;
- int startY = centerY-h/2;
-
-  //draw graph side bars, these might get redrawn by adjacent sensor display, but that's ok
-// Display::device->drawFastVLine(startX-1, startY-1, h+2, TEXTCOLOUR);
-// Display::device->drawFastVLine(startX+w+1, startY-1, h+2, TEXTCOLOUR);
-
   //draw graph from scratch
- {
   int i = data->index + 1;
   if (i==data->size) { i=0; } //avoids % operation
 
@@ -67,12 +67,12 @@ void GraphScrolling::draw(SensorData *data) {
   int temp = data->array[i]/divider;
   if(temp < 0) { temp=0; }
 
+  int graphStartX = startX;
   //loop through all the middle values in the graph
   while( i!=data->index ) {
-
-     Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+     Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
      if (doubleWidth) {
-       Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+       Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
      }
      i++;
   	if (i==data->size) { i=0; } //avoids % operation
@@ -81,19 +81,30 @@ void GraphScrolling::draw(SensorData *data) {
   }
 
   //draw latest value added to graph
-  Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+  Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
   if (doubleWidth) {
-  	Display::device->drawFastVLine(startX++, h, temp, TEXTCOLOUR);
+  	Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
   }
- }
 
 }
 
+void GraphScrolling::draw(SensorData *data, int newDivider) {
+	#ifdef DEBUG
+	  if (Serial) {
+		Serial.print(F("GraphScrolling::draw(..., "));
+		Serial.print(newDivider);
+		Serial.println(F(" )"));
+	  }
+	#endif
+	divider = newDivider;
+	draw(data);
+}
+
 void GraphScrolling::redraw(SensorData *data) {
-  #ifdef DEBUG
-    if (Serial) {
-			Serial.println(F("GraphScrolling::redraw()"));
-    }
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("GraphScrolling::redraw(...)"));
+		}
 	#endif
 
   int i = data->index + 1;
@@ -106,13 +117,13 @@ void GraphScrolling::redraw(SensorData *data) {
   int last = data->bumped / divider;
   if(last < 0) { last=0; }
 
-  int startX = centerX-w/2;
+  int graphStartX = startX;
 
   //loop through all the middle values in the graph
   while( i!=data->index ) {
-	redrawSingleGraphLines(&startX, last, temp);
+	redrawSingleGraphLines(&graphStartX, last, temp);
 	if (doubleWidth) {
-	  redrawSingleGraphLines(&startX, last, temp);
+	  redrawSingleGraphLines(&graphStartX, last, temp);
 	}
     i++;
     if (i==data->size) { i=0; } //avoids % operation
@@ -125,9 +136,9 @@ void GraphScrolling::redraw(SensorData *data) {
   }
 
   //draw latest value added to graph with function that determines how to do minimal line draw
-  redrawSingleGraphLines(&startX, last, temp);
+  redrawSingleGraphLines(&graphStartX, last, temp);
   if (doubleWidth) {
-    redrawSingleGraphLines(&startX, last, temp);
+    redrawSingleGraphLines(&graphStartX, last, temp);
   }
 }
 #endif

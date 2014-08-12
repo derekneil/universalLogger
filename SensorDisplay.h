@@ -11,7 +11,9 @@ class SensorDisplay : public DisplayElement {
 
 	public:
 		int enabled     = 0;
-		int needsRedraw = 0;
+		int needsRedraw = false;
+		int divider     = 1;
+		int dividerChk  = divider;
 		SensorData *data;   /** reference to externally owned data */
 		Visualization *viz; /** GRAPH | DIAL | ONOFF set by menu control, but owned by this class*/
 		Stats stats;        /** block of numerical outputs */
@@ -36,7 +38,7 @@ class SensorDisplay : public DisplayElement {
 //		virtual void locate(int x, int y);
 
 		/** the calling code is responsible for calling redraw after calling this function */
-	    virtual void locateAndSize(int centerX, int centerY, int w, int h);
+	    virtual void locateCenterAndSize(int centerX, int centerY, int w, int h);
 
 	    virtual void reset();
 

@@ -103,38 +103,38 @@ void Display::updateDisplayLayout() {
 
 		case 1:
 			// single full screen SensorDisplay
-			SDs[0]->locateAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);
+			SDs[0]->locateCenterAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);
 			SDs[0]->viz->doubleWidth = true;
 			break;
 
 		case 2:
 			//two equal size tall SensorDisplay's
-			SDs[0]->locateAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
+			SDs[0]->locateCenterAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
 			SDs[0]->viz->doubleWidth = false;
-			SDs[1]->locateAndSize(CENTER_X2, CENTER_Y, HALFWIDTH, FULLHEIGHT);
+			SDs[1]->locateCenterAndSize(CENTER_X2, CENTER_Y, HALFWIDTH, FULLHEIGHT);
 			SDs[1]->viz->doubleWidth = false;
 			break;
 
 		case 3:
 			//first Sensor Display is full height
-			SDs[0]->locateAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
+			SDs[0]->locateCenterAndSize(CENTER_X1, CENTER_Y, HALFWIDTH, FULLHEIGHT);
 			SDs[0]->viz->doubleWidth = false;
 			//other two are half height
-			SDs[1]->locateAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
+			SDs[1]->locateCenterAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
 			SDs[1]->viz->doubleWidth = false;
-			SDs[2]->locateAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
+			SDs[2]->locateCenterAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
 			SDs[2]->viz->doubleWidth = false;
 			break;
 
 		case 4:
 			//four equal size SensorDisplay's
-			SDs[0]->locateAndSize(CENTER_X1, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
+			SDs[0]->locateCenterAndSize(CENTER_X1, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
 			SDs[0]->viz->doubleWidth = false;
-			SDs[1]->locateAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
+			SDs[1]->locateCenterAndSize(CENTER_X2, CENTER_Y1, HALFWIDTH, HALFHEIGHT);
 			SDs[1]->viz->doubleWidth = false;
-			SDs[2]->locateAndSize(CENTER_X1, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
+			SDs[2]->locateCenterAndSize(CENTER_X1, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
 			SDs[2]->viz->doubleWidth = false;
-			SDs[3]->locateAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
+			SDs[3]->locateCenterAndSize(CENTER_X2, CENTER_Y2, HALFWIDTH, HALFHEIGHT);
 			SDs[3]->viz->doubleWidth = false;
 			break;
 	}
@@ -154,7 +154,7 @@ int Display::add(SensorDisplay *sd) {
 		if (SDs[i]==nullptr) {
 
 			//enable it
-			sd->enabled = 1;
+			sd->enabled = true;
 
 			//set this memory address in the array
 			SDs[i] = sd;

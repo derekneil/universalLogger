@@ -33,7 +33,15 @@ Visualization::~Visualization() {
 void Visualization::draw(SensorData *data) {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("Visualization::draw() not implemented yet for this class"));
+			Serial.println(F("Visualization::draw(data) not implemented yet for this class"));
+		}
+	#endif
+}
+
+void Visualization::draw(SensorData *data, int newDivider) {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("Visualization::draw(...) not implemented yet for this class"));
 		}
 	#endif
 }

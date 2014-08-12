@@ -25,9 +25,9 @@ class Stats : public DisplayElement {
 	int operator== (const Stats param);
 
 	/** depricated, you should call locateAndSize */
-	void locate(int centerX, int centerY);
+	void locateCenter(int centerX, int centerY);
 
-	void locateAndSize(int centerX, int centerY, int w, int h);
+	void locateCenterAndSize(int centerX, int centerY, int w, int h);
 
 	void draw();
 

@@ -14,7 +14,7 @@ Stats::Stats() : DisplayElement {} {
 	#endif
 }
 
-/** this is setup for a 158x24 stats display area */
+/** recommended minimum 158(w) x 30(h) stats display area */
 Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=STATHEIGHT*/) :
 
 	DisplayElement {centerX,centerY,w,h},
@@ -69,34 +69,34 @@ int Stats::operator== (const Stats param) {
 }
 
 /** depricated, you should call locateAndSize */
-void Stats::locate(int centerX, int centerY){
+void Stats::locateCenter(int centerX, int centerY){
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("Stats::locate(...)"));
 		}
 	#endif
-	DisplayElement::locate(centerX,centerY);
-	min       .locate(centerX-w/4, centerY-h/3 );
-	max       .locate(centerX-w/4, centerY);
-	interval  .locate(centerX-w/4, centerY+h/3);
-	avg       .locate(centerX+w/4, centerY-h/3 );
-	last10avg .locate(centerX+w/4, centerY);
-	latest    .locate(centerX+w/4, centerY+h/3);
+	DisplayElement::locateCenter(centerX,centerY);
+	min       .locateCenter(centerX-w/4, centerY-h/3 );
+	max       .locateCenter(centerX-w/4, centerY);
+	interval  .locateCenter(centerX-w/4, centerY+h/3);
+	avg       .locateCenter(centerX+w/4, centerY-h/3 );
+	last10avg .locateCenter(centerX+w/4, centerY);
+	latest    .locateCenter(centerX+w/4, centerY+h/3);
 }
 
-void Stats::locateAndSize(int centerX, int centerY, int w, int h){
+void Stats::locateCenterAndSize(int centerX, int centerY, int w, int h){
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("Stats::locateAndSize(...)"));
 		}
 	#endif
-	DisplayElement::locateAndSize(centerX,centerY,w,h);
-	min       .locateAndSize(centerX-w/4, centerY-h/3, w/2, h/3);
-	max       .locateAndSize(centerX-w/4, centerY,     w/2, h/3);
-	interval  .locateAndSize(centerX-w/4, centerY+h/3, w/2, h/3);
-	avg       .locateAndSize(centerX+w/4, centerY-h/3, w/2, h/3);
-	last10avg .locateAndSize(centerX+w/4, centerY,     w/2, h/3);
-	latest    .locateAndSize(centerX+w/4, centerY+h/3, w/2, h/3);
+	DisplayElement::locateCenterAndSize(centerX,centerY,w,h);
+	min       .locateCenterAndSize(centerX-w/4, centerY-h/3, w/2, h/3);
+	max       .locateCenterAndSize(centerX-w/4, centerY,     w/2, h/3);
+	interval  .locateCenterAndSize(centerX-w/4, centerY+h/3, w/2, h/3);
+	avg       .locateCenterAndSize(centerX+w/4, centerY-h/3, w/2, h/3);
+	last10avg .locateCenterAndSize(centerX+w/4, centerY,     w/2, h/3);
+	latest    .locateCenterAndSize(centerX+w/4, centerY+h/3, w/2, h/3);
 }
 
 void Stats::draw() {
@@ -113,6 +113,8 @@ void Stats::draw() {
 	latest   .draw();
 }
 
+/** this should only be used for redrawing after screen changes
+ * individual updates are handled by update after polling a sensor */
 void Stats::redraw() {
 	#ifdef DEBUG
 		if (Serial) {
@@ -128,9 +130,14 @@ void Stats::redraw() {
 }
 
 void Stats::reset() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("Stats::reset()"));
+		}
+	#endif
 	min      .reset();
 	max      .reset();
-	interval .reset();
+//	interval .reset(); //excluded because
 	avg      .reset();
 	last10avg.reset();
 	latest   .reset();

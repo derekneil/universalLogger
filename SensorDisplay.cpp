@@ -125,11 +125,21 @@ void SensorDisplay::draw() {
 void SensorDisplay::redraw() {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("SensorDisplay::redraw(...)"));
+			Serial.print(F("SensorDisplay::redraw(...)"));
+			Serial.print(F("   enabled: "));
+			Serial.print(enabled);
+			Serial.print(F("   needsRedraw: "));
+			Serial.println(needsRedraw);
 		}
 	#endif
     if (enabled && needsRedraw) {
-		viz->redraw(data);
+    	if (divider != dividerChk) {
+    		dividerChk = divider;
+    		viz->draw(data, divider);
+    	}
+    	else {
+			viz->redraw(data);
+    	}
 		needsRedraw = false;
     }
 	//individual stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change
@@ -149,20 +159,23 @@ void SensorDisplay::redraw() {
 // }
 
 /** the calling code is responsible for calling redraw after calling this function */
-void SensorDisplay::locateAndSize(int centerX, int centerY, int w, int h) {
+void SensorDisplay::locateCenterAndSize(int centerX, int centerY, int w, int h) {
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("SensorDisplay::locateAndSize(...)"));
 		}
 	#endif
-	DisplayElement::locateAndSize(centerX,centerY,w,h);
-	viz->locateAndSize(centerX, centerY-STATHEIGHT/2, w, h-STATHEIGHT);
-	int statsCenterY = viz->getCenterY() + (h-STATHEIGHT)/2 + STATHEIGHT/2;
-	stats.locateAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
+	DisplayElement::locateCenterAndSize(centerX,centerY,w,h);
+	int vizCenterY = centerY-STATHEIGHT/2;
+	viz->locateCenterAndSize(centerX, vizCenterY, w, h-STATHEIGHT);
+	int statsCenterY = vizCenterY + (h-STATHEIGHT)/2 + STATHEIGHT/2;
+	stats.locateCenterAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 
 void SensorDisplay::reset() {
 	stats.reset();
+	int needsRedraw = 0;
+	int divider     = 1;
 }
 
 #endif

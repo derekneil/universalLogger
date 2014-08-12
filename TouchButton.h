@@ -2,7 +2,7 @@
 #define TOUCHBUTTON_H
 
 #include "universalLogger.h"
-#include "Touch.h"
+#include "TouchElement.h"
 #include "Display.h"
 
 #define BUTTONCOLOUR WHITE
@@ -16,25 +16,50 @@ class TouchButton : public TouchElement{
     int shaddow       = 2;
     int shaddowColour = BLACK;
 
+	size_t buildW(char* label) {
+		return strlen(label) * CHARWIDTH * MENUTEXTSIZE + CHARWIDTH * 2;
+	}
+	size_t buildH(char* label) {
+		return CHARHEIGHT*(MENUTEXTSIZE+2);
+	}
+
   public:
 
     SensorInput *obj = nullptr;
 
-    TouchButton() {
+//    TouchButton() {
+//		#ifdef DEBUG
+//		  if (Serial) {
+//			  Serial.print(F("TouchButton(...) "));
+//			  Serial.println(F(label));
+//		  }
+//		#endif
+//    }
+
+    TouchButton(char* label="") :
+    	TouchElement {
+    		0,
+    		0,
+    		buildW(label),
+    		buildH(label)
+    	}
+    {
 		#ifdef DEBUG
 		  if (Serial) {
-			  Serial.print(F("TouchButton(...) "));
-			  Serial.println(F(label));
+			  Serial.print(F("TouchButton( "));
+			  Serial.print(F(label));
+			  Serial.println(F(" )"));
 		  }
 		#endif
+		this->label = label;
     }
 
     TouchButton(int centerX, int centerY, char* label="") :
     	TouchElement {
     		centerX,
     		centerY,
-    		strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
-    		CHARHEIGHT*(MENUTEXTSIZE+2)
+    		buildW(label),
+    		buildH(label)
     	}
     {
 		#ifdef DEBUG
@@ -50,8 +75,8 @@ class TouchButton : public TouchElement{
     	TouchElement {
     		centerX,
     		centerY,
-    		strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
-    		CHARHEIGHT*(MENUTEXTSIZE+2)
+    		buildW(label),
+    		buildH(label)
     	}
     {
 		#ifdef DEBUG
@@ -67,8 +92,8 @@ class TouchButton : public TouchElement{
     	TouchElement {
 			centerX,
 			centerY,
-			strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2,
-			CHARHEIGHT*(MENUTEXTSIZE+1)
+			buildW(label),
+			buildH(label) //this one was different.. CHARHEIGHT*(MENUTEXTSIZE+1)
     	}
     {
 		#ifdef DEBUG
@@ -91,8 +116,8 @@ class TouchButton : public TouchElement{
   	  #endif
 //      free (label); //FIXME memory leak???? code was hanging here, and with delete
       label = newLabel;
-      w = strlen(label)*CHARWIDTH*MENUTEXTSIZE+CHARWIDTH*2;
-      h = CHARHEIGHT*(MENUTEXTSIZE+2);
+      w = buildW(label);
+      h = buildH(label);
     }
     char* getLabel() {
       #ifdef DEBUG
@@ -111,8 +136,6 @@ class TouchButton : public TouchElement{
 				Serial.println(F(label));
 			}
 		#endif
-		int startX = centerX-w/2;
-		int startY = centerY-h/2;
 		Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
 		Display::device->drawFastHLine(startX+r -shaddow, startY -shaddow  , w-2*r, shaddowColour); // Top
 		Display::device->drawFastVLine(startX -shaddow  , startY+r -shaddow, h-2*r, shaddowColour); // Left
@@ -133,8 +156,6 @@ class TouchButton : public TouchElement{
     			Serial.println(F(label));
         }
       #endif
-      int startX = centerX-w/2;
-      int startY = centerY-h/2;
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
       Display::device->drawRoundRect(startX, startY, w, h, r, shaddowColour);
       int newY = startY + (h - CHARHEIGHT * MENUTEXTSIZE)/2;
@@ -143,6 +164,18 @@ class TouchButton : public TouchElement{
       Display::device->print(label);
       delay(500);
     }
+
+//    void (TouchButton::*pushAction)(); //for use with function pointer
+
+//    function<void ()> pushAction; //depends on #include <functional> which i guess we don't have access too
+//    void setPushAction( function<void ()> newPushAction) {
+//    	pushAction = newPushAction;
+//    }
+
+//    template<typename Func> 			//for use with generic function that takes
+//    void pushAction(Func func) {		//specific function as argument
+//    	func();
+//    }
 
 };
 #endif

@@ -19,6 +19,8 @@ class Visualization : public DisplayElement {
 
 	virtual void draw(SensorData *data);
 
+    virtual void draw(SensorData *data, int newDivider);
+
 	virtual void redraw(SensorData *data);
 
 	virtual void clear(int colour=BLACK);

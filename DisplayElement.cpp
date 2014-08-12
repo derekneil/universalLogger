@@ -5,7 +5,7 @@
 #include "universalLogger.h"
 #include "Display.h"
 
-	DisplayElement::DisplayElement(){
+	DisplayElement::DisplayElement() {
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.println(F("DisplayElement()"));
@@ -13,11 +13,34 @@
 		#endif
 	}
 
-	DisplayElement::DisplayElement(int centerX, int centerY, int w, int h)
-	{
+	//** for left aligned things */
+	DisplayElement::DisplayElement(int startX, int startY) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("DisplayElement(...)"));
+				Serial.print(F("DisplayElement( "));
+				Serial.print(centerX);
+				Serial.print(F(", "));
+				Serial.print(centerY);
+				Serial.println(F(" )"));
+			}
+		#endif
+		this->startX=startX;
+		this->startY=startY;
+	}
+
+	/** for center aligned things */
+	DisplayElement::DisplayElement(int centerX, int centerY, int w, int h) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("DisplayElement( "));
+				Serial.print(centerX);
+				Serial.print(F(", "));
+				Serial.print(centerY);
+				Serial.print(F(", "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
 			}
 		#endif
 		this->centerX=centerX;
@@ -36,11 +59,14 @@
 		#endif
 	} //shut eclipse up
 
-	void DisplayElement::locate(int centerX, int centerY)
-	{
+	void DisplayElement::locateCenter(int centerX, int centerY) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("DisplayElement::locate(...)"));
+				Serial.print(F("DisplayElement::locateCenter( "));
+				Serial.print(centerX);
+				Serial.print(F(", "));
+				Serial.print(centerY);
+				Serial.println(F(" )"));
 			}
 		#endif
 		this->centerX=centerX;
@@ -49,11 +75,18 @@
 		this->startY=centerY-h/2;
 	}
 
-	void DisplayElement::locateAndSize(int centerX, int centerY, int w, int h)
-	{
+	void DisplayElement::locateCenterAndSize(int centerX, int centerY, int w, int h) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("DisplayElement::locateAndSize(...)"));
+				Serial.print(F("DisplayElement::locateAndSize( "));
+				Serial.print(centerX);
+				Serial.print(F(", "));
+				Serial.print(centerY);
+				Serial.print(F(", "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
 			}
 		#endif
 		this->centerX=centerX;
@@ -62,6 +95,73 @@
 		this->h=h;
 		this->startX=centerX-w/2;
 		this->startY=centerY-h/2;
+	}
+
+	void DisplayElement::locateLeft(int startX, int startY) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("DisplayElement::locateLeft( "));
+				Serial.print(startX);
+				Serial.print(F(", "));
+				Serial.print(startY);
+				Serial.println(F(" )"));
+			}
+		#endif
+		this->startX=startX;
+		this->startY=startY;
+		this->centerX=startX+w/2;
+		this->centerY=startY+h/2;
+	}
+
+	void DisplayElement::locateLeftAndSize(int startX, int startY, int w, int h) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F("DisplayElement::locateLeftAndSize(...)"));
+			}
+		#endif
+		this->startX=startX;
+		this->startY=startY;
+		this->w=w;
+		this->h=h;
+		this->centerX=startX+w/2;
+		this->centerY=startY+h/2;
+	}
+
+	void DisplayElement::sizeAndSetCenter(int w, int h) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("DisplayElement::sizeAndSetCenter( "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
+			}
+		#endif
+		this->w=w;
+		this->h=h;
+		if (startX==0 && startY==0) {
+			this->startX=centerX-w/2;
+			this->startY=centerY-h/2;
+		}
+
+		this->centerX = (startX+w/2 < SCREENWIDTH)? startX+w/2 : SCREENWIDTH;
+		this->centerY= (startY+h/2 < SCREENHEIGHT)? startY+h/2 : SCREENHEIGHT;
+	}
+
+	void DisplayElement::sizeAndSetStart(int w, int h) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("DisplayElement::sizeAndSetStart( "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
+			}
+		#endif
+		this->w=w;
+		this->h=h;
+		this->startX = (centerX-w/2 > 0)? centerX-w/2 : 0;
+		this->startY= (centerY-h/2)? centerY-h/2 : 0;
 	}
 
 	void DisplayElement::draw() {
