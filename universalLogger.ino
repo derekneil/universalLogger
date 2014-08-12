@@ -349,63 +349,12 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
 	resetBtn.draw();
 
-	//filter options
-//	TouchButton filterMin("MIN"), filterAvg("AVG"), filterMax("MAX");
-//	filterMin.pushAction = [&]() { //lambda anonymous function to run when button pushed
-//		#ifdef DEBUG
-//			if (Serial) {
-//				Serial.println(F("filterMin.pushAction()"));
-//			}
-//		#endif
-//		si->filter = MINDETECTION;
-//		filterMin.push();
-//	};
-//	filterAvg.pushAction = &([&]() { //lambda anonymous function to run when button pushed
-//		#ifdef DEBUG
-//			if (Serial) {
-//				Serial.println(F("filterAvg.pushAction()"));
-//			}
-//		#endif
-//		si->filter = AVGDETECTION;
-//		filterAvg.push();
-//	});
-//	filterMax.pushAction = &([&]() { //lambda anonymous function to run when button pushed
-//		#ifdef DEBUG
-//			if (Serial) {
-//				Serial.println(F("filterMax.pushAction()"));
-//			}
-//		#endif
-//		si->filter = PEAKDETECTION;
-//		filterMax.push();
-//	});
-//	TouchSelect filterSelect( 10, CENTER_Y1+30, "Filter: ", si, 3, &filterMin, &filterAvg, &filterMax );
+	// filter options must be added and set using 0 based enum
 	TouchSelect filterSelect( 10, CENTER_Y1+30, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
 	filterSelect.draw();
 	filterSelect.btns.get(si->filter).push();
 
-	//mode options
-//	TouchButton *modeStatic("STATIC"), *modeDynamic("DYNAMIC");
-//	modeStatic->pushAction = &([&]() { //lambda anonymous function to run when button pushed
-//		#ifdef DEBUG
-//			if (Serial) {
-//				Serial.println(F("modeStatic.pushAction()"));
-//			}
-//		#endif
-//		si->mode = STATIC;
-//		modeStatic->push();
-//		modeDynamic->draw();
-//	});
-//	modeDynamic->pushAction = &([&]() { //lambda anonymous function to run when button pushed
-//		#ifdef DEBUG
-//			if (Serial) {
-//				Serial.println(F("modeDynamic.pushAction()"));
-//			}
-//		#endif
-//		si->mode = DYNAMIC;
-//		modeStatic->draw();
-//		modeDynamic->push();
-//	});
-//	TouchSelect modeSelect( 10, CENTER_Y2-30, "Mode: ", si, 2, *modeStatic, *modeDynamic);
+	//mode options must be added and set using 0 based enum
 	TouchSelect modeSelect( 10, CENTER_Y2-30, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
 	modeSelect.draw();
 	modeSelect.btns.get(si->mode).push();
@@ -416,10 +365,11 @@ void drawIndividualSensorMenu(SensorInput *si) {
 
 	//IMP draw controls for each of the inputs for a sensor
 //	TouchSelect shortTermType, longTermType;
-//	TouchNumber* interval, highPass, lowPass, shotTermPos, longTermPos;
+//	TouchNumber highPass, lowPass, shotTermPos, longTermPos;
 
 	//IMP draw specialized controls for loadcell and linearEnc???
 
+	emptyTouchBuffer(); //XXX why do i have to keep doing this everywhere????
 	while (1) {
 		if (!(ts.bufferEmpty())) {
 			if (parseTouchBoilerPlate()) {

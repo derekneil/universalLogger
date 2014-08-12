@@ -9,7 +9,7 @@
 #include "Arduino.h"
 //add your includes for the project universalLogger here
 
-#define DEBUG
+//#define DEBUG
 //#define MICRODEBUG
 
 #define NUMINPUTS 4

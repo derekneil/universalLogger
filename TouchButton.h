@@ -46,8 +46,9 @@ class TouchButton : public TouchElement{
     {
 		#ifdef DEBUG
 		  if (Serial) {
-			  Serial.print(F("TouchButton( label ) "));
-			  Serial.println(F(label));
+			  Serial.print(F("TouchButton( "));
+			  Serial.print(F(label));
+			  Serial.println(F(" )"));
 		  }
 		#endif
 		this->label = label;
@@ -92,7 +93,7 @@ class TouchButton : public TouchElement{
 			centerX,
 			centerY,
 			buildW(label),
-			CHARHEIGHT*(MENUTEXTSIZE+1)
+			buildH(label) //this one was different.. CHARHEIGHT*(MENUTEXTSIZE+1)
     	}
     {
 		#ifdef DEBUG

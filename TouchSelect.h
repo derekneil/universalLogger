@@ -19,7 +19,6 @@ class TouchSelect : public TouchElement{
     LinkedList<TouchButton> btns;
     int *siElement = nullptr;
 
-//    template <class T>
     TouchSelect(int startX, int startY, char* label="", int *siElement=nullptr, int n=0, ...) :
     	TouchElement {
     		startX,
@@ -36,24 +35,63 @@ class TouchSelect : public TouchElement{
 		this->siElement = siElement;
 		va_list args;
 		va_start(args, n);
-		int btnsWidth = CHARWIDTH * MENUTEXTSIZE;
+		int width = CHARWIDTH + strlen(label)*CHARWIDTH*MENUTEXTSIZE;
 		for(;n;n--){
 			char *s = va_arg(args, char*);
-			btns.add( TouchButton(s) );
-			btnsWidth += btns.getLast().getW(); // strlen(s); //FIXME buildW????
-			#ifdef DEBUG
-			  if (Serial) {
-				  Serial.print(s);
-				  Serial.print(" == ");
-				  Serial.println(btns.getLast().getLabel());
-				}
-			#endif
+			TouchButton *tmp = new TouchButton(s);
+			tmp->locateLeft(startX+width, startY);
+			width += tmp->getW();
+			btns.add( *tmp );
+			/** adding to the linked list is a deep copy
+			 * so changing after adding it to the list has no effect */
 		}
 		va_end(args);
-		sizeAndSetCenter( ((strlen(label)+btnsWidth+CHARWIDTH)*CHARWIDTH)*MENUTEXTSIZE,
-				CHARHEIGHT*(MENUTEXTSIZE+2));
+		sizeAndSetCenter(
+			(width)*CHARWIDTH*MENUTEXTSIZE + CHARWIDTH,
+			CHARHEIGHT*(MENUTEXTSIZE+2)
+		);
     }
 
+    ~TouchSelect() {
+//    	delete btns; //TODO make sure linked list destructor is being called
+    }
+
+
+private: //TODO should these just stay as private???
+    void sizeAndSetCenter(int w, int h) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("TouchSelect::sizeAndSetCenter( "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
+			}
+		#endif
+    	DisplayElement::sizeAndSetCenter(w,h);
+
+//		for(int i=0; i<btns.size(); i++){
+//		  btns.get(i).sizeAndSetCenter(w,h);
+//		}
+    }
+    void sizeAndSetStart(int w, int h) {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("TouchSelect::sizeAndSetStart( "));
+				Serial.print(w);
+				Serial.print(F(", "));
+				Serial.print(h);
+				Serial.println(F(" )"));
+			}
+		#endif
+    	DisplayElement::sizeAndSetStart(w,h);
+//		for(int i=0; i<btns.size(); i++){
+//		  btns.get(i).sizeAndSetStart(w,h);
+//		}
+    }
+
+
+  public:
 	char* getLabel() {
 		#ifdef DEBUG
 			if (Serial) {
@@ -79,7 +117,7 @@ class TouchSelect : public TouchElement{
 		}
 
 		int newY = startY + (h - CHARHEIGHT*MENUTEXTSIZE)/2;
-		int newX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
+		int newX = startX + (CHARWIDTH * MENUTEXTSIZE);
 		Display::device->setCursor(newX, newY);
 		Display::device->print(label);
     }

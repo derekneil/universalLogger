@@ -39,7 +39,7 @@ class TouchElement : public DisplayElement {
     {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("TouchElement( "));
+				Serial.print(F("TouchElement( "));
 				Serial.print(centerX);
 				Serial.print(F(", "));
 				Serial.print(centerY);
@@ -56,7 +56,7 @@ class TouchElement : public DisplayElement {
     virtual int isPushed(int tx, int ty) {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("TouchElement::isPushed( "));
+				Serial.print(F("TouchElement::isPushed( "));
 				Serial.print(tx);
 				Serial.print(F(", "));
 				Serial.print(ty);
