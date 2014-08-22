@@ -345,6 +345,9 @@ class SensorInput {
                     	longTermDisplay.needsRedraw = true;
                     }
 
+                    //reset the index in the long term data after a cycle complete
+                    longTermData.checkAndResetIndex();
+
                 }
 
             }

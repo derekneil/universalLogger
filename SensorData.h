@@ -166,7 +166,7 @@ class SensorData {
 			}
 		#endif
 		if (bumped == min) {
-			min = INT_MAX;
+			min = SHORT_MAX;
 			for (int i=0; i<size; i++) {
 				if (array[i] < min) {
 					min = array[i];
@@ -181,7 +181,7 @@ class SensorData {
 			}
 		#endif
 		if (bumped == max) {
-			max = INT_MIN;
+			max = SHORT_MIN;
 			for (int i=0; i<size; i++) {
 				if (array[i] > max) {
 					max = array[i];
@@ -196,8 +196,8 @@ class SensorData {
 				Serial.println(F("SensorData::resetMinMax()"));
 			}
 		#endif
-		min = INT_MAX;
-		max = INT_MIN;
+		min = SHORT_MAX;
+		max = SHORT_MIN;
     }
 
     virtual void resetStorageAndAvgAndCount(int val=0) {
