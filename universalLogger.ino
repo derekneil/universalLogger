@@ -80,36 +80,17 @@ void logError() {
 	Display::device->print("LOG ERROR");
 }
 
-/** one or both inputs may be deleted depending on size */
-char* strSafeCat(char *str1, int safeSize, char* str2) {
-	int len1 = strlen(str1);
-	int len2 = strlen(str2);
-	if (safeSize >= (len1+len2)) {
-		strcat(str1, str2);
-		free(str2);
-		return str1;
-	}
-	else {
-		char *output = (char*) malloc((len1+len2+1)*sizeof(char));
-		sprintf(output, "%s", str1);
-		free(str1);
-		strcat(output, str2);
-		free(str2);
-		return output;
-	}
-}
-
 void logOutput(){
 
 	if (logging==true) {
 
 		int size = 128;
-		char *logStr = (char*) malloc(size*sizeof(char));
+		char logStr[size];
 		sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
 
 		for (int i=0; i<NUMINPUTS; i++) {
 			if(sensorInputs[i]->isEnabled()) {
-				logStr = strSafeCat(logStr, size-1, sensorInputs[i]->logout());
+				strcat(logStr, sensorInputs[i]->logout());
 			}
 		}
 
@@ -122,12 +103,10 @@ void logOutput(){
 		//write to sd card
 		if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
 			logError();
-			free(logStr);
 			while(1) {}
 		}
 		logFile.println(logStr);
 		logFile.close();
-		free(logStr);
 	}
 
 }

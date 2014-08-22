@@ -12,7 +12,7 @@
 
 class TouchSelect : public TouchElement{
   protected:
-    char *label       = "";
+    char label[32];
 
   public:
 
@@ -31,7 +31,7 @@ class TouchSelect : public TouchElement{
 			  Serial.println(F(label));
 		  }
 		#endif
-		this->label = label;
+		strcpy(this->label, label);
 		this->siElement = siElement;
 		va_list args;
 		va_start(args, n);

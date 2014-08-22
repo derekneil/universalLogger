@@ -6,12 +6,12 @@
 
 class Stat : public DisplayElement {
   protected:
-    char *lastValue;
-    char *value;
+    char lastValue[6];
+    char value[6];
 
   public:
     int colour = TEXTCOLOUR;
-    char *label;
+    char label[6];
 
     Stat(int centerX=0, int centerY=0, int w=0, int h=0, char* label="");
 

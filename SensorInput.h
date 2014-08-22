@@ -26,13 +26,17 @@ class SensorInput {
 	int filter           = AVGDETECTION; /** MIN | AVG | MAX */
 
   protected:
+	short lastReading    = 0;
 	int type             = -1; /** ANALOG | DIGITAL */
 	int pin              = -1;
 	int low              = 10;
 	int high             = 50;
 	int dynamicLock      = LOCK;
 	int lastIntervalTime = 0;
+	char intervalStr[6];
 	int cycles           = 0;
+	char output[16];
+	char newValStr[6];
 	SensorData rawData;
 	SensorData shortTermData;
 	SensorData longTermData;
@@ -43,7 +47,7 @@ class SensorInput {
                 // Serial.println("SensorInput::redrawStat()");
 //			}
 	   // #endif
-		char *newValStr = (char*) malloc(6*sizeof(char));
+
 		sprintf(newValStr, "%4d", newVal);
 		if (strcmp(newValStr, stat->getValue()) != 0) {
 			stat->setValue(newValStr);
@@ -113,7 +117,6 @@ class SensorInput {
     			Serial.println("SensorInput()");
     		}
     	#endif
-
 		setInterval();
     }
 
@@ -281,6 +284,7 @@ class SensorInput {
 				Serial.println(F(" )  "));
     		}
     	#endif
+		lastReading = newReading;
         rawData.insert(newReading);
 
         //see if interval is up or raw data is full
@@ -408,9 +412,8 @@ class SensorInput {
     			Serial.println("SensorInput::logout()");
     		}
     	#endif
-		char *output = (char*) malloc(16*sizeof(char));
     	if (isEnabled()) {
-			sprintf(output, ", %d, %d", shortTermData.count, rawData.latest()); //change headers in
+			sprintf(output, ", %d, %d", shortTermData.count, lastReading); //change headers in
     	}
         return output;
     }
@@ -460,7 +463,6 @@ class SensorInput {
 			}
 		#endif
 		this->interval = interval;
-		char *intervalStr = (char*) malloc(6*sizeof(char));
 		sprintf(intervalStr, "%0.1f s", interval/1000000.0);
 		shortTermDisplay.stats.interval.setValue(intervalStr);
 		#ifdef DEBUG
