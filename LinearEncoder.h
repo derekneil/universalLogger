@@ -24,7 +24,7 @@ class LinearEncoder : public SensorInput {
 			SensorInput::label = "LinearEncoder";
 		}
 
-		int poll() {
+		short poll() {
 			#ifdef DEBUG
 				if (Serial) {
 					Serial.println("LinearEncoder::poll()");

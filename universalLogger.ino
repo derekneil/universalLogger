@@ -571,9 +571,9 @@ void pollSensors() {
 
 		if(sensorInputs[i]->isEnabled()) {
 
-			int newReading = sensorInputs[i]->poll();
-			sensorInputs[i]->updateDataAndRedrawStats(newReading);
-			sensorInputs[i]->updateViz();
+			short newReading = sensorInputs[i]->poll();
+			sensorInputs[i]->updateDataAndStats(newReading);
+			sensorInputs[i]->redrawViz();
 		}
 	}
 }

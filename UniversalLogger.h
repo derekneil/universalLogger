@@ -12,6 +12,9 @@
 //#define DEBUG
 //#define MICRODEBUG
 
+#define SHORT_MIN -32768
+#define SHORT_MAX 32768
+
 #define NUMINPUTS 4
 #define NUMREGIONS NUMINPUTS
 

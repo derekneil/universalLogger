@@ -17,7 +17,7 @@
 #define AVGDETECTION 1
 #define PEAKDETECTION 2
 
-#define RAWDATASIZE STDWIDTH*5 //allows for 158*5 = 790 / ~65 readings per second = up to 10 seconds of draw data for an interval
+#define RAWDATASIZE 5000 // divided by ~65 readings per second = up to 70 seconds of raw data for an interval
 
 class SensorInput {
   public:
@@ -183,13 +183,13 @@ class SensorInput {
     /** Poll sensor input for latest value
     use type parameter to determine read function used
     */
-    virtual int poll() {
+    virtual short poll() {
 		#ifdef DEBUG
 			if (Serial) {
     			Serial.println("SensorInput::poll()");
     		}
     	#endif
-        int newReading = INT_MIN;
+        short newReading = SHORT_MIN;
 		if (pin > -1) {
 			if (type==ANALOG) {
 				newReading = analogRead(pin-14); // 0-1024
@@ -286,7 +286,7 @@ class SensorInput {
         //see if interval is up or raw data is full
         if (checkInterval(newReading)) {
             cycles++;
-            int currentFiltered = INT_MIN;
+            short currentFiltered = SHORT_MIN;
 
             if (filter==MINDETECTION) {
 				#ifdef DEBUG
@@ -321,7 +321,7 @@ class SensorInput {
             rawData.reset();
 
             //see if we have new value
-            if (currentFiltered!=INT_MAX && currentFiltered!=INT_MIN) {
+            if (currentFiltered!=SHORT_MAX && currentFiltered!=SHORT_MIN) {
                 shortTermData.insert(currentFiltered);
 				checkDivider(currentFiltered, &shortTermDisplay);
                 if (shortTermDisplay.enabled) {
@@ -333,7 +333,7 @@ class SensorInput {
                 if (shortTermData.checkAndResetIndex()) {
 
                 	//save last shortTermData cycle average to long term
-                	int shortAvg = shortTermData.avg;
+                	short shortAvg = shortTermData.avg;
                     longTermData.insert(shortAvg);
                     checkDivider(shortAvg, &longTermDisplay);
                     if (longTermDisplay.enabled) {
