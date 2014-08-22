@@ -290,8 +290,6 @@ void drawMainScreen() {
 	}
 }
 
-
-/** would be great to reuse this with a different*/
 void parseTouch() {
 
 	if (parseTouchBoilerPlate()) {
@@ -372,6 +370,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					#endif
 					resetBtn.push();
 					resetBtn.obj->reset();
+					//XXX any other actions associated with reseting a sensor input
 					resetBtn.draw();
 				}
 				else if (filterSelect.isPushed(touchX, touchY)) {
@@ -573,7 +572,7 @@ void dateTime(uint16_t* date, uint16_t* time) {
 void setup() {
 	#ifdef DEBUG
 		//serial console
-		Serial.begin(9600);
+		Serial.begin(115200);
 		while (!Serial) {}
 			Serial.println(F(" -- setup begin -- \n"));
 	#endif
@@ -644,7 +643,7 @@ void setup() {
 	sensorInputs[2] = new SensorInput(16, ANALOG);
 	sensorInputs[3] = new SensorInput(17, DIGITAL);
 
-	//loop through sensorInputs
+	//loop through sensorInputs, default show short term displays
 	for (int i=0; i<NUMINPUTS; i++) {
 		display->add( &(sensorInputs[i]->shortTermDisplay) );
 	}
@@ -676,12 +675,18 @@ void setup() {
 void loop() {
 
 	#ifdef DEBUG
+		int freeRam = FreeRam();
 		if (Serial) {
-			delay(100);
+			delay(50);
 			Serial.print(F("\n\n --loop"));
 			Serial.print(loopCounter++);
-			Serial.println(F(" -- \n"));
+			Serial.println(F(" --"));
+			Serial.print(F("freeRam = "));
+			Serial.print(freeRam);
+			Serial.println(F("\n"));
 		}
+		tft.setCursor(CENTER_X, CENTER_Y);
+		tft.print(freeRam);
 	#endif
 
 	pollSensors();

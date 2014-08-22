@@ -101,6 +101,12 @@ void Display::updateDisplayLayout() {
 
 	switch (numSDs) {
 
+	/* FIXME this might hit a null ptr exception
+	 * after removing (nulling) the non last SD
+	 * and the last SD that's still there doesn't get drawn :o
+	 *
+	 * switch to the cripled implementation of vector with shared ptr?? or raw ptr
+	 */
 		case 1:
 			// single full screen SensorDisplay
 			SDs[0]->locateCenterAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);

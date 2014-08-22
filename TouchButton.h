@@ -149,6 +149,7 @@ class TouchButton : public TouchElement{
 		Display::device->print(label);
     }
 
+    /** UI press effect only for visual effect */
     void push() {
       #ifdef DEBUG
         if (Serial) {

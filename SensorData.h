@@ -118,14 +118,24 @@ class SensorData {
     virtual int checkAndResetIndex() {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData::checkAndResetIndex()"));
+				Serial.print(F("SensorData::checkAndResetIndex() "));
 			}
 		#endif
 
 		if (index==size) {
 			index = 0;
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.println(F(" index==size -> index=0;"));
+				}
+			#endif
 			return true;
 		}
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F(" index != size"));
+			}
+		#endif
 		return false;
     }
 
