@@ -13,6 +13,7 @@ class DisplayElement {
 	int h=0;
 
   public:
+	int needsRedraw = false;
 
 	DisplayElement();
 

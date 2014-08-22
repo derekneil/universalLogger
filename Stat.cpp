@@ -96,12 +96,14 @@ void Stat::redraw() {
 	  		Serial.println(F(label));
 		}
 	#endif
-
-	int textY = startY + (h - CHARHEIGHT)/2;
-	int textX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2 + strlen(label)*CHARWIDTH;
-	Display::device->fillRect(textX, startY, strlen(lastValue)*CHARWIDTH, h, ERASECOLOUR); //only erase previous stat value
-	Display::device->setCursor(textX, textY);
-	Display::device->print(value); //only print new value
+	if (needsRedraw) {
+		needsRedraw = false;
+		int textY = startY + (h - CHARHEIGHT)/2;
+		int textX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2 + strlen(label)*CHARWIDTH;
+		Display::device->fillRect(textX, startY, strlen(lastValue)*CHARWIDTH, h, ERASECOLOUR); //only erase previous stat value
+		Display::device->setCursor(textX, textY);
+		Display::device->print(value); //only print new value
+	}
 }
 
 void Stat::reset() {
@@ -111,8 +113,7 @@ void Stat::reset() {
 			Serial.println(F(label));
 		}
 	#endif
-	free(lastValue);
-	free(value);
+	needsRedraw = false;
 	defaultValue();
 }
 

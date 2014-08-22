@@ -11,7 +11,6 @@ class SensorDisplay : public DisplayElement {
 
 	public:
 		int enabled     = 0;
-		int needsRedraw = false;
 		int divider     = 1;
 		int dividerChk  = divider;
 		SensorData *data;   /** reference to externally owned data */
@@ -33,6 +32,10 @@ class SensorDisplay : public DisplayElement {
 		virtual void draw();
 
 		virtual void redraw();
+
+		virtual void redrawViz();
+
+		virtual void redrawStats();
 
 		/** the calling code is responsible for calling redraw after calling this function */
 //		virtual void locate(int x, int y);

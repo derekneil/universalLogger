@@ -37,7 +37,7 @@ class SensorInput {
 	SensorData shortTermData;
 	SensorData longTermData;
 
-    virtual void redrawStat(Stat *stat, int newVal) {
+    virtual void updateStat(Stat *stat, int newVal) {
 //		#ifdef DEBUG
 //			if (Serial) {
                 // Serial.println("SensorInput::redrawStat()");
@@ -47,26 +47,23 @@ class SensorInput {
 		sprintf(newValStr, "%4d", newVal);
 		if (strcmp(newValStr, stat->getValue()) != 0) {
 			stat->setValue(newValStr);
-			stat->redraw();
-		}
-		else {
-			free(newValStr);
+			stat->needsRedraw = true;
 		}
     }
 
-    virtual void redrawStats(SensorData *sensorData, SensorDisplay *sensorDisplay, int newVal) {
+    virtual void updateStats(SensorData *sensorData, SensorDisplay *sensorDisplay, int newVal) {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.print(F("SensorInput::redrawStats(... "));
+    			Serial.print(F("SensorInput::updateStats(... "));
 				Serial.print(newVal);
 				Serial.println(F(" )"));
     			}
     	#endif
-        redrawStat(&(sensorDisplay->stats.latest),    newVal);
-        redrawStat(&(sensorDisplay->stats.min),       sensorData->min);
-        redrawStat(&(sensorDisplay->stats.avg),       sensorData->avg);
-        redrawStat(&(sensorDisplay->stats.max),       sensorData->max);
-        redrawStat(&(sensorDisplay->stats.last10avg), sensorData->last10avg);
+        updateStat(&(sensorDisplay->stats.latest),    newVal);
+        updateStat(&(sensorDisplay->stats.min),       sensorData->min);
+        updateStat(&(sensorDisplay->stats.avg),       sensorData->avg);
+        updateStat(&(sensorDisplay->stats.max),       sensorData->max);
+        updateStat(&(sensorDisplay->stats.last10avg), sensorData->last10avg);
     }
 
   	void checkDivider(int val, SensorDisplay *sd) {
@@ -276,7 +273,7 @@ class SensorInput {
     Once long term data cycles through the storage, it replaces the
     oldest value with the new one.
     */
-    virtual void updateDataAndRedrawStats(int newReading) {
+    virtual void updateDataAndStats(short newReading) {
 		#ifdef DEBUG
 			if (Serial) {
     			Serial.print(F("SensorInput::updateDataAndStats( "));
@@ -328,7 +325,7 @@ class SensorInput {
                 shortTermData.insert(currentFiltered);
 				checkDivider(currentFiltered, &shortTermDisplay);
                 if (shortTermDisplay.enabled) {
-                	redrawStats(&shortTermData, &shortTermDisplay, currentFiltered);
+                	updateStats(&shortTermData, &shortTermDisplay, currentFiltered);
                 	shortTermDisplay.needsRedraw = true;
                 }
 
@@ -340,7 +337,7 @@ class SensorInput {
                     longTermData.insert(shortAvg);
                     checkDivider(shortAvg, &longTermDisplay);
                     if (longTermDisplay.enabled) {
-                    	redrawStats(&longTermData, &longTermDisplay, shortAvg);
+                    	updateStats(&longTermData, &longTermDisplay, shortAvg);
                     	longTermDisplay.needsRedraw = true;
                     }
 
@@ -364,14 +361,35 @@ class SensorInput {
         }
     }
 
-    virtual void updateViz() {
+    virtual void redraw() {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput::updateViz()");
-    		}
-    	#endif
+				Serial.println("SensorInput::redraw()");
+			}
+		#endif
 		shortTermDisplay.redraw();
 		longTermDisplay.redraw();
+    }
+
+    virtual void redrawViz() {
+		#ifdef DEBUG
+			if (Serial) {
+    			Serial.println("SensorInput::redrawViz()");
+    		}
+    	#endif
+		shortTermDisplay.redrawViz();
+		longTermDisplay.redrawViz();
+    }
+
+
+    virtual void redrawStats() {
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println("SensorInput::redrawStats()");
+			}
+		#endif
+    	shortTermDisplay.redrawStats();
+    	longTermDisplay.redrawStats();
     }
 
     virtual int isEnabled() {
@@ -445,7 +463,6 @@ class SensorInput {
 		char *intervalStr = (char*) malloc(6*sizeof(char));
 		sprintf(intervalStr, "%0.1f s", interval/1000000.0);
 		shortTermDisplay.stats.interval.setValue(intervalStr);
-//		shortTermDisplay.stats.interval.redraw(); //FIXME should calling method be responsible for this???
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.print("interval stat: ");

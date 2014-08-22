@@ -60,6 +60,8 @@ char logFileName[13]; //limited by 8.3 fat filesystem naming :(
 //main screen
 	Display *display;
 SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
+unsigned long lastStatUpdateTime = 0;
+const unsigned long statRedrawThreshold = 1500000;
 
 //menu screen
 TouchButton *logBtn;
@@ -712,6 +714,13 @@ void loop() {
 	}
 
 	//FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
+
+	if(micros()-lastStatUpdateTime > statRedrawThreshold) {
+		for(int i=0; i<NUMINPUTS; i++) {
+			sensorInputs[i]->redrawStats();
+		}
+	}
+
 
 } //end loop()
 
