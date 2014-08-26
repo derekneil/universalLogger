@@ -62,7 +62,7 @@ char logFileName[13]; //limited by 8.3 fat filesystem naming :(
 	Display *display;
 SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
 unsigned long lastStatUpdateTime = 0;
-const unsigned long statRedrawThreshold = 1500000;
+const unsigned long statRedrawThreshold = 1000000;
 
 //menu screen
 TouchButton *logBtn;
@@ -330,12 +330,12 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	resetBtn.draw();
 
 	// filter options must be added and set using 0 based enum
-	TouchSelect filterSelect( 10, CENTER_Y1+30, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
+	TouchSelect filterSelect( 10, CENTER_Y1+20, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
 	filterSelect.draw();
 	filterSelect.btns.get(si->filter).push();
 
 	//mode options must be added and set using 0 based enum
-	TouchSelect modeSelect( 10, CENTER_Y2-30, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
+	TouchSelect modeSelect( 10, CENTER_Y2-40, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
 	modeSelect.draw();
 	modeSelect.btns.get(si->mode).push();
 
@@ -366,7 +366,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 				else if (resetBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("resetAllBtn isPushed"));
+							Serial.println(F("resetBtn isPushed"));
 						}
 					#endif
 					resetBtn.push();
@@ -377,7 +377,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 				else if (filterSelect.isPushed(touchX, touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("filterSelectBtn isPushed"));
+							Serial.println(F("filterSelect isPushed"));
 						}
 					#endif
 					filterSelect.push();
@@ -385,7 +385,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 				else if (modeSelect.isPushed(touchX, touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("modeSelectBtn isPushed"));
+							Serial.println(F("modeSelect isPushed"));
 						}
 					#endif
 					modeSelect.push();
@@ -441,7 +441,7 @@ void drawMainMenu() {
 
 	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
 
-	//XXX make this parametric to the number of inputs... and put them in a pretty order based on the number instead of manually tweaking
+	//XXX make this parametric to the number of inputs... and put them in a pretty layout based on the number instead of manually tweaking
 	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
 	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
 	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
@@ -534,6 +534,8 @@ void pollSensors() {
 
 			short newReading = sensorInputs[i]->poll();
 			sensorInputs[i]->updateDataAndStats(newReading);
+
+			//IMP to move this to be called every x seconds, need to store last drawn state of graph
 			sensorInputs[i]->redrawViz();
 		}
 	}
