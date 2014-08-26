@@ -101,7 +101,7 @@ void Display::updateDisplayLayout() {
 
 	switch (numSDs) {
 
-	/* FIXME this might hit a null ptr exception
+	/* FIXME this will hit a null ptr exception
 	 * after removing (nulling) the non last SD
 	 * and the last SD that's still there doesn't get drawn :o
 	 *

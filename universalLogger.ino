@@ -400,7 +400,6 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					#endif
 					resetBtn.push();
 					resetBtn.obj->reset();
-					//XXX any other actions associated with reseting a sensor input
 					resetBtn.draw();
 				}
 				else if (filterSelect.isPushed(touchX, touchY)) {
@@ -431,7 +430,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					intervalAdjust.draw();
 				}
 
-				//IMP implement touch buttons for all the SensorInput variables we want to control
+				//IMP implement touch isPushed code for all the SensorInput buttons
 
 
 				emptyTouchBuffer(); //some buttons seemed to get pushed again for some reason...
@@ -567,7 +566,7 @@ void pollSensors() {
 			short newReading = sensorInputs[i]->poll();
 			sensorInputs[i]->updateDataAndStats(newReading);
 
-			//IMP to move this to be called every x seconds, need to store last drawn state of graph
+			//XXX to move this to be called every x seconds, need to store last drawn state of graph
 			sensorInputs[i]->redrawViz();
 		}
 	}
@@ -730,7 +729,7 @@ void loop() {
 		parseTouch();
 	}
 
-	//FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
+	//TODO doing something on the SD card makes the spi for the screen switch back to a faster mode...
 
 	unsigned long nowTime = micros();
 	if(nowTime-lastStatUpdateTime > statRedrawThreshold) {
