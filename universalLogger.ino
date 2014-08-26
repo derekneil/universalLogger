@@ -18,6 +18,7 @@
 #include "SensorDisplay.h"
 #include "TouchButton.h"
 #include "TouchSelect.h"
+#include "TouchAdjust.h"
 #include "Menu.h"
 
 #ifdef DEBUG
@@ -350,14 +351,12 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	modeSelect.btns.get(si->mode).push();
 
 	//interval options
-//	TouchAdjust interval( CENTER_X1, CENTER_Y2+30, "Interval: ", si, 2, modeStatic, modeDynamic);
-
+	TouchAdjust intervalAdjust( 10, CENTER_Y2+20, "Interval: ", si, &(si->intervalStrVal));
+	intervalAdjust.draw();
 
 	//IMP draw controls for each of the inputs for a sensor
 //	TouchSelect shortTermType, longTermType;
-//	TouchNumber highPass, lowPass, shotTermPos, longTermPos;
-
-	//IMP draw specialized controls for loadcell and linearEnc???
+//	TouchAdjust highPassValue, lowPass, shotTermVizPosition, longTermVizPosition;
 
 	emptyTouchBuffer(); //XXX why do i have to keep doing this everywhere????
 	while (1) {
@@ -420,19 +419,22 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					#endif
 					modeSelect.push();
 				}
-//				else if (filterSelect.isPushed(touchX, touchY)) {
-//					#ifdef DEBUG
-//						if (Serial) {
-//							Serial.println(F("filterSelectBtn isPushed"));
-//						}
-//					#endif
-//					filterSelect.push();
-//				}
+				else if (intervalAdjust.isPushed(touchX, touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("intervalAdjust isPushed"));
+						}
+					#endif
+					intervalAdjust.push();
+					intervalAdjust.obj->updateIntervalStr();
+					strcpy(intervalAdjust.valStr, intervalAdjust.obj->shortIntervalStr);
+					intervalAdjust.draw();
+				}
 
 				//IMP implement touch buttons for all the SensorInput variables we want to control
 
-				//some buttons seemed to get pushed again for some reason...
-				emptyTouchBuffer();
+
+				emptyTouchBuffer(); //some buttons seemed to get pushed again for some reason...
 
 			}
 			else {
