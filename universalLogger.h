@@ -13,7 +13,7 @@
 //#define MICRODEBUG
 
 #define SHORT_MIN -32768
-#define SHORT_MAX 32768
+#define SHORT_MAX 32767
 
 #define NUMINPUTS 4
 #define NUMREGIONS NUMINPUTS
