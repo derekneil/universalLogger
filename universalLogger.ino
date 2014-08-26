@@ -18,6 +18,7 @@
 #include "SensorDisplay.h"
 #include "TouchButton.h"
 #include "TouchSelect.h"
+#include "Menu.h"
 
 #ifdef DEBUG
 	int loopCounter = 0;
@@ -414,24 +415,6 @@ void drawIndividualSensorMenu(SensorInput *si) {
 		}
 	}//end while
 }
-
-#define mSize 7
-class Menu {
-  private:
-	int mIndex = 0;
-	DisplayElement *m[mSize] = { nullptr };
-  public:
-	Menu() {}
-	~Menu() {}
-	void add(DisplayElement *el) { if (mIndex< mSize) { m[mIndex++] = el; } }
-	void draw() {
-		Display::device->fillScreen(MENUCOLOUR);
-		Display::device->setTextSize(2);
-		for (int i=0; i<mSize; i++){
-			m[i]->draw();
-		}
-	}
-};
 
 void drawMainMenu() {
 	#ifdef DEBUG
