@@ -105,7 +105,6 @@ class TouchButton : public TouchElement{
           Serial.println(F(newLabel));
         }
   	  #endif
-//      free (label); //FIXME memory leak???? code was hanging here, and with delete
       label = newLabel;
       w = buildW(label);
       h = buildH(label);
