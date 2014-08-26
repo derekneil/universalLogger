@@ -42,16 +42,9 @@ class SensorInput {
 	SensorData longTermData;
 
     virtual void updateStat(Stat *stat, int newVal) {
-//		#ifdef DEBUG
-//			if (Serial) {
-                // Serial.println("SensorInput::redrawStat()");
-//			}
-	   // #endif
-
 		sprintf(newValStr, "%4d", newVal);
 		if (strcmp(newValStr, stat->getValue()) != 0) {
 			stat->setValue(newValStr);
-			stat->needsRedraw = true;
 		}
     }
 

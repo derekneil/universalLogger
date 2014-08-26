@@ -58,6 +58,7 @@ void Stat::setValue(char* newValue) {
 	#endif
 	strcpy(lastValue,value);
 	strcpy(value, newValue);
+	needsRedraw = true;
 }
 
 /** erase entire space for stat
@@ -77,6 +78,7 @@ void Stat::draw() {
 	Display::device->setCursor(textX, textY);
 	Display::device->print(label);
 	Display::device->print(value);
+	needsRedraw = false;
 }
 
 /** assumes label is already on screen
