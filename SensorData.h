@@ -10,9 +10,9 @@ class SensorData {
     short *array; //XXX need to add more accessor methods that don't take O(n) access time to hide the data structure from other classes
     int size     = STDWIDTH;
     int index    = 0;
-    short min    = INT_MAX;
+    short min    = SHORT_MAX;
     double avg   = 0;
-    short max    = INT_MIN;
+    short max    = SHORT_MIN;
     short bumped = 0;
     short count  = 0;
 
@@ -200,7 +200,7 @@ class SensorData {
 		max = SHORT_MIN;
     }
 
-    virtual void resetStorageAndAvgAndCount(int val=0) {
+    virtual void resetStorageAndAvgAndCount(short val=0) {
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.print(F("SensorData::resetStorage( "));
