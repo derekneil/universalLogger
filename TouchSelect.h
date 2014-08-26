@@ -12,7 +12,7 @@
 
 class TouchSelect : public TouchElement{
   protected:
-    char *label       = "";
+    char label[32];
 
   public:
 
@@ -31,7 +31,7 @@ class TouchSelect : public TouchElement{
 			  Serial.println(F(label));
 		  }
 		#endif
-		this->label = label;
+		strcpy(this->label, label);
 		this->siElement = siElement;
 		va_list args;
 		va_start(args, n);
@@ -134,18 +134,10 @@ private: //TODO should these just stay as private???
 			TouchButton tmp = btns.get(i);
 			tmp.draw();
 			if (tmp.isPushed(lastTx, lastTy)) {
-//				(tmp.*tmp.pushAction)();
-
-			    /** generic version of pushAction based on one or two arguments??*/
 				(*siElement) = i;
 				tmp.push();
 			}
 		}
-
-		/** delay ensures pushed visual state visible to
-		* user, not worried about stopping everything since
-		* this will be used in a menu screen */
-		delay(500);
 	}
 };
 #endif

@@ -7,16 +7,16 @@
 class SensorData {
 
   public:
-    int *array; //XXX need to add more accessor methods that don't take O(n) access time to hide the data structure from other classes
-    int size   = STDWIDTH;
-    int index  = 0;
-    int min    = INT_MAX;
-    double avg = 0;
-    int max    = INT_MIN;
-    int bumped = 0;
-    int count  = 0;
+    short *array; //XXX need to add more accessor methods that don't take O(n) access time to hide the data structure from other classes
+    int size     = STDWIDTH;
+    int index    = 0;
+    short min    = SHORT_MAX;
+    double avg   = 0;
+    short max    = SHORT_MIN;
+    short bumped = 0;
+    short count  = 0;
 
-    int last10[10]   = {0};
+    short last10[10] = {0};
     int last10Index  = 0;
     int last10bumped = 0;
     double last10avg = 0;
@@ -27,7 +27,7 @@ class SensorData {
 				Serial.println(F("SensorData()"));
 			}
 		#endif
-		array = new int[size];
+		array = new short[size];
 		resetStorageAndAvgAndCount();
     }
  
@@ -40,7 +40,7 @@ class SensorData {
 			}
 		#endif
 		this->size = size;
-		array = new int[size];
+		array = new short[size];
 		resetStorageAndAvgAndCount();
 	}
     virtual ~SensorData() {
@@ -52,7 +52,7 @@ class SensorData {
     	delete array;
     }
 
-    virtual void insert(int val) {
+    virtual void insert(short val) {
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.print(F("SensorData::insert( "));
@@ -118,14 +118,24 @@ class SensorData {
     virtual int checkAndResetIndex() {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println(F("SensorData::checkAndResetIndex()"));
+				Serial.print(F("SensorData::checkAndResetIndex() "));
 			}
 		#endif
 
 		if (index==size) {
 			index = 0;
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.println(F(" index==size -> index=0;"));
+				}
+			#endif
 			return true;
 		}
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.println(F(" index != size"));
+			}
+		#endif
 		return false;
     }
 
@@ -156,7 +166,7 @@ class SensorData {
 			}
 		#endif
 		if (bumped == min) {
-			min = INT_MAX;
+			min = SHORT_MAX;
 			for (int i=0; i<size; i++) {
 				if (array[i] < min) {
 					min = array[i];
@@ -171,7 +181,7 @@ class SensorData {
 			}
 		#endif
 		if (bumped == max) {
-			max = INT_MIN;
+			max = SHORT_MIN;
 			for (int i=0; i<size; i++) {
 				if (array[i] > max) {
 					max = array[i];
@@ -186,11 +196,11 @@ class SensorData {
 				Serial.println(F("SensorData::resetMinMax()"));
 			}
 		#endif
-		min = INT_MAX;
-		max = INT_MIN;
+		min = SHORT_MAX;
+		max = SHORT_MIN;
     }
 
-    virtual void resetStorageAndAvgAndCount(int val=0) {
+    virtual void resetStorageAndAvgAndCount(short val=0) {
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.print(F("SensorData::resetStorage( "));

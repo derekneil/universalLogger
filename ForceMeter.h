@@ -16,8 +16,8 @@
 class ForceMeter : public SensorInput {
 	protected:
 		int loadCellReadingState = COMPLETE;
-		char loadCellReading[7]  = {' ','0','0','0','0','0'};
-		int loadCellReadingInt   = 0;
+		char loadCellReading[7]  = {' ','0','0','0','0','0', '\0'};
+		short loadCellReadingShort   = 0;
 		int loadCellReadingIndex = 0;
 
 	public:
@@ -34,7 +34,7 @@ class ForceMeter : public SensorInput {
 			LOADCELL.begin(19200, SERIAL_8N1_RXINV_TXINV);	
 		}
 
-		int poll() {
+		short poll() {
 			#ifdef DEBUG
 				if (Serial) {
 					Serial.println(F("ForceMeter::poll()"));
@@ -87,10 +87,10 @@ class ForceMeter : public SensorInput {
 
 			//if there's a new value, update the value to be returned
 			if (loadCellReadingState == COMPLETE) {
-				loadCellReadingInt = atoi(loadCellReading);
+				loadCellReadingShort = atoi(loadCellReading);
 			}
 
-			return loadCellReadingInt;
+			return loadCellReadingShort;
 		}
 
 		void reset() {
@@ -100,7 +100,7 @@ class ForceMeter : public SensorInput {
 				}
 			#endif
 			loadCellReadingState = DIGITS;
-			loadCellReadingInt = 0;
+			loadCellReadingShort = 0;
 			loadCellReadingIndex = 0;
 			SensorInput::reset();
 		}

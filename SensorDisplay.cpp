@@ -122,10 +122,10 @@ void SensorDisplay::draw() {
 	stats.draw();
 }
 
-void SensorDisplay::redraw() {
+void SensorDisplay::redrawViz() {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.print(F("SensorDisplay::redraw(...)"));
+			Serial.print(F("SensorDisplay::redrawViz(...)"));
 			Serial.print(F("   enabled: "));
 			Serial.print(enabled);
 			Serial.print(F("   needsRedraw: "));
@@ -142,7 +142,31 @@ void SensorDisplay::redraw() {
     	}
 		needsRedraw = false;
     }
-	//individual stats.stat 's are redrawn by SensorInput::updateDataAndRedrawStat(...) as their values change
+}
+
+void SensorDisplay::redrawStats() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.print(F("SensorDisplay::redrawStats(...)"));
+			Serial.print(F("   enabled: "));
+			Serial.print(enabled);
+		}
+	#endif
+	if(enabled) {
+		stats.redraw();
+	}
+}
+
+void SensorDisplay::redraw() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.print(F("SensorDisplay::redraw(...)"));
+			Serial.print(F("   enabled: "));
+			Serial.print(enabled);
+		}
+	#endif
+	redrawViz();
+	redrawStats();
 }
 
 /** the calling code is responsible for calling redraw after calling this function */

@@ -19,24 +19,24 @@ Stats::Stats(int centerX/*=0*/, int centerY/*=0*/, int w/*=STDWIDTH*/, int h/*=S
 
 	DisplayElement {centerX,centerY,w,h},
 
-	min       {centerX-w/4, centerY-h/3, w/2, h/3},
-	max       {centerX-w/4, centerY,     w/2, h/3},
-	interval  {centerX-w/4, centerY+h/3, w/2, h/3},
-	avg       {centerX+w/4, centerY-h/3, w/2, h/3},
-	last10avg {centerX+w/4, centerY,     w/2, h/3},
-	latest    {centerX+w/4, centerY+h/3, w/2, h/3}
+	min       {centerX-w/4, centerY-h/3, w/2, h/3, "min: "},
+	max       {centerX-w/4, centerY,     w/2, h/3, "max: "},
+	interval  {centerX-w/4, centerY+h/3, w/2, h/3, "int: "},
+	avg       {centerX+w/4, centerY-h/3, w/2, h/3, "avg: "},
+	last10avg {centerX+w/4, centerY,     w/2, h/3, "10avg: "},
+	latest    {centerX+w/4, centerY+h/3, w/2, h/3, "last: "}
 {
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("Stats(...)"));
 		}
 	#endif
-	min      .label = "min: ";
-	max      .label = "max: ";
-	interval .label = "int: ";
-	avg      .label = "avg: ";
-	last10avg.label = "10avg: ";
-	latest   .label = "last: ";
+	// strcpy(min      .label, 
+	// strcpy(max      .label, 
+	// strcpy(interval .label, 
+	// strcpy(avg      .label, 
+	// strcpy(last10avg.label, 
+	// strcpy(latest   .label, 
 }
 
 Stats::~Stats() {

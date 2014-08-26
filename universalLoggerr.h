@@ -12,6 +12,9 @@
 //#define DEBUG
 //#define MICRODEBUG
 
+#define SHORT_MIN -32768
+#define SHORT_MAX 32768
+
 #define NUMINPUTS 4
 #define NUMREGIONS NUMINPUTS
 
@@ -36,7 +39,12 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
-#define MENUCOLOUR MAGENTA
+#ifdef DEBUG
+	#define MENUCOLOUR MAGENTA
+#endif
+#ifndef MENUCOLOUR
+	#define MENUCOLOUR BLUE
+#endif
 #define MENUTEXTSIZE 2
 #define BACKGROUNDCOLOUR BLUE
 #define TEXTCOLOUR WHITE

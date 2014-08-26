@@ -13,8 +13,7 @@ Stat::Stat(int centerX, int centerY, int w, int h, char* label) :
 			Serial.println(F("Stat(...) "));
 		}
 	#endif
-	this->label = label;
-
+	strcpy(this->label, label);
 	defaultValue();
 }
 
@@ -24,9 +23,6 @@ Stat::~Stat() {
 			Serial.println(F("~Stat() "));
 		}
 	#endif
-//	free(label); //FIXME memory leak???? code was hanging here, and with delete
-	free(lastValue);
-	free(value);
 }
 
 int Stat::operator== (const Stat param) {
@@ -35,8 +31,8 @@ int Stat::operator== (const Stat param) {
 			w         == param.w         &&
 			h         == param.h         && //startX and startY not needed since they're computed values
 			colour    == param.colour    &&
-			label     == param.label     &&
-			lastValue == param.lastValue
+			strcmp(label, param.label)   &&
+			strcmp(lastValue,param.lastValue)
 	) {
 		return true;
 	}
@@ -47,8 +43,6 @@ int Stat::operator== (const Stat param) {
 
 /** make sure initial draw has room for 5 char stat */
 void Stat::defaultValue() {
-	lastValue = (char*) malloc(6*sizeof(char));
-	value = (char*) malloc(6*sizeof(char));
 	sprintf(lastValue, "%4d", 0);
 	sprintf(value, "%4d", 0);
 }
@@ -62,9 +56,9 @@ void Stat::setValue(char* newValue) {
 		Serial.println(F(label));
 		}
 	#endif
-	free(lastValue);
-	lastValue = value;
-	value = newValue;
+	strcpy(lastValue,value);
+	strcpy(value, newValue);
+	needsRedraw = true;
 }
 
 /** erase entire space for stat
@@ -84,6 +78,7 @@ void Stat::draw() {
 	Display::device->setCursor(textX, textY);
 	Display::device->print(label);
 	Display::device->print(value);
+	needsRedraw = false;
 }
 
 /** assumes label is already on screen
@@ -96,12 +91,14 @@ void Stat::redraw() {
 	  		Serial.println(F(label));
 		}
 	#endif
-
-	int textY = startY + (h - CHARHEIGHT)/2;
-	int textX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2 + strlen(label)*CHARWIDTH;
-	Display::device->fillRect(textX, startY, strlen(lastValue)*CHARWIDTH, h, ERASECOLOUR); //only erase previous stat value
-	Display::device->setCursor(textX, textY);
-	Display::device->print(value); //only print new value
+	if (needsRedraw) {
+		needsRedraw = false;
+		int textY = startY + (h - CHARHEIGHT)/2;
+		int textX = startX + (w - ((strlen(label)+strlen(lastValue)) * CHARWIDTH))/2 + strlen(label)*CHARWIDTH;
+		Display::device->fillRect(textX, startY, strlen(lastValue)*CHARWIDTH, h, ERASECOLOUR); //only erase previous stat value
+		Display::device->setCursor(textX, textY);
+		Display::device->print(value); //only print new value
+	}
 }
 
 void Stat::reset() {
@@ -111,8 +108,7 @@ void Stat::reset() {
 			Serial.println(F(label));
 		}
 	#endif
-	free(lastValue);
-	free(value);
+	needsRedraw = false;
 	defaultValue();
 }
 

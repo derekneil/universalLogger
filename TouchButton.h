@@ -27,15 +27,6 @@ class TouchButton : public TouchElement{
 
     SensorInput *obj = nullptr;
 
-//    TouchButton() {
-//		#ifdef DEBUG
-//		  if (Serial) {
-//			  Serial.print(F("TouchButton(...) "));
-//			  Serial.println(F(label));
-//		  }
-//		#endif
-//    }
-
     TouchButton(char* label="") :
     	TouchElement {
     		0,
@@ -149,6 +140,7 @@ class TouchButton : public TouchElement{
 		Display::device->print(label);
     }
 
+    /** UI press effect only for visual effect */
     void push() {
       #ifdef DEBUG
         if (Serial) {
@@ -162,20 +154,12 @@ class TouchButton : public TouchElement{
       int newX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
       Display::device->setCursor(newX, newY);
       Display::device->print(label);
+
+      /** delay ensures pushed visual state visible to
+		* user, not worried about stopping everything since
+		* this will be used in a menu screen */
       delay(500);
     }
-
-//    void (TouchButton::*pushAction)(); //for use with function pointer
-
-//    function<void ()> pushAction; //depends on #include <functional> which i guess we don't have access too
-//    void setPushAction( function<void ()> newPushAction) {
-//    	pushAction = newPushAction;
-//    }
-
-//    template<typename Func> 			//for use with generic function that takes
-//    void pushAction(Func func) {		//specific function as argument
-//    	func();
-//    }
 
 };
 #endif

@@ -18,9 +18,12 @@
 #include "SensorDisplay.h"
 #include "TouchButton.h"
 #include "TouchSelect.h"
+#include "TouchAdjust.h"
+#include "Menu.h"
 
 #ifdef DEBUG
 	int loopCounter = 0;
+	int oldRam = 0;
 #endif
 
 #if defined(__SAM3X8E__)
@@ -60,6 +63,8 @@ char logFileName[13]; //limited by 8.3 fat filesystem naming :(
 //main screen
 	Display *display;
 SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
+unsigned long lastStatUpdateTime = 0;
+const unsigned long statRedrawThreshold = 1000000;
 
 //menu screen
 TouchButton *logBtn;
@@ -78,36 +83,17 @@ void logError() {
 	Display::device->print("LOG ERROR");
 }
 
-/** one or both inputs may be deleted depending on size */
-char* strSafeCat(char *str1, int safeSize, char* str2) {
-	int len1 = strlen(str1);
-	int len2 = strlen(str2);
-	if (safeSize >= (len1+len2)) {
-		strcat(str1, str2);
-		free(str2);
-		return str1;
-	}
-	else {
-		char *output = (char*) malloc((len1+len2+1)*sizeof(char));
-		sprintf(output, "%s", str1);
-		free(str1);
-		strcat(output, str2);
-		free(str2);
-		return output;
-	}
-}
-
 void logOutput(){
 
 	if (logging==true) {
 
 		int size = 128;
-		char *logStr = (char*) malloc(size*sizeof(char));
+		char logStr[size];
 		sprintf(logStr, "%04d/%02d/%02d %02d:%02d:%02d, %d", year(), month(), day(), hour(), minute(), second(), micros());
 
 		for (int i=0; i<NUMINPUTS; i++) {
 			if(sensorInputs[i]->isEnabled()) {
-				logStr = strSafeCat(logStr, size-1, sensorInputs[i]->logout());
+				strcat(logStr, sensorInputs[i]->logout());
 			}
 		}
 
@@ -120,12 +106,10 @@ void logOutput(){
 		//write to sd card
 		if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
 			logError();
-			free(logStr);
 			while(1) {}
 		}
 		logFile.println(logStr);
 		logFile.close();
-		free(logStr);
 	}
 
 }
@@ -309,8 +293,6 @@ void drawMainScreen() {
 	}
 }
 
-
-/** would be great to reuse this with a different*/
 void parseTouch() {
 
 	if (parseTouchBoilerPlate()) {
@@ -346,28 +328,35 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
 
+	TouchButton *onOffBtn = nullptr;
+	if (si->isEnabled()) {
+		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "ON");
+	}
+	else {
+		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "OFF");
+	}
+	onOffBtn->draw();
+
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
 	resetBtn.draw();
 
 	// filter options must be added and set using 0 based enum
-	TouchSelect filterSelect( 10, CENTER_Y1+30, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
+	TouchSelect filterSelect( 10, CENTER_Y1+20, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
 	filterSelect.draw();
 	filterSelect.btns.get(si->filter).push();
 
 	//mode options must be added and set using 0 based enum
-	TouchSelect modeSelect( 10, CENTER_Y2-30, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
+	TouchSelect modeSelect( 10, CENTER_Y2-40, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
 	modeSelect.draw();
 	modeSelect.btns.get(si->mode).push();
 
 	//interval options
-//	TouchAdjust interval( CENTER_X1, CENTER_Y2+30, "Interval: ", si, 2, modeStatic, modeDynamic);
-
+	TouchAdjust intervalAdjust( 10, CENTER_Y2+20, "Interval: ", si, &(si->intervalStrVal));
+	intervalAdjust.draw();
 
 	//IMP draw controls for each of the inputs for a sensor
 //	TouchSelect shortTermType, longTermType;
-//	TouchNumber highPass, lowPass, shotTermPos, longTermPos;
-
-	//IMP draw specialized controls for loadcell and linearEnc???
+//	TouchAdjust highPassValue, lowPass, shotTermVizPosition, longTermVizPosition;
 
 	emptyTouchBuffer(); //XXX why do i have to keep doing this everywhere????
 	while (1) {
@@ -381,22 +370,43 @@ void drawIndividualSensorMenu(SensorInput *si) {
 						}
 					#endif
 					backBtn.push();
-					break; //break out of this menu's touch loop
+					break; //break out of this menu's touch loop and go back to previous control loop
+				}
+				if (onOffBtn->isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("onOffBtn isPushed"));
+						}
+					#endif
+					if (si->isEnabled()) {
+						onOffBtn->setLabel("OFF");
+						display->remove(&si->shortTermDisplay);
+						display->remove(&si->longTermDisplay);
+					}
+					else {
+						onOffBtn->setLabel("ON");
+
+						display->add(&si->shortTermDisplay);
+//						display->add(&si->longTermDisplay); //IMP try to add both until they each have their own "type" TouchSelectButtons
+					}
+					onOffBtn->push();
+					onOffBtn->draw();
 				}
 				else if (resetBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("resetAllBtn isPushed"));
+							Serial.println(F("resetBtn isPushed"));
 						}
 					#endif
 					resetBtn.push();
 					resetBtn.obj->reset();
+					//XXX any other actions associated with reseting a sensor input
 					resetBtn.draw();
 				}
 				else if (filterSelect.isPushed(touchX, touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("filterSelectBtn isPushed"));
+							Serial.println(F("filterSelect isPushed"));
 						}
 					#endif
 					filterSelect.push();
@@ -404,24 +414,27 @@ void drawIndividualSensorMenu(SensorInput *si) {
 				else if (modeSelect.isPushed(touchX, touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("modeSelectBtn isPushed"));
+							Serial.println(F("modeSelect isPushed"));
 						}
 					#endif
 					modeSelect.push();
 				}
-//				else if (filterSelect.isPushed(touchX, touchY)) {
-//					#ifdef DEBUG
-//						if (Serial) {
-//							Serial.println(F("filterSelectBtn isPushed"));
-//						}
-//					#endif
-//					filterSelect.push();
-//				}
+				else if (intervalAdjust.isPushed(touchX, touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("intervalAdjust isPushed"));
+						}
+					#endif
+					intervalAdjust.push();
+					intervalAdjust.obj->updateIntervalStr();
+					strcpy(intervalAdjust.valStr, intervalAdjust.obj->shortIntervalStr);
+					intervalAdjust.draw();
+				}
 
 				//IMP implement touch buttons for all the SensorInput variables we want to control
 
-				//some buttons seemed to get pushed again for some reason...
-				emptyTouchBuffer();
+
+				emptyTouchBuffer(); //some buttons seemed to get pushed again for some reason...
 
 			}
 			else {
@@ -434,24 +447,6 @@ void drawIndividualSensorMenu(SensorInput *si) {
 		}
 	}//end while
 }
-
-#define mSize 7
-class Menu {
-  private:
-	int mIndex = 0;
-	DisplayElement *m[mSize] = { nullptr };
-  public:
-	Menu() {}
-	~Menu() {}
-	void add(DisplayElement *el) { if (mIndex< mSize) { m[mIndex++] = el; } }
-	void draw() {
-		Display::device->fillScreen(MENUCOLOUR);
-		Display::device->setTextSize(2);
-		for (int i=0; i<mSize; i++){
-			m[i]->draw();
-		}
-	}
-};
 
 void drawMainMenu() {
 	#ifdef DEBUG
@@ -478,7 +473,7 @@ void drawMainMenu() {
 
 	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
 
-	//XXX make this parametric to the number of inputs... and put them in a pretty order based on the number instead of manually tweaking
+	//XXX make this parametric to the number of inputs... and put them in a pretty layout based on the number instead of manually tweaking
 	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
 	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
 	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
@@ -569,9 +564,11 @@ void pollSensors() {
 
 		if(sensorInputs[i]->isEnabled()) {
 
-			int newReading = sensorInputs[i]->poll();
-			sensorInputs[i]->updateDataAndRedrawStats(newReading);
-			sensorInputs[i]->updateViz();
+			short newReading = sensorInputs[i]->poll();
+			sensorInputs[i]->updateDataAndStats(newReading);
+
+			//IMP to move this to be called every x seconds, need to store last drawn state of graph
+			sensorInputs[i]->redrawViz();
 		}
 	}
 }
@@ -592,7 +589,7 @@ void dateTime(uint16_t* date, uint16_t* time) {
 void setup() {
 	#ifdef DEBUG
 		//serial console
-		Serial.begin(9600);
+		Serial.begin(115200);
 		while (!Serial) {}
 			Serial.println(F(" -- setup begin -- \n"));
 	#endif
@@ -663,7 +660,7 @@ void setup() {
 	sensorInputs[2] = new SensorInput(16, ANALOG);
 	sensorInputs[3] = new SensorInput(17, DIGITAL);
 
-	//loop through sensorInputs
+	//loop through sensorInputs, default show short term displays
 	for (int i=0; i<NUMINPUTS; i++) {
 		display->add( &(sensorInputs[i]->shortTermDisplay) );
 	}
@@ -683,6 +680,7 @@ void setup() {
 	#endif
 
 	#ifdef DEBUG
+		oldRam = FreeRam();
 		if (Serial) {
 			Serial.println(F("\n\n --setup complete --"));
 		}
@@ -692,14 +690,35 @@ void setup() {
 } //end setup()
 
 
+#ifdef DEBUG
+void printRam(int newRam) {
+	if (newRam!=oldRam) {
+		tft.setCursor(CENTER_X, CENTER_Y);
+		tft.setTextColor(BLACK);
+		tft.print(oldRam);
+		oldRam=newRam;
+		tft.setCursor(CENTER_X, CENTER_Y);
+		tft.setTextColor(WHITE);
+		tft.print(newRam);
+	}
+}
+#endif
+
+
 void loop() {
 
 	#ifdef DEBUG
+		int freeRam = FreeRam();
+		printRam(freeRam);
+		loopCounter++;
 		if (Serial) {
-			delay(100);
+//			delay(1000);
 			Serial.print(F("\n\n --loop"));
-			Serial.print(loopCounter++);
-			Serial.println(F(" -- \n"));
+			Serial.print(loopCounter);
+			Serial.println(F(" --"));
+			Serial.print(F("freeRam = "));
+			Serial.print(freeRam);
+			Serial.println(F("\n"));
 		}
 	#endif
 
@@ -712,6 +731,15 @@ void loop() {
 	}
 
 	//FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
+
+	unsigned long nowTime = micros();
+	if(nowTime-lastStatUpdateTime > statRedrawThreshold) {
+		lastStatUpdateTime = nowTime;
+		for(int i=0; i<NUMINPUTS; i++) {
+			sensorInputs[i]->redrawStats();
+		}
+	}
+
 
 } //end loop()
 

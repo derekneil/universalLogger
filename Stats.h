@@ -24,7 +24,7 @@ class Stats : public DisplayElement {
 
 	int operator== (const Stats param);
 
-	/** depricated, you should call locateAndSize */
+	/** depricated, you should call locateCenterAndSize */
 	void locateCenter(int centerX, int centerY);
 
 	void locateCenterAndSize(int centerX, int centerY, int w, int h);
