@@ -134,18 +134,10 @@ private: //TODO should these just stay as private???
 			TouchButton tmp = btns.get(i);
 			tmp.draw();
 			if (tmp.isPushed(lastTx, lastTy)) {
-//				(tmp.*tmp.pushAction)();
-
-			    /** generic version of pushAction based on one or two arguments??*/
 				(*siElement) = i;
 				tmp.push();
 			}
 		}
-
-		/** delay ensures pushed visual state visible to
-		* user, not worried about stopping everything since
-		* this will be used in a menu screen */
-		delay(500);
 	}
 };
 #endif
