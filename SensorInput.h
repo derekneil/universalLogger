@@ -13,7 +13,7 @@
 #define STATIC 0
 #define DYNAMIC 1
 
-#define MINDETECTION 0
+#define MINDETECTION 0  //refactoring these affects menu buttons!!
 #define AVGDETECTION 1
 #define PEAKDETECTION 2
 
@@ -22,21 +22,23 @@
 class SensorInput {
   public:
 	int mode             = STATIC; /** STATIC | DYNAMIC */
-	int interval         = 1000000; /** default to 1 second */
 	int filter           = AVGDETECTION; /** MIN | AVG | MAX */
+	int intervalStrVal = 1;       /** default to 1 second */
+	char shortIntervalStr[16];
 
   protected:
+	int cycles           = 0;
 	short lastReading    = 0;
+	char output          [16];
+	int interval         = 1000000; /** default to 1 second */
+	unsigned long lastIntervalTime = 0;
+	int dynamicLock      = LOCK;
+	char newValStr       [16];
+	char longIntervalStr [16];
 	int type             = -1; /** ANALOG | DIGITAL */
 	int pin              = -1;
 	int low              = 10;
 	int high             = 50;
-	int dynamicLock      = LOCK;
-	int lastIntervalTime = 0;
-	char intervalStr[6];
-	int cycles           = 0;
-	char output[16];
-	char newValStr[6];
 	SensorData rawData;
 	SensorData shortTermData;
 	SensorData longTermData;
@@ -250,7 +252,7 @@ class SensorInput {
         if (rawData.checkAndResetIndex()) {
             #ifdef DEBUG
                 if (Serial) {
-        			Serial.println("interval still going - wrapping around data storage");
+        			Serial.println(F("interval still going - wrapping around data storage"));
                 }
         	#endif
         }
@@ -440,14 +442,25 @@ class SensorInput {
     	#endif
     }
 
-	int getInterval() const {
+    void updateIntervalStr() {
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.println("SensorInput::getInterval()");
+				Serial.print(F("SensorInput::updateIntervalStr( "));
+				Serial.print(shortIntervalStr);
+				Serial.println(F(" )"));
 			}
 		#endif
-		return interval;
-	}
+    	if ( intervalStrVal < 61 && intervalStrVal > 0) { //max 1 minute interval based on memory available on teensy3.1
+			interval = intervalStrVal*1000000; //set the interval with the new value from the menu
+			sprintf(shortIntervalStr, "%d sec", intervalStrVal);
+			shortTermDisplay.stats.interval.setValue(shortIntervalStr);
+			sprintf(longIntervalStr, "~%d min", intervalStrVal*STDWIDTH/60);
+			longTermDisplay.stats.interval.setValue(longIntervalStr);
+    	}
+    	else if ( intervalStrVal > 60) { intervalStrVal = 60; }
+    	else if (intervalStrVal < 1) { intervalStrVal = 1; }
+
+    }
 
 	void setInterval(int interval = 1000000) {
 		#ifdef DEBUG
@@ -456,17 +469,8 @@ class SensorInput {
 			}
 		#endif
 		this->interval = interval;
-		sprintf(intervalStr, "%0.1f s", interval/1000000.0);
-		shortTermDisplay.stats.interval.setValue(intervalStr);
-		#ifdef DEBUG
-			if (Serial) {
-				Serial.print("interval stat: ");
-				Serial.println(intervalStr);
-			}
-		#endif
-
-		//IMP what about the longTermDisplay? interval * shortTermdataStorageSize?
-		//what about if we switch to linked list variable length "timed experiment" storage?
+		intervalStrVal = interval/1000000;
+		updateIntervalStr();
 	}
 };
 #endif
