@@ -245,13 +245,10 @@ class SensorInput {
             }
         }
         else { // mode == STATIC
-            int timeCheck = micros() - lastIntervalTime;
+        	unsigned long tmp = micros();
+            unsigned long timeCheck = tmp - lastIntervalTime;
             if (timeCheck > interval){
-                #ifdef DEBUG
-                    if (Serial) {
-            			Serial.println("interval lapsed - time up");
-                    }
-            	#endif
+            	lastIntervalTime = tmp;
                 lapsed = 1;
             }
         }

@@ -699,7 +699,9 @@ void loop() {
 
 	//FIXME doing something on the SD card makes the spi for the screen switch back to a faster mode...
 
-	if(micros()-lastStatUpdateTime > statRedrawThreshold) {
+	unsigned long nowTime = micros();
+	if(nowTime-lastStatUpdateTime > statRedrawThreshold) {
+		lastStatUpdateTime = nowTime;
 		for(int i=0; i<NUMINPUTS; i++) {
 			sensorInputs[i]->redrawStats();
 		}
