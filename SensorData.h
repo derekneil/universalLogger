@@ -180,7 +180,7 @@ class SensorData {
 				Serial.println(F("SensorData::FindMax()"));
 			}
 		#endif
-		if (bumped == max) {
+		if (bumped == max) { //unless we just removed the max, it's still the max, no need to rescan
 			max = SHORT_MIN;
 			for (int i=0; i<size; i++) {
 				if (array[i] > max) {

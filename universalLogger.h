@@ -9,11 +9,11 @@
 #include "Arduino.h"
 //add your includes for the project universalLogger here
 
-//#define DEBUG
+#define DEBUG
 //#define MICRODEBUG
 
 #define SHORT_MIN -32768
-#define SHORT_MAX 32768
+#define SHORT_MAX 32767
 
 #define NUMINPUTS 4
 #define NUMREGIONS NUMINPUTS
