@@ -327,6 +327,15 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
 
+	TouchButton *onOffBtn = nullptr;
+	if (si->isEnabled()) {
+		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "ON");
+	}
+	else {
+		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "OFF");
+	}
+	onOffBtn->draw();
+
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
 	resetBtn.draw();
 
@@ -362,7 +371,27 @@ void drawIndividualSensorMenu(SensorInput *si) {
 						}
 					#endif
 					backBtn.push();
-					break; //break out of this menu's touch loop
+					break; //break out of this menu's touch loop and go back to previous control loop
+				}
+				if (onOffBtn->isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("onOffBtn isPushed"));
+						}
+					#endif
+					if (si->isEnabled()) {
+						onOffBtn->setLabel("OFF");
+						display->remove(&si->shortTermDisplay);
+						display->remove(&si->longTermDisplay);
+					}
+					else {
+						onOffBtn->setLabel("ON");
+
+						display->add(&si->shortTermDisplay);
+//						display->add(&si->longTermDisplay); //IMP try to add both until they each have their own "type" TouchSelectButtons
+					}
+					onOffBtn->push();
+					onOffBtn->draw();
 				}
 				else if (resetBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
