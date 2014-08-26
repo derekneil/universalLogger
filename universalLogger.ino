@@ -22,6 +22,7 @@
 
 #ifdef DEBUG
 	int loopCounter = 0;
+	int oldRam = 0;
 #endif
 
 #if defined(__SAM3X8E__)
@@ -648,6 +649,7 @@ void setup() {
 	#endif
 
 	#ifdef DEBUG
+		oldRam = FreeRam();
 		if (Serial) {
 			Serial.println(F("\n\n --setup complete --"));
 		}
@@ -657,21 +659,34 @@ void setup() {
 } //end setup()
 
 
+void printRam(int newRam) {
+	if (newRam!=oldRam) {
+		tft.setCursor(CENTER_X, CENTER_Y);
+		tft.setTextColor(BLACK);
+		tft.print(oldRam);
+		oldRam=newRam;
+		tft.setCursor(CENTER_X, CENTER_Y);
+		tft.setTextColor(WHITE);
+		tft.print(newRam);
+	}
+}
+
+
 void loop() {
 
 	#ifdef DEBUG
 		int freeRam = FreeRam();
+		printRam(freeRam);
+		loopCounter++;
 		if (Serial) {
-			delay(50);
+//			delay(1000);
 			Serial.print(F("\n\n --loop"));
-			Serial.print(loopCounter++);
+			Serial.print(loopCounter);
 			Serial.println(F(" --"));
 			Serial.print(F("freeRam = "));
 			Serial.print(freeRam);
 			Serial.println(F("\n"));
 		}
-		tft.setCursor(CENTER_X, CENTER_Y);
-		tft.print(freeRam);
 	#endif
 
 	pollSensors();
