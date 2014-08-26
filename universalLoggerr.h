@@ -9,7 +9,7 @@
 #include "Arduino.h"
 //add your includes for the project universalLogger here
 
-#define DEBUG
+//#define DEBUG
 //#define MICRODEBUG
 
 #define SHORT_MIN -32768
@@ -39,7 +39,12 @@
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
 
-#define MENUCOLOUR MAGENTA
+#ifdef DEBUG
+	#define MENUCOLOUR MAGENTA
+#endif
+#ifndef MENUCOLOUR
+	#define MENUCOLOUR BLUE
+#endif
 #define MENUTEXTSIZE 2
 #define BACKGROUNDCOLOUR BLUE
 #define TEXTCOLOUR WHITE

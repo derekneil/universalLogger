@@ -690,6 +690,7 @@ void setup() {
 } //end setup()
 
 
+#ifdef DEBUG
 void printRam(int newRam) {
 	if (newRam!=oldRam) {
 		tft.setCursor(CENTER_X, CENTER_Y);
@@ -701,6 +702,7 @@ void printRam(int newRam) {
 		tft.print(newRam);
 	}
 }
+#endif
 
 
 void loop() {
