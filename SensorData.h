@@ -10,9 +10,9 @@ class SensorData {
     short *array; //XXX need to add more accessor methods that don't take O(n) access time to hide the data structure from other classes
     int size     = STDWIDTH;
     int index    = 0;
-    short min    = SHORT_MAX;
+    short min    = SHRT_MAX;
     double avg   = 0;
-    short max    = SHORT_MIN;
+    short max    = SHRT_MIN;
     short bumped = 0;
     short count  = 0;
 
@@ -166,7 +166,7 @@ class SensorData {
 			}
 		#endif
 		if (bumped == min) {
-			min = SHORT_MAX;
+			min = SHRT_MAX;
 			for (int i=0; i<size; i++) {
 				if (array[i] < min) {
 					min = array[i];
@@ -181,7 +181,7 @@ class SensorData {
 			}
 		#endif
 		if (bumped == max) { //unless we just removed the max, it's still the max, no need to rescan
-			max = SHORT_MIN;
+			max = SHRT_MIN;
 			for (int i=0; i<size; i++) {
 				if (array[i] > max) {
 					max = array[i];
@@ -196,8 +196,8 @@ class SensorData {
 				Serial.println(F("SensorData::resetMinMax()"));
 			}
 		#endif
-		min = SHORT_MAX;
-		max = SHORT_MIN;
+		min = SHRT_MAX;
+		max = SHRT_MIN;
     }
 
     virtual void resetStorageAndAvgAndCount(short val=0) {

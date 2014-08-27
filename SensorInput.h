@@ -187,7 +187,7 @@ class SensorInput {
     			Serial.println("SensorInput::poll()");
     		}
     	#endif
-        short newReading = SHORT_MIN;
+        short newReading = SHRT_MIN;
 		if (pin > -1) {
 			if (type==ANALOG) {
 				newReading = analogRead(pin-14); // 0-1024
@@ -282,7 +282,7 @@ class SensorInput {
         //see if interval is up or raw data is full
         if (checkInterval(newReading)) {
             cycles++;
-            short currentFiltered = SHORT_MIN;
+            short currentFiltered = SHRT_MIN;
 
             if (filter==MINDETECTION) {
 				#ifdef DEBUG
@@ -317,7 +317,7 @@ class SensorInput {
             rawData.reset();
 
             //see if we have new value
-            if (currentFiltered!=SHORT_MAX && currentFiltered!=SHORT_MIN) {
+            if (currentFiltered!=SHRT_MAX && currentFiltered!=SHRT_MIN) {
                 shortTermData.insert(currentFiltered);
 				checkDivider(currentFiltered, &shortTermDisplay);
                 if (shortTermDisplay.enabled) {
