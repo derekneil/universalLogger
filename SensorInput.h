@@ -137,11 +137,11 @@ class SensorInput {
         if (pin > 0) {
             if (type==DIGITAL) {
                 pinMode(pin, INPUT_PULLUP);
-                label = "digital";
+                label = "Digital";
             }
             else if (type==ANALOG) {
                 pinMode(pin, INPUT);
-                label = "analog";
+                label = "Analog";
             }
         }
     }

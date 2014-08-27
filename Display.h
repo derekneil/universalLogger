@@ -25,6 +25,8 @@ class Display {
 
 		~Display();
 
+		int isEmpty();
+
 		int hasSpace();
 
 		int remove(SensorDisplay *sd);

@@ -64,6 +64,10 @@ int Display::hasSpace() {
 	return numSDs<numRegions;
 }
 
+int Display::isEmpty() {
+	return numSDs == 0;
+}
+
 int Display::remove(SensorDisplay *sd) {
 	#ifdef DEBUG
 		if (Serial) {

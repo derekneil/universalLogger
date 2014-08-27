@@ -302,7 +302,7 @@ void drawMainScreen() {
 
 void parseTouch() {
 
-	if (parseTouchBoilerPlate()) {
+	if (parseTouchBoilerPlate() || display->isEmpty()) {
 
 		drawMainMenu(); /** menu handles all it's own touch and navigation */
 		emptyTouchBuffer();
@@ -667,22 +667,20 @@ void setup() {
 	sensorInputs[2] = new SensorInput(16, ANALOG);
 	sensorInputs[3] = new SensorInput(17, DIGITAL);
 
-	//loop through sensorInputs, default show short term displays
-	for (int i=0; i<NUMINPUTS; i++) {
-		display->add( &(sensorInputs[i]->shortTermDisplay) );
-	}
-
 	drawMainScreen();
 
 	#ifdef DEBUG
 		//verify viz layout
 		for (int i=0; i<NUMINPUTS; i++) {
-			int x = sensorInputs[i]->shortTermDisplay.viz->getCenterX();
-			int y = sensorInputs[i]->shortTermDisplay.viz->getCenterY();
-			int h2 = sensorInputs[i]->shortTermDisplay.viz->getH() /2 ;
-			for (int j=i+1; j>0; j--) {
-				Display::device->drawFastVLine(x=x+5, y, h2, RED);
-			}
+
+//			display->add( &(sensorInputs[i]->shortTermDisplay) );
+//
+//			int x = sensorInputs[i]->shortTermDisplay.viz->getCenterX();
+//			int y = sensorInputs[i]->shortTermDisplay.viz->getCenterY();
+//			int h2 = sensorInputs[i]->shortTermDisplay.viz->getH() /2 ;
+//			for (int j=i+1; j>0; j--) {
+//				Display::device->drawFastVLine(x=x+5, y, h2, RED);
+//			}
 		}
 	#endif
 
@@ -733,7 +731,7 @@ void loop() {
 
 	logOutput();
 
-	if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
+	if (!(ts.bufferEmpty()) || display->isEmpty()) { //this should stay at the beginning or end of a loop
 		parseTouch();
 	}
 
