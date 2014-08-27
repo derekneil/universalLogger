@@ -1,5 +1,12 @@
 #include "universalLogger.h"
 
+//includes here to work with the Arduino 105
+//add simlink in projet folder to teensy library to make eclipse inline errors happy
+//still doesn't find all libraries though!
+
+//vector has to be included before Adafruit_GFX because of macro collision
+#include <vector>
+
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9340.h>
