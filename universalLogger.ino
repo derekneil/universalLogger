@@ -361,11 +361,12 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchAdjust intervalAdjust( 10, CENTER_Y2+20, "Interval: ", si, &(si->intervalStrVal));
 	intervalAdjust.draw();
 
-	//IMP draw controls for each of the inputs for a sensor
-//	TouchSelect shortTermType, longTermType;
-//	TouchAdjust highPassValue, lowPass, shotTermVizPosition, longTermVizPosition;
+	/** IMP controls for remaining SensorInput controls
+	 * TouchSelect shortTermType, longTermType;
+	 * TouchAdjust highPassValue, lowPass;
+	 */
 
-	emptyTouchBuffer(); //XXX why do buttons still get pressed from a touch that happened before the menu loaded?
+	emptyTouchBuffer(); //XXX why do buttons still get pressed from the touch that loaded the menu?
 	while (1) {
 		if (!(ts.bufferEmpty())) {
 			if (parseTouchBoilerPlate()) {
@@ -440,7 +441,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 				//IMP implement touch isPushed code for all the SensorInput buttons
 
 
-				emptyTouchBuffer(); //some buttons seemed to get pushed again for some reason...
+				emptyTouchBuffer(); //XXX some buttons seemed to get pushed again for some reason...
 
 			}
 			else {
