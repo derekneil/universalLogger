@@ -337,7 +337,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 
 	TouchButton *onOffBtn = nullptr;
 	if (si->isEnabled()) {
-		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "ON");
+		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, " ON");
 	}
 	else {
 		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "OFF");
@@ -365,7 +365,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 //	TouchSelect shortTermType, longTermType;
 //	TouchAdjust highPassValue, lowPass, shotTermVizPosition, longTermVizPosition;
 
-	emptyTouchBuffer(); //XXX why do i have to keep doing this everywhere????
+	emptyTouchBuffer(); //XXX why do buttons still get pressed from a touch that happened before the menu loaded?
 	while (1) {
 		if (!(ts.bufferEmpty())) {
 			if (parseTouchBoilerPlate()) {
@@ -470,7 +470,7 @@ void drawMainMenu() {
 		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log OFF");
 	}
 	else {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log ON");
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log  ON");
 	}
 	menu.add(logBtn);
 
