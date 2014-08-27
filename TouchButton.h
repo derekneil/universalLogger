@@ -4,6 +4,7 @@
 #include "universalLogger.h"
 #include "TouchElement.h"
 #include "Display.h"
+#include "Enableable.h"
 
 #define BUTTONCOLOUR WHITE
 #define BUTTONPUSHEDCOLOUR MAGENTA
@@ -40,7 +41,7 @@ class TouchButton : public TouchElement{
 
   public:
 
-    SensorInput *obj = nullptr;
+    Enableable *obj = nullptr;
 
     TouchButton(char* label="") :
     	TouchElement {
@@ -76,6 +77,7 @@ class TouchButton : public TouchElement{
 		#endif
 		this->label = label;
     }
+
     template <class T>
     TouchButton(int centerX, int centerY, char* label="", T *obj=nullptr) :
     	TouchElement {

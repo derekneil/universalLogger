@@ -5,6 +5,7 @@
 #include "SensorData.h"
 #include "SensorDisplay.h"
 #include "limits.h"
+#include "Enableable.h"
 
 //SensorInput.h
 #define UNLOCK 0
@@ -19,7 +20,7 @@
 
 #define RAWDATASIZE 5000 // divided by ~65 readings per second = up to 70 seconds of raw data for an interval
 
-class SensorInput {
+class SensorInput : public Enableable {
   public:
 	int mode             = STATIC; /** STATIC | DYNAMIC */
 	int filter           = AVGDETECTION; /** MIN | AVG | MAX */

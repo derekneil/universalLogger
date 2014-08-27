@@ -6,8 +6,9 @@
 #include "Visualization.h"
 #include "SensorData.h"
 #include "Stats.h"
+#include "Enableable.h"
 
-class SensorDisplay : public DisplayElement {
+class SensorDisplay : public DisplayElement, public Enableable {
 
 	public:
 		int enabled     = 0;

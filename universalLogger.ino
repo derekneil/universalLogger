@@ -225,7 +225,7 @@ int startLogging() {
 void toggleLogging() {
 	if (logging==false) {
 		if (startLogging()) {
-			logBtn->setLabel("LOG ON");
+			logBtn->setLabel("LOG  ON");
 		}
 	}
 	else {
@@ -335,25 +335,34 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
 
-	TouchButton *onOffBtn = nullptr;
-	if (si->isEnabled()) {
-		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, " ON");
-	}
-	else {
-		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "OFF");
-	}
-	onOffBtn->draw();
-
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
 	resetBtn.draw();
 
+	TouchButton *shortTermVizBtn = nullptr;
+	if (si->shortTermDisplay.isEnabled()) {
+		shortTermVizBtn = new TouchButton(CENTER_X1, CENTER_Y1+15, "short  ON", &(si->shortTermDisplay));
+	}
+	else {
+		shortTermVizBtn = new TouchButton(CENTER_X1, CENTER_Y1+15, "short OFF", &(si->shortTermDisplay));
+	}
+	shortTermVizBtn->draw();
+
+	TouchButton *longTermVizBtn = nullptr;
+	if (si->longTermDisplay.isEnabled()) {
+		longTermVizBtn = new TouchButton(CENTER_X2, CENTER_Y1+15, "long  ON", &(si->longTermDisplay));
+	}
+	else {
+		longTermVizBtn = new TouchButton(CENTER_X2, CENTER_Y1+15, "long OFF", &(si->longTermDisplay));
+	}
+	longTermVizBtn->draw();
+
 	// filter options must be added and set using 0 based enum
-	TouchSelect filterSelect( 10, CENTER_Y1+20, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
+	TouchSelect filterSelect( 10, CENTER_Y-10, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
 	filterSelect.draw();
 	filterSelect.btns.get(si->filter).push();
 
 	//mode options must be added and set using 0 based enum
-	TouchSelect modeSelect( 10, CENTER_Y2-40, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
+	TouchSelect modeSelect( 10, CENTER_Y2-20, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
 	modeSelect.draw();
 	modeSelect.btns.get(si->mode).push();
 
@@ -380,25 +389,43 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					backBtn.push();
 					break; //break out of this menu's touch loop and go back to previous control loop
 				}
-				if (onOffBtn->isPushed(touchX,touchY)) {
+				else if (shortTermVizBtn->isPushed(touchX,touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("onOffBtn isPushed"));
+							Serial.println(F("shortTermVizBtn isPushed"));
 						}
-					#endif
-					if (si->isEnabled()) {
-						onOffBtn->setLabel("OFF");
-						display->remove(&si->shortTermDisplay);
-						display->remove(&si->longTermDisplay);
+					#endif.
+					if (si->shortTermDisplay.isEnabled()) {
+						if (display->remove(&si->shortTermDisplay)) {
+							shortTermVizBtn->setLabel("short OFF");
+						}
 					}
 					else {
-						onOffBtn->setLabel("ON");
-
-						display->add(&si->shortTermDisplay);
-//						display->add(&si->longTermDisplay); //IMP try to add both until they each have their own "type" TouchSelectButtons
+						if (display->add(&si->shortTermDisplay)) {
+							shortTermVizBtn->setLabel("short  ON");
+						}
 					}
-					onOffBtn->push();
-					onOffBtn->draw();
+					shortTermVizBtn->push();
+					shortTermVizBtn->draw();
+				}
+				else if (longTermVizBtn->isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("longTermVizBtn isPushed"));
+						}
+					#endif
+					if (si->longTermDisplay.isEnabled()) {
+						if (display->remove(&si->longTermDisplay)) {
+							longTermVizBtn->setLabel("long OFF");
+						}
+					}
+					else {
+						if (display->add(&si->longTermDisplay)) {
+							longTermVizBtn->setLabel("long  ON");
+						}
+					}
+					longTermVizBtn->push();
+					longTermVizBtn->draw();
 				}
 				else if (resetBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
@@ -407,7 +434,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 						}
 					#endif
 					resetBtn.push();
-					resetBtn.obj->reset();
+					((SensorInput*)resetBtn.obj)->reset();
 					resetBtn.draw();
 				}
 				else if (filterSelect.isPushed(touchX, touchY)) {
@@ -541,7 +568,7 @@ void drawMainMenu() {
 								}
 							#endif
 							inputButtons[i]->push();
-							drawIndividualSensorMenu(inputButtons[i]->obj);
+							drawIndividualSensorMenu((SensorInput*)inputButtons[i]->obj);
 
 							menu.draw(); //redraw this menu
 							break;
