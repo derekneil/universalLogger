@@ -71,29 +71,10 @@ class SensorInput : public Enableable {
 			if (Serial) {
 				Serial.print(F("SensorInput::checkDivider( "));
 				Serial.print(val);
-				Serial.print(F(" )  val/divider "));
-				Serial.print(val);
-				Serial.print(F(" / "));
-				Serial.print(sd->divider);
-				Serial.print(F(" = "));
-				Serial.print(val/sd->divider);
-				Serial.print(F(" < h: "));
-				Serial.println(sd->viz->getH());
+				Serial.println(F(" ) "));
 			}
 		#endif
-  		while (val/sd->divider > sd->viz->getH() ) {
-  			(sd->divider)++;
-			#ifdef DEBUG
-				if (Serial) {
-					Serial.print(F("val/divider "));
-					Serial.print(val);
-					Serial.print(F(" / "));
-					Serial.print(sd->divider);
-					Serial.print(F(" = "));
-					Serial.println(val/sd->divider);
-				}
-			#endif
-  		}
+  		sd->checkDivider(val);
   	}
 
   public:

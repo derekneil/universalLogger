@@ -138,6 +138,14 @@ void Display::updateDisplayLayout() {
 			SDs[3]->viz->doubleWidth = false;
 			break;
 	}
+
+	/** dividers need to be verified,
+	 *  otherwise a graph that was previously 238px tall
+	 *  will draw lines taller then it's new 118px tall height
+	 */
+	for (int i=0; i<numSDs; i++) {
+		SDs[i]->checkDivider();
+	}
 }
 
 int Display::add(SensorDisplay *sd) {
