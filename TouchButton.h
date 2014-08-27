@@ -23,6 +23,21 @@ class TouchButton : public TouchElement{
 		return CHARHEIGHT*(MENUTEXTSIZE+2);
 	}
 
+	void printLabel(int textX, int textY) {
+		Display::device->setCursor(textX, textY);
+		if (obj != nullptr) {
+			if (!obj->isEnabled()) {
+				Display::device->setTextColor(DISABLEDTEXTCOLOUR);
+			}
+			else {
+				Display::device->setTextColor(TEXTCOLOUR);
+			}
+		} else {
+			Display::device->setTextColor(TEXTCOLOUR);
+		}
+		Display::device->print(label);
+	}
+
   public:
 
     SensorInput *obj = nullptr;
@@ -133,10 +148,9 @@ class TouchButton : public TouchElement{
 		Display::device->drawCircleHelper(startX+w-r-1 -shaddow, startY+r -shaddow, r, 2, shaddowColour); //top right corner
 		Display::device->drawCircleHelper(startX+r -shaddow, startY+h-r-1 -shaddow, r, 8, shaddowColour); //bottom left corner
 		Display::device->drawRoundRect(startX, startY, w, h, r, colour);
-		int newY = startY + (h - CHARHEIGHT*MENUTEXTSIZE)/2;
-		int newX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
-		Display::device->setCursor(newX, newY);
-		Display::device->print(label);
+		int textY = startY + (h - CHARHEIGHT*MENUTEXTSIZE)/2;
+		int textX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
+		printLabel(textX, textY);
     }
 
     /** UI press effect only for visual effect */
@@ -149,10 +163,9 @@ class TouchButton : public TouchElement{
       #endif
       Display::device->fillRect(startX-shaddow, startY-shaddow, w+shaddow, h+shaddow, ERASECOLOUR);
       Display::device->drawRoundRect(startX, startY, w, h, r, shaddowColour);
-      int newY = startY + (h - CHARHEIGHT * MENUTEXTSIZE)/2;
-      int newX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
-      Display::device->setCursor(newX, newY);
-      Display::device->print(label);
+      int textY = startY + (h - CHARHEIGHT * MENUTEXTSIZE)/2;
+      int textX = startX + (w - (strlen(label) * CHARWIDTH * MENUTEXTSIZE))/2;
+      printLabel(textX, textY);
 
       /** delay ensures pushed visual state visible to
 		* user, not worried about stopping everything since

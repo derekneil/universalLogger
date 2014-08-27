@@ -35,6 +35,7 @@
 #define MAGENTA 0xF81F
 #define YELLOW  0xFFE0
 #define WHITE   0xFFFF
+#define GREY	0xBBBB
 
 #ifdef DEBUG
 	#define MENUCOLOUR MAGENTA
@@ -45,6 +46,7 @@
 #define MENUTEXTSIZE 2
 #define BACKGROUNDCOLOUR BLUE
 #define TEXTCOLOUR WHITE
+#define DISABLEDTEXTCOLOUR GREY
 #define TEXTSIZE 1
 
 #ifdef DEBUG

@@ -5,6 +5,7 @@
 #include "universalLogger.h"
 #include "DisplayElement.h"
 #include "Stat.h"
+#include "Display.h"
 
 Stats::Stats() : DisplayElement {} {
 	#ifdef DEBUG
@@ -105,6 +106,7 @@ void Stats::draw() {
 			Serial.println(F("Stats::draw()"));
 		}
 	#endif
+	Display::device->setTextColor(TEXTCOLOUR);
 	min      .draw();
 	max      .draw();
 	interval .draw();
@@ -121,6 +123,7 @@ void Stats::redraw() {
 			Serial.println(F("Stats::redraw()"));
 		}
 	#endif
+	Display::device->setTextColor(TEXTCOLOUR);
 	min      .redraw();
 	max      .redraw();
 	interval .redraw();

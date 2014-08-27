@@ -202,4 +202,8 @@ void SensorDisplay::reset() {
 	int divider     = 1;
 }
 
+int SensorDisplay::isEnabled() {
+	return enabled;
+}
+
 #endif

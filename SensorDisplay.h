@@ -45,5 +45,8 @@ class SensorDisplay : public DisplayElement {
 
 	    virtual void reset();
 
+	    /** this seems redudant, but it's so that buttons can check if a SensorInput or SensorDisplay is enabled s*/
+	    virtual int isEnabled();
+
 };
 #endif
