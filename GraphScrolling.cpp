@@ -82,7 +82,7 @@ void GraphScrolling::draw(SensorData *data) {
 
   //draw latest value added to graph
   Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
-  if (doubleWidth) {
+  if (doubleWidth) { //FIXME this is also bad kung fu, it's drawing that rogue tall bar to the right of a graph
   	Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
   }
 
@@ -137,7 +137,7 @@ void GraphScrolling::redraw(SensorData *data) {
 
   //draw latest value added to graph with function that determines how to do minimal line draw
   redrawSingleGraphLines(&graphStartX, last, temp);
-  if (doubleWidth) {
+  if (doubleWidth) { //FIXME this doesn't actually work and fill the entire screen
     redrawSingleGraphLines(&graphStartX, last, temp);
   }
 }

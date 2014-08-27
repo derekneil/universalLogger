@@ -1,6 +1,7 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
+#include <vector>
 #include "SensorDisplay.h"
 #include "universalLogger.h"
 #include <Adafruit_ILI9340.h>
@@ -8,9 +9,9 @@
 
 class Display {
 	protected:
-		static int numSDs;
-		static int numRegions;
-		SensorDisplay *SDs[NUMREGIONS] = {nullptr} ;
+		int numSDs = 0;
+		int numRegions = NUMREGIONS;
+		std::vector<SensorDisplay*> SDs;
 
 	public:
 
@@ -24,7 +25,9 @@ class Display {
 
 		~Display();
 
-		static int hasSpace();
+		int isEmpty();
+
+		int hasSpace();
 
 		int remove(SensorDisplay *sd);
 

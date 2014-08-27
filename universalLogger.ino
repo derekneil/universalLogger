@@ -1,5 +1,12 @@
 #include "universalLogger.h"
 
+//includes here to work with the Arduino 105
+//add simlink in projet folder to teensy library to make eclipse inline errors happy
+//still doesn't find all libraries though!
+
+//vector has to be included before Adafruit_GFX because of macro collision
+#include <vector>
+
 #include <SPI.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_ILI9340.h>
@@ -218,7 +225,7 @@ int startLogging() {
 void toggleLogging() {
 	if (logging==false) {
 		if (startLogging()) {
-			logBtn->setLabel("LOG ON");
+			logBtn->setLabel("LOG  ON");
 		}
 	}
 	else {
@@ -295,7 +302,7 @@ void drawMainScreen() {
 
 void parseTouch() {
 
-	if (parseTouchBoilerPlate()) {
+	if (parseTouchBoilerPlate() || display->isEmpty()) {
 
 		drawMainMenu(); /** menu handles all it's own touch and navigation */
 		emptyTouchBuffer();
@@ -328,25 +335,34 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
 
-	TouchButton *onOffBtn = nullptr;
-	if (si->isEnabled()) {
-		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "ON");
-	}
-	else {
-		onOffBtn = new TouchButton(CENTER_X, CENTER_Y1-30, "OFF");
-	}
-	onOffBtn->draw();
-
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
 	resetBtn.draw();
 
+	TouchButton *shortTermVizBtn = nullptr;
+	if (si->shortTermDisplay.isEnabled()) {
+		shortTermVizBtn = new TouchButton(CENTER_X1, CENTER_Y1+15, "short  ON", &(si->shortTermDisplay));
+	}
+	else {
+		shortTermVizBtn = new TouchButton(CENTER_X1, CENTER_Y1+15, "short OFF", &(si->shortTermDisplay));
+	}
+	shortTermVizBtn->draw();
+
+	TouchButton *longTermVizBtn = nullptr;
+	if (si->longTermDisplay.isEnabled()) {
+		longTermVizBtn = new TouchButton(CENTER_X2, CENTER_Y1+15, "long  ON", &(si->longTermDisplay));
+	}
+	else {
+		longTermVizBtn = new TouchButton(CENTER_X2, CENTER_Y1+15, "long OFF", &(si->longTermDisplay));
+	}
+	longTermVizBtn->draw();
+
 	// filter options must be added and set using 0 based enum
-	TouchSelect filterSelect( 10, CENTER_Y1+20, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
+	TouchSelect filterSelect( 10, CENTER_Y-10, "Filter: ", &(si->filter), 3, "Min", "Avg", "Max");
 	filterSelect.draw();
 	filterSelect.btns.get(si->filter).push();
 
 	//mode options must be added and set using 0 based enum
-	TouchSelect modeSelect( 10, CENTER_Y2-40, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
+	TouchSelect modeSelect( 10, CENTER_Y2-20, "Mode: ", &(si->mode), 2, "Static", "Dynamic");
 	modeSelect.draw();
 	modeSelect.btns.get(si->mode).push();
 
@@ -354,11 +370,12 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	TouchAdjust intervalAdjust( 10, CENTER_Y2+20, "Interval: ", si, &(si->intervalStrVal));
 	intervalAdjust.draw();
 
-	//IMP draw controls for each of the inputs for a sensor
-//	TouchSelect shortTermType, longTermType;
-//	TouchAdjust highPassValue, lowPass, shotTermVizPosition, longTermVizPosition;
+	/** IMP controls for remaining SensorInput controls
+	 * TouchSelect shortTermType, longTermType;
+	 * TouchAdjust highPassValue, lowPass;
+	 */
 
-	emptyTouchBuffer(); //XXX why do i have to keep doing this everywhere????
+	emptyTouchBuffer(); //XXX why do buttons still get pressed from the touch that loaded the menu?
 	while (1) {
 		if (!(ts.bufferEmpty())) {
 			if (parseTouchBoilerPlate()) {
@@ -372,25 +389,43 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					backBtn.push();
 					break; //break out of this menu's touch loop and go back to previous control loop
 				}
-				if (onOffBtn->isPushed(touchX,touchY)) {
+				else if (shortTermVizBtn->isPushed(touchX,touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
-							Serial.println(F("onOffBtn isPushed"));
+							Serial.println(F("shortTermVizBtn isPushed"));
 						}
-					#endif
-					if (si->isEnabled()) {
-						onOffBtn->setLabel("OFF");
-						display->remove(&si->shortTermDisplay);
-						display->remove(&si->longTermDisplay);
+					#endif.
+					if (si->shortTermDisplay.isEnabled()) {
+						if (display->remove(&si->shortTermDisplay)) {
+							shortTermVizBtn->setLabel("short OFF");
+						}
 					}
 					else {
-						onOffBtn->setLabel("ON");
-
-						display->add(&si->shortTermDisplay);
-//						display->add(&si->longTermDisplay); //IMP try to add both until they each have their own "type" TouchSelectButtons
+						if (display->add(&si->shortTermDisplay)) {
+							shortTermVizBtn->setLabel("short  ON");
+						}
 					}
-					onOffBtn->push();
-					onOffBtn->draw();
+					shortTermVizBtn->push();
+					shortTermVizBtn->draw();
+				}
+				else if (longTermVizBtn->isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("longTermVizBtn isPushed"));
+						}
+					#endif
+					if (si->longTermDisplay.isEnabled()) {
+						if (display->remove(&si->longTermDisplay)) {
+							longTermVizBtn->setLabel("long OFF");
+						}
+					}
+					else {
+						if (display->add(&si->longTermDisplay)) {
+							longTermVizBtn->setLabel("long  ON");
+						}
+					}
+					longTermVizBtn->push();
+					longTermVizBtn->draw();
 				}
 				else if (resetBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
@@ -399,7 +434,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 						}
 					#endif
 					resetBtn.push();
-					resetBtn.obj->reset();
+					((SensorInput*)resetBtn.obj)->reset();
 					resetBtn.draw();
 				}
 				else if (filterSelect.isPushed(touchX, touchY)) {
@@ -433,7 +468,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 				//IMP implement touch isPushed code for all the SensorInput buttons
 
 
-				emptyTouchBuffer(); //some buttons seemed to get pushed again for some reason...
+				emptyTouchBuffer(); //XXX some buttons seemed to get pushed again for some reason...
 
 			}
 			else {
@@ -463,7 +498,7 @@ void drawMainMenu() {
 		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log OFF");
 	}
 	else {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log ON");
+		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log  ON");
 	}
 	menu.add(logBtn);
 
@@ -533,7 +568,7 @@ void drawMainMenu() {
 								}
 							#endif
 							inputButtons[i]->push();
-							drawIndividualSensorMenu(inputButtons[i]->obj);
+							drawIndividualSensorMenu((SensorInput*)inputButtons[i]->obj);
 
 							menu.draw(); //redraw this menu
 							break;
@@ -659,22 +694,20 @@ void setup() {
 	sensorInputs[2] = new SensorInput(16, ANALOG);
 	sensorInputs[3] = new SensorInput(17, DIGITAL);
 
-	//loop through sensorInputs, default show short term displays
-	for (int i=0; i<NUMINPUTS; i++) {
-		display->add( &(sensorInputs[i]->shortTermDisplay) );
-	}
-
 	drawMainScreen();
 
 	#ifdef DEBUG
 		//verify viz layout
 		for (int i=0; i<NUMINPUTS; i++) {
-			int x = sensorInputs[i]->shortTermDisplay.viz->getCenterX();
-			int y = sensorInputs[i]->shortTermDisplay.viz->getCenterY();
-			int h2 = sensorInputs[i]->shortTermDisplay.viz->getH() /2 ;
-			for (int j=i+1; j>0; j--) {
-				Display::device->drawFastVLine(x=x+5, y, h2, RED);
-			}
+
+//			display->add( &(sensorInputs[i]->shortTermDisplay) );
+//
+//			int x = sensorInputs[i]->shortTermDisplay.viz->getCenterX();
+//			int y = sensorInputs[i]->shortTermDisplay.viz->getCenterY();
+//			int h2 = sensorInputs[i]->shortTermDisplay.viz->getH() /2 ;
+//			for (int j=i+1; j>0; j--) {
+//				Display::device->drawFastVLine(x=x+5, y, h2, RED);
+//			}
 		}
 	#endif
 
@@ -725,7 +758,7 @@ void loop() {
 
 	logOutput();
 
-	if (!(ts.bufferEmpty())) { //this should stay at the beginning or end of a loop
+	if (!(ts.bufferEmpty()) || display->isEmpty()) { //this should stay at the beginning or end of a loop
 		parseTouch();
 	}
 

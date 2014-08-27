@@ -5,6 +5,7 @@
 #include "SensorData.h"
 #include "SensorDisplay.h"
 #include "limits.h"
+#include "Enableable.h"
 
 //SensorInput.h
 #define UNLOCK 0
@@ -19,7 +20,7 @@
 
 #define RAWDATASIZE 5000 // divided by ~65 readings per second = up to 70 seconds of raw data for an interval
 
-class SensorInput {
+class SensorInput : public Enableable {
   public:
 	int mode             = STATIC; /** STATIC | DYNAMIC */
 	int filter           = AVGDETECTION; /** MIN | AVG | MAX */
@@ -70,29 +71,10 @@ class SensorInput {
 			if (Serial) {
 				Serial.print(F("SensorInput::checkDivider( "));
 				Serial.print(val);
-				Serial.print(F(" )  val/divider "));
-				Serial.print(val);
-				Serial.print(F(" / "));
-				Serial.print(sd->divider);
-				Serial.print(F(" = "));
-				Serial.print(val/sd->divider);
-				Serial.print(F(" < h: "));
-				Serial.println(sd->viz->getH());
+				Serial.println(F(" ) "));
 			}
 		#endif
-  		while (val/sd->divider > sd->viz->getH() ) {
-  			(sd->divider)++;
-			#ifdef DEBUG
-				if (Serial) {
-					Serial.print(F("val/divider "));
-					Serial.print(val);
-					Serial.print(F(" / "));
-					Serial.print(sd->divider);
-					Serial.print(F(" = "));
-					Serial.println(val/sd->divider);
-				}
-			#endif
-  		}
+  		sd->checkDivider(val);
   	}
 
   public:
@@ -137,11 +119,11 @@ class SensorInput {
         if (pin > 0) {
             if (type==DIGITAL) {
                 pinMode(pin, INPUT_PULLUP);
-                label = "digital";
+                label = "Digital";
             }
             else if (type==ANALOG) {
                 pinMode(pin, INPUT);
-                label = "analog";
+                label = "Analog";
             }
         }
     }
@@ -187,7 +169,7 @@ class SensorInput {
     			Serial.println("SensorInput::poll()");
     		}
     	#endif
-        short newReading = SHORT_MIN;
+        short newReading = SHRT_MIN;
 		if (pin > -1) {
 			if (type==ANALOG) {
 				newReading = analogRead(pin-14); // 0-1024
@@ -282,7 +264,7 @@ class SensorInput {
         //see if interval is up or raw data is full
         if (checkInterval(newReading)) {
             cycles++;
-            short currentFiltered = SHORT_MIN;
+            short currentFiltered = SHRT_MIN;
 
             if (filter==MINDETECTION) {
 				#ifdef DEBUG
@@ -317,7 +299,7 @@ class SensorInput {
             rawData.reset();
 
             //see if we have new value
-            if (currentFiltered!=SHORT_MAX && currentFiltered!=SHORT_MIN) {
+            if (currentFiltered!=SHRT_MAX && currentFiltered!=SHRT_MIN) {
                 shortTermData.insert(currentFiltered);
 				checkDivider(currentFiltered, &shortTermDisplay);
                 if (shortTermDisplay.enabled) {

@@ -7,8 +7,6 @@
 #include <Adafruit_ILI9340.h>
 #include <Adafruit_STMPE610.h>
 
-	int                Display::numSDs;
-	int                Display::numRegions;
 
 	Adafruit_ILI9340  *Display::device;
 	Adafruit_STMPE610 *Display::touch;
@@ -21,8 +19,6 @@ Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts) {
 	#endif
 	device     = tft;
 	touch      = ts;
-	numSDs     = 0;
-	numRegions = NUMREGIONS;
 
 	 #ifdef DEBUG
 		if (Serial) {
@@ -56,7 +52,7 @@ Display::~Display() {
 			Serial.println(F("~Display()"));
 		}
 	#endif
-	delete SDs;
+//	delete SDs;
 }
 
 int Display::hasSpace() {
@@ -68,13 +64,17 @@ int Display::hasSpace() {
 	return numSDs<numRegions;
 }
 
+int Display::isEmpty() {
+	return numSDs == 0;
+}
+
 int Display::remove(SensorDisplay *sd) {
 	#ifdef DEBUG
 		if (Serial) {
 			Serial.println(F("Display::remove(...)"));
 		}
 	#endif
-	//loop through array of active SensorDisplays
+	//loop through vector of active SensorDisplays to find it
 	for (int i=0; i<numRegions; i++ ) {
 		//match the one we're looking for
 		if (sd->enabled && SDs[i] == sd) {
@@ -82,8 +82,8 @@ int Display::remove(SensorDisplay *sd) {
 			//disable it
 			sd->enabled = 0;
 
-			//set this memory address in the array as blank
-			SDs[i] = nullptr;
+			//erase this pointer to it
+			SDs.erase( (SDs.begin())+i );
 			numSDs--;
 			updateDisplayLayout();
 			return true;
@@ -101,12 +101,6 @@ void Display::updateDisplayLayout() {
 
 	switch (numSDs) {
 
-	/* FIXME this will hit a null ptr exception
-	 * after removing (nulling) the non last SD
-	 * and the last SD that's still there doesn't get drawn :o
-	 *
-	 * switch to the cripled implementation of vector with shared ptr?? or raw ptr
-	 */
 		case 1:
 			// single full screen SensorDisplay
 			SDs[0]->locateCenterAndSize(CENTER_X, CENTER_Y, FULLWIDTH, FULLHEIGHT);
@@ -144,6 +138,14 @@ void Display::updateDisplayLayout() {
 			SDs[3]->viz->doubleWidth = false;
 			break;
 	}
+
+	/** dividers need to be verified,
+	 *  otherwise a graph that was previously 238px tall
+	 *  will draw lines taller then it's new 118px tall height
+	 */
+	for (int i=0; i<numSDs; i++) {
+		SDs[i]->checkDivider();
+	}
 }
 
 int Display::add(SensorDisplay *sd) {
@@ -155,22 +157,15 @@ int Display::add(SensorDisplay *sd) {
 	if (!hasSpace()) {
 		return false;
 	}
-	for (int i=0; i<numRegions; i++ ) {
-		// find first free spot
-		if (SDs[i]==nullptr) {
 
-			//enable it
-			sd->enabled = true;
+	//else enable it
+	sd->enabled = true;
 
-			//set this memory address in the array
-			SDs[i] = sd;
-			numSDs++;
-			updateDisplayLayout();
-			return true;
-		}
-	}
-
-	return false;
+	//add it to the vector of sensor displays
+	SDs.push_back(sd);
+	numSDs++;
+	updateDisplayLayout();
+	return true;
 }
 
 #endif

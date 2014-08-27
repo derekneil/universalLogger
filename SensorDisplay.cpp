@@ -133,8 +133,8 @@ void SensorDisplay::redrawViz() {
 		}
 	#endif
     if (enabled && needsRedraw) {
-    	if (divider != dividerChk) {
-    		dividerChk = divider;
+    	if (needsFullDraw == true) {
+    		needsFullDraw = false;
     		viz->draw(data, divider);
     	}
     	else {
@@ -196,10 +196,74 @@ void SensorDisplay::locateCenterAndSize(int centerX, int centerY, int w, int h) 
 	stats.locateCenterAndSize(centerX-1, statsCenterY, w, STATHEIGHT);
 }
 
+/** checks existing divider against a new value being added to data */
+void SensorDisplay::checkDivider(int val) {
+#ifdef DEBUG
+	if (Serial) {
+		Serial.print(F("SensorDisplay::checkDivider( "));
+		Serial.print(val);
+		Serial.print(F(" )  val/divider "));
+		Serial.print(val);
+		Serial.print(F(" / "));
+		Serial.print(divider);
+		Serial.print(F(" = "));
+		Serial.print(val/divider);
+		Serial.print(F(" < h: "));
+		Serial.println(viz->getH());
+	}
+#endif
+	int h = viz->getH();
+	while (val/divider > h ) {
+		divider++;
+		needsFullDraw = true;
+		#ifdef DEBUG
+			if (Serial) {
+				Serial.print(F("val/divider "));
+				Serial.print(val);
+				Serial.print(F(" / "));
+				Serial.print(sd->divider);
+				Serial.print(F(" = "));
+				Serial.println(val/sd->divider);
+			}
+		#endif
+	}
+}
+
+/** resets divider to 0 and checks against all existing data */
+void SensorDisplay::checkDivider() {
+	#ifdef DEBUG
+		if (Serial) {
+			Serial.println(F("SensorDisplay::checkDivider() "));
+		}
+	#endif
+	int h = viz->getH();
+	divider = 1;
+	for (int i=0; i<data->size; i++) {
+		while (data->array[i]/divider > h) {
+			#ifdef DEBUG
+				if (Serial) {
+					Serial.print(F("data->array[i]/divider "));
+					Serial.print(data->array[i]);
+					Serial.print(F(" / "));
+					Serial.print(divider);
+					Serial.print(F(" = "));
+					Serial.println(data->array[i]/divider);
+				}
+			#endif
+			divider++;
+			needsFullDraw = true;
+		}
+	}
+}
+
 void SensorDisplay::reset() {
 	stats.reset();
 	int needsRedraw = 0;
 	int divider     = 1;
+}
+
+int SensorDisplay::isEnabled() {
+	return enabled;
 }
 
 #endif
