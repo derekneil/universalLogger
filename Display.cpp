@@ -7,8 +7,6 @@
 #include <Adafruit_ILI9340.h>
 #include <Adafruit_STMPE610.h>
 
-	int                Display::numSDs;
-	int                Display::numRegions;
 
 	Adafruit_ILI9340  *Display::device;
 	Adafruit_STMPE610 *Display::touch;
@@ -21,8 +19,6 @@ Display::Display(Adafruit_ILI9340 *tft, Adafruit_STMPE610 *ts) {
 	#endif
 	device     = tft;
 	touch      = ts;
-	numSDs     = 0;
-	numRegions = NUMREGIONS;
 
 	 #ifdef DEBUG
 		if (Serial) {
@@ -56,7 +52,7 @@ Display::~Display() {
 			Serial.println(F("~Display()"));
 		}
 	#endif
-	delete SDs;
+//	delete SDs;
 }
 
 int Display::hasSpace() {
@@ -74,7 +70,7 @@ int Display::remove(SensorDisplay *sd) {
 			Serial.println(F("Display::remove(...)"));
 		}
 	#endif
-	//loop through array of active SensorDisplays
+	//loop through vector of active SensorDisplays to find it
 	for (int i=0; i<numRegions; i++ ) {
 		//match the one we're looking for
 		if (sd->enabled && SDs[i] == sd) {
@@ -82,8 +78,8 @@ int Display::remove(SensorDisplay *sd) {
 			//disable it
 			sd->enabled = 0;
 
-			//set this memory address in the array as blank
-			SDs[i] = nullptr;
+			//erase this pointer to it
+			SDs.erase( (SDs.begin())+i );
 			numSDs--;
 			updateDisplayLayout();
 			return true;
@@ -155,22 +151,15 @@ int Display::add(SensorDisplay *sd) {
 	if (!hasSpace()) {
 		return false;
 	}
-	for (int i=0; i<numRegions; i++ ) {
-		// find first free spot
-		if (SDs[i]==nullptr) {
 
-			//enable it
-			sd->enabled = true;
+	//else enable it
+	sd->enabled = true;
 
-			//set this memory address in the array
-			SDs[i] = sd;
-			numSDs++;
-			updateDisplayLayout();
-			return true;
-		}
-	}
-
-	return false;
+	//add it to the vector of sensor displays
+	SDs.push_back(sd);
+	numSDs++;
+	updateDisplayLayout();
+	return true;
 }
 
 #endif
