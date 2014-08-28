@@ -13,7 +13,6 @@ class GraphScrolling : public Visualization {
 
   public:
 
-    int doubleWidth = 0;
     int divider = 1;
 
     GraphScrolling();

@@ -7,14 +7,14 @@
 #include "Display.h"
 #include "SensorData.h"
 
-void GraphScrolling::redrawSingleGraphLines(int *graphStartX, int last, int temp) {
-  if (last > temp) {
+void GraphScrolling::redrawSingleGraphLines(int *graphStartX, int oldVal, int newVal) {
+  if (oldVal > newVal) {
     //erase, aka draw background
-    Display::device->drawFastVLine((*graphStartX)++, startY+(h-last), last-temp, BLACK);
+    Display::device->drawFastVLine((*graphStartX)++, startY+(h-oldVal), oldVal-newVal, BLACK);
   }
-  else if (last < temp) {
+  else if (oldVal < newVal) {
     //add, aka draw white
-    Display::device->drawFastVLine((*graphStartX)++, startY+(h-temp), temp-last, TEXTCOLOUR);
+    Display::device->drawFastVLine((*graphStartX)++, startY+(h-newVal), newVal-oldVal, TEXTCOLOUR);
   }
   else {
     (*graphStartX)++;
@@ -60,30 +60,32 @@ void GraphScrolling::draw(SensorData *data) {
   Visualization::clear();
 
   //draw graph from scratch
-  int i = data->index + 1;
-  if (i==data->size) { i=0; } //avoids % operation
+  int i = data->index;
 
   //setup values and use bumped for graphing oldest value in graph
-  int temp = data->array[i]/divider;
-  if(temp < 0) { temp=0; }
+  int newVal = data->array[i]/divider;
+  if(newVal < 0) { newVal=0; }                               //XXX change this to support graphs that can handle negative values
 
   int graphStartX = startX;
   //loop through all the middle values in the graph
-  while( i!=data->index ) {
-     Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
+
+  int stop = i - 1; //index latest value was inserted into
+  if (stop < 0) { stop=data->size-1; } //avoids % operation
+  while( i!=stop) {
+     Display::device->drawFastVLine(graphStartX++, startY+h-newVal, newVal, TEXTCOLOUR);
      if (doubleWidth) {
-       Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
+       Display::device->drawFastVLine(graphStartX++, startY+h-newVal, newVal, TEXTCOLOUR);
      }
      i++;
   	if (i==data->size) { i=0; } //avoids % operation
-  	temp = data->array[i]/divider;
-  	if(temp < 0) { temp=0; }
+  	newVal = data->array[i]/divider;
+  	if(newVal < 0) { newVal=0; }                             //XXX change this to support graphs that can handle negative values
   }
 
-  //draw latest value added to graph
-  Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
-  if (doubleWidth) { //FIXME this is also bad kung fu, it's drawing that rogue tall bar to the right of a graph
-  	Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
+  //draw latest value added to graph (i==stop)
+  Display::device->drawFastVLine(graphStartX++, startY+h-newVal, newVal, TEXTCOLOUR);
+  if (doubleWidth) {
+  	Display::device->drawFastVLine(graphStartX++, startY+h-newVal, newVal, TEXTCOLOUR);
   }
 
 }
@@ -107,38 +109,39 @@ void GraphScrolling::redraw(SensorData *data) {
 		}
 	#endif
 
-  int i = data->index + 1;
-  if (i==data->size) { i=0; }
+  int i = data->index;
 
   //setup values and use bumped for graphing oldest value in graph
-  int temp = data->array[i]/divider;
-  if(temp < 0) { temp=0; }
+  int newVal = data->array[i]/divider;
+  if(newVal < 0) { newVal=0; }                              //XXX change this to support graphs that can handle negative values
   int lastI = -1;
-  int last = data->bumped / divider;
-  if(last < 0) { last=0; }
+  int oldVal = data->bumped / divider;
+  if(oldVal < 0) { oldVal=0; }                              //XXX change this to support graphs that can handle negative values
 
   int graphStartX = startX;
 
   //loop through all the middle values in the graph
-  while( i!=data->index ) {
-	redrawSingleGraphLines(&graphStartX, last, temp);
+  int stop = i - 1; //index latest value was inserted into
+  if (stop < 0) { stop=data->size-1; } //avoids % operation
+  while( i!=stop ) {
+	redrawSingleGraphLines(&graphStartX, oldVal, newVal);
 	if (doubleWidth) {
-	  redrawSingleGraphLines(&graphStartX, last, temp);
+	  redrawSingleGraphLines(&graphStartX, oldVal, newVal);
 	}
     i++;
     if (i==data->size) { i=0; } //avoids % operation
-    temp = data->array[i]/divider;
-    if(temp < 0) { temp=0; }
+    newVal = data->array[i]/divider;
+    if(newVal < 0) { newVal=0; }                             //XXX change this to support graphs that can handle negative values
     lastI = i-1;
     if (lastI <0) { lastI = data->size-1; }
-    last = data->array[lastI]/divider;
-    if(last < 0) { last=0; }  //avoids % operation
+    oldVal = data->array[lastI]/divider;
+    if(oldVal < 0) { oldVal=0; }  //avoids % operation
   }
 
-  //draw latest value added to graph with function that determines how to do minimal line draw
-  redrawSingleGraphLines(&graphStartX, last, temp);
-  if (doubleWidth) { //FIXME this doesn't actually work and fill the entire screen
-    redrawSingleGraphLines(&graphStartX, last, temp);
+  //draw latest value added to graph (i==stop), with function that determines how to do minimal line draw
+  redrawSingleGraphLines(&graphStartX, oldVal, newVal);
+  if (doubleWidth) {
+    redrawSingleGraphLines(&graphStartX, oldVal, newVal);
   }
 }
 #endif
