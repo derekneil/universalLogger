@@ -516,12 +516,17 @@ void drawMainMenu() {
 
 	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
 
-	//XXX make this parametric to the number of inputs... and put them in a pretty layout based on the number instead of manually tweaking
-	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
-	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
-	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
-	inputButtons[3] = new TouchButton(CENTER_X2,    CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
+	//update coordinates by commenting out or adding coordinates for number of sensorInputs user can pick from
+	int coordinates[NUMINPUTS][2] = {
+			//X            Y
+		{CENTER_X1,    CENTER_Y2-30},
+		{CENTER_X1+10, CENTER_Y2+30},
+		{CENTER_X2,    CENTER_Y2-30},
+		{CENTER_X2,    CENTER_Y2+30}
+	};
+
 	for (int i=0; i<NUMINPUTS; i++) {
+		inputButtons[i] = new TouchButton(coordinates[i][0], coordinates[i][1], sensorInputs[i]->label, sensorInputs[i]);
 		menu.add(inputButtons[i]);
 	}
 
