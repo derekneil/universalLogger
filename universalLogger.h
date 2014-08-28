@@ -17,17 +17,14 @@
 
 #define LOADCELL Serial1
 
-#define STDWIDTH 158
-#define STDHEIGHT 118
-
 #define ANALOG 0
 #define DIGITAL 1
 
 #define CHARHEIGHT 8
 #define CHARWIDTH 6
 
-// for reference only
-#define	BLACK   0x0000
+// update based on screen used
+#define	BLACK	0x0000
 #define	BLUE    0x001F
 #define	GREEN   0x07E0
 #define CYAN    0x07FF
@@ -57,8 +54,12 @@
 	#define ERASECOLOUR BACKGROUNDCOLOUR
 #endif
 
+//update based on screen used
 #define SCREENWIDTH 320  //X
 #define SCREENHEIGHT 240 //Y
+
+#define STDWIDTH 158
+#define STDHEIGHT 118
 
 #define CENTER_X SCREENWIDTH/2
 #define CENTER_X1 80

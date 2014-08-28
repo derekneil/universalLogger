@@ -221,9 +221,9 @@ void SensorDisplay::checkDivider(int val) {
 				Serial.print(F("val/divider "));
 				Serial.print(val);
 				Serial.print(F(" / "));
-				Serial.print(sd->divider);
+				Serial.print(divider);
 				Serial.print(F(" = "));
-				Serial.println(val/sd->divider);
+				Serial.println(val/divider);
 			}
 		#endif
 	}

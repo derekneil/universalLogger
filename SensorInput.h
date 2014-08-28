@@ -66,17 +66,6 @@ class SensorInput : public Enableable {
         updateStat(&(sensorDisplay->stats.last10avg), sensorData->last10avg);
     }
 
-  	void checkDivider(int val, SensorDisplay *sd) {
-		#ifdef DEBUG
-			if (Serial) {
-				Serial.print(F("SensorInput::checkDivider( "));
-				Serial.print(val);
-				Serial.println(F(" ) "));
-			}
-		#endif
-  		sd->checkDivider(val);
-  	}
-
   public:
 	SensorDisplay shortTermDisplay;
 	SensorDisplay longTermDisplay;
@@ -301,7 +290,7 @@ class SensorInput : public Enableable {
             //see if we have new value
             if (currentFiltered!=SHRT_MAX && currentFiltered!=SHRT_MIN) {
                 shortTermData.insert(currentFiltered);
-				checkDivider(currentFiltered, &shortTermDisplay);
+				shortTermDisplay.checkDivider(currentFiltered);
                 if (shortTermDisplay.enabled) {
                 	updateStats(&shortTermData, &shortTermDisplay, currentFiltered);
                 	shortTermDisplay.needsRedraw = true;
@@ -313,7 +302,7 @@ class SensorInput : public Enableable {
                 	//save last shortTermData cycle average to long term
                 	short shortAvg = shortTermData.avg;
                     longTermData.insert(shortAvg);
-                    checkDivider(shortAvg, &longTermDisplay);
+                    longTermDisplay.checkDivider(shortAvg);
                     if (longTermDisplay.enabled) {
                     	updateStats(&longTermData, &longTermDisplay, shortAvg);
                     	longTermDisplay.needsRedraw = true;
@@ -321,17 +310,16 @@ class SensorInput : public Enableable {
 
                     //reset the index in the long term data after a cycle complete
                     longTermData.checkAndResetIndex();
-
                 }
 
             }
-        }
+        } //close if (checkInterval(newReading))
     }
 
     virtual void draw() {
 		#ifdef DEBUG
 			if (Serial) {
-    			Serial.println("SensorInput::draw()");
+    			Serial.println(F("SensorInput::draw()"));
     		}
     	#endif
         if (shortTermDisplay.enabled) {

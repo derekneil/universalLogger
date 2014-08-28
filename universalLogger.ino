@@ -57,15 +57,20 @@ int touchX = 0;
 int touchY = 0;
 
 //SD card reader
-// MOSI - pin 11
-// MISO - pin 12
-// CLK - pin 13
 const uint8_t sdCS = 4; // determined from ILI934X touchscreen sheild with built in SD card reader
-
-int logging = false;
 SdFat sd;
-SdFile logFile;
-char logFileName[13]; //limited by 8.3 fat filesystem naming :(
+class Logging : public Enableable {
+public:
+	char fileName[13]; //limited by 8.3 fat filesystem naming :(
+	SdFile logFile;
+	int enabled = false;
+	int isEnabled() { return enabled; }
+};
+Logging logger;
+
+//menu screen
+TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
+TouchButton logBtn(CENTER_X1, CENTER_Y1+30, "Log OFF", &logger);
 
 //main screen
 	Display *display;
@@ -73,16 +78,13 @@ SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
 unsigned long lastStatUpdateTime = 0;
 const unsigned long statRedrawThreshold = 1000000;
 
-//menu screen
-TouchButton *logBtn;
-
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
 
 void logError() {
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(F("...log error"));
+			Serial.println(F("...log file error"));
 		}
 	#endif
 	Display::device->setTextSize(4);
@@ -92,7 +94,7 @@ void logError() {
 
 void logOutput(){
 
-	if (logging==true) {
+	if (logger.isEnabled()) {
 
 		int size = 128;
 		char logStr[size];
@@ -111,12 +113,12 @@ void logOutput(){
 		#endif
 
 		//write to sd card
-		if (!logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE)) {
+		if (!logger.logFile.open(logger.fileName, O_CREAT | O_APPEND | O_WRITE)) {
 			logError();
 			while(1) {}
 		}
-		logFile.println(logStr);
-		logFile.close();
+		logger.logFile.println(logStr);
+		logger.logFile.close();
 	}
 
 }
@@ -164,64 +166,58 @@ int startLogging() {
 	#endif
 
 	//filename limited by SDFat library to 8 chars name and 3 chars extension
-	sprintf(logFileName, "%02d%02d%02d%02d.csv", day(), hour(), minute(), second());
+	sprintf(logger.fileName, "%02d%02d%02d%02d.csv", day(), hour(), minute(), second());
 	#ifdef DEBUG
 		if (Serial) {
-			Serial.println(logFileName);
+			Serial.println(logger.fileName);
 		}
 	#endif
 
-	if( !logFile.open(logFileName, O_CREAT | O_APPEND | O_WRITE) ){
+	if( !logger.logFile.open(logger.fileName, O_CREAT | O_APPEND | O_WRITE) ){
 		logError();
-		#ifdef DEBUG
-			if (Serial) {
-				Serial.println(F("...log file error"));
-			}
-		#endif
 		delay(1000);
 		return 0;
 	}
 	else { //add column header to new logfile
 		#ifdef DEBUG
 			if (Serial) {
-				Serial.print(F("datetime, microsr"));
+				Serial.print(F("datetime, micros"));
 			}
 		#endif
-		logFile.print("datetime, micros");
+		logger.logFile.print("datetime, micros");
 		for (int i=0; i<NUMINPUTS; i++) {
 			if(sensorInputs[i]->isEnabled()) {
 				char headerStr[64];
 				sprintf(headerStr, ", cycles-%d, raw.latest-%d",i+1 ,i+1);
-				logFile.print(headerStr);
+				logger.logFile.print(headerStr);
 				#ifdef DEBUG
 					if (Serial) {
 						Serial.print(headerStr);
 					}
 				#endif
-//				delete headerStr;
 			}
 		}
-		logFile.println("");
+		logger.logFile.println("");
 		#ifdef DEBUG
 			if (Serial) {
 				Serial.println("");
 			}
 		#endif
-		logging = true;
-		logFile.close();
+		logger.enabled = true;
+		logger.logFile.close();
 		return 1;
 	}
 }
 
 void toggleLogging() {
-	if (logging==false) {
+	if (!logger.isEnabled()) {
 		if (startLogging()) {
-			logBtn->setLabel("LOG  ON");
+			logBtn.setLabel("LOG  ON");
 		}
 	}
 	else {
-		logging = false;
-		logBtn->setLabel("LOG OFF");
+		logger.enabled = false;
+		logBtn.setLabel("LOG OFF");
 	}
 }
 
@@ -323,7 +319,6 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	tft.fillScreen(MENUCOLOUR);
 	tft.setTextSize(2);
 
-	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
 
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
@@ -391,6 +386,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 						}
 					#endif
 					resetBtn.push();
+
 					/** IMP prompt user to confirm, and whether they want to start a new log file
 
 					tft.fillScreen(BACKGROUNDCOLOUR);
@@ -512,28 +508,25 @@ void drawMainMenu() {
 
 	Menu menu;
 
-	TouchButton backBtn(  CENTER_X1, CENTER_Y1-30, "Back");
 	menu.add(&backBtn);
-
-	if (logging==false) {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log OFF");
-	}
-	else {
-		logBtn = new TouchButton( CENTER_X1, CENTER_Y1+30, "Log  ON");
-	}
-	menu.add(logBtn);
+	menu.add(&logBtn);
 
 	TouchButton resetAllBtn(CENTER_X2, CENTER_Y1+30, "Reset All");
 	menu.add(&resetAllBtn);
 
 	TouchButton *inputButtons[NUMINPUTS] = {nullptr};
 
-	//XXX make this parametric to the number of inputs... and put them in a pretty layout based on the number instead of manually tweaking
-	inputButtons[0] = new TouchButton(CENTER_X1,    CENTER_Y2-30, sensorInputs[0]->label, sensorInputs[0]);
-	inputButtons[1] = new TouchButton(CENTER_X1+10, CENTER_Y2+30, sensorInputs[1]->label, sensorInputs[1]);
-	inputButtons[2] = new TouchButton(CENTER_X2,    CENTER_Y2-30, sensorInputs[2]->label, sensorInputs[2]);
-	inputButtons[3] = new TouchButton(CENTER_X2,    CENTER_Y2+30, sensorInputs[3]->label, sensorInputs[3]);
+	//update coordinates by commenting out or adding coordinates for number of sensorInputs user can pick from
+	int coordinates[NUMINPUTS][2] = {
+			//X            Y
+		{CENTER_X1,    CENTER_Y2-30},
+		{CENTER_X1+10, CENTER_Y2+30},
+		{CENTER_X2,    CENTER_Y2-30},
+		{CENTER_X2,    CENTER_Y2+30}
+	};
+
 	for (int i=0; i<NUMINPUTS; i++) {
+		inputButtons[i] = new TouchButton(coordinates[i][0], coordinates[i][1], sensorInputs[i]->label, sensorInputs[i]);
 		menu.add(inputButtons[i]);
 	}
 
@@ -562,15 +555,15 @@ void drawMainMenu() {
 					backBtn.push();
 					break; //break out of this menu's touch loop
 				}
-				else if (logBtn->isPushed(touchX,touchY)) {
+				else if (logBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
 					if (Serial) {
 						Serial.println(F("logBtn isPushed"));
 					}
 					#endif
-					logBtn->push();
+					logBtn.push();
 					toggleLogging();
-					logBtn->draw();
+					logBtn.draw();
 				}
 				else if (resetAllBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
