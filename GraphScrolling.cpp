@@ -82,7 +82,7 @@ void GraphScrolling::draw(SensorData *data) {
 
   //draw latest value added to graph
   Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
-  if (doubleWidth) { //FIXME this is also bad kung fu, it's drawing that rogue tall bar to the right of a graph
+  if (doubleWidth) {
   	Display::device->drawFastVLine(graphStartX++, startY+h-temp, temp, TEXTCOLOUR);
   }
 
@@ -109,6 +109,8 @@ void GraphScrolling::redraw(SensorData *data) {
 
   int i = data->index + 1;
   if (i==data->size) { i=0; }
+
+  //TODO what is drawing that rogue tall bar to the right of a graph (you have to wait for one full graph cycle to be filled
 
   //setup values and use bumped for graphing oldest value in graph
   int temp = data->array[i]/divider;
@@ -137,7 +139,7 @@ void GraphScrolling::redraw(SensorData *data) {
 
   //draw latest value added to graph with function that determines how to do minimal line draw
   redrawSingleGraphLines(&graphStartX, last, temp);
-  if (doubleWidth) { //FIXME this doesn't actually work and fill the entire screen
+  if (doubleWidth) {
     redrawSingleGraphLines(&graphStartX, last, temp);
   }
 }
