@@ -57,13 +57,8 @@ int touchX = 0;
 int touchY = 0;
 
 //SD card reader
-// MOSI - pin 11
-// MISO - pin 12
-// CLK - pin 13
 const uint8_t sdCS = 4; // determined from ILI934X touchscreen sheild with built in SD card reader
-
 SdFat sd;
-
 class Logging : public Enableable {
 public:
 	char fileName[13]; //limited by 8.3 fat filesystem naming :(
@@ -71,17 +66,17 @@ public:
 	int enabled = false;
 	int isEnabled() { return enabled; }
 };
-
 Logging logger;
+
+//menu screen
+TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
+TouchButton logBtn(CENTER_X1, CENTER_Y1+30, "Log OFF", &logger);
 
 //main screen
 	Display *display;
 SensorInput *sensorInputs[NUMINPUTS]; //array of sensor inputs
 unsigned long lastStatUpdateTime = 0;
 const unsigned long statRedrawThreshold = 1000000;
-
-//menu screen
-TouchButton logBtn(CENTER_X1, CENTER_Y1+30, "Log OFF", &logger);
 
 //-----------------------------------------------------------------------------
 // reusable worker methods, should be moved to new file, but le lazy
@@ -324,7 +319,6 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	tft.fillScreen(MENUCOLOUR);
 	tft.setTextSize(2);
 
-	TouchButton backBtn(CENTER_X1, CENTER_Y1-30, "Back");
 	backBtn.draw();
 
 	TouchButton resetBtn(CENTER_X2, CENTER_Y1-30,"Reset", si);
@@ -392,6 +386,7 @@ void drawIndividualSensorMenu(SensorInput *si) {
 						}
 					#endif
 					resetBtn.push();
+
 					/** IMP prompt user to confirm, and whether they want to start a new log file
 
 					tft.fillScreen(BACKGROUNDCOLOUR);
@@ -513,9 +508,7 @@ void drawMainMenu() {
 
 	Menu menu;
 
-	TouchButton backBtn(  CENTER_X1, CENTER_Y1-30, "Back");
 	menu.add(&backBtn);
-
 	menu.add(&logBtn);
 
 	TouchButton resetAllBtn(CENTER_X2, CENTER_Y1+30, "Reset All");
