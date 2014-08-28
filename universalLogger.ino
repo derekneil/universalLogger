@@ -42,7 +42,7 @@
 #define lcd_dc 9
 #define lcd_rst -1
 
-Adafruit_ILI9340 tft = Adafruit_ILI9340(lcd_cs, lcd_dc, lcd_rst);
+Adafruit_ILI9340 tft = Adafruit_ILI9340(lcd_cs, lcd_dc, lcd_rst); //ILI9341 has issues with ghost touch events
 
 //touch screen stuff
 #define STMPE_CS 8
@@ -60,7 +60,7 @@ int touchY = 0;
 // MOSI - pin 11
 // MISO - pin 12
 // CLK - pin 13
-const uint8_t sdCS = 4; // determined from ILI9341 touchscreen sheild with built in SD card reader
+const uint8_t sdCS = 4; // determined from ILI934X touchscreen sheild with built in SD card reader
 
 int logging = false;
 SdFat sd;
@@ -128,17 +128,8 @@ void resetAll() {
 		}
 	#endif
 	for (int i=0; i<NUMINPUTS; i++) {
-		if(sensorInputs[i]->isEnabled()) { //XXX should we do for all of them anyways??
-			sensorInputs[i]->reset();
-		}
+		sensorInputs[i]->reset();
 	}
-
-	//XXX what about starting a new log file? should we ask the user with a pop up window?
-	//draw yes/no screen
-	//if yes
-	//stop logging
-	//start logging
-	//drawMainMenu()
 }
 
 ///** zero inputs for sensors that support it */
@@ -371,14 +362,18 @@ void drawIndividualSensorMenu(SensorInput *si) {
 	intervalAdjust.draw();
 
 	/** IMP controls for remaining SensorInput controls
-	 * TouchSelect shortTermType, longTermType;
-	 * TouchAdjust highPassValue, lowPass;
+	 * TouchSelect shortTermVizType, longTermVizType; //these are for controlling what type of visualization GRAPH | DIAL | HI/LO ...
+	 * TouchAdjust highPassValue, lowPassValue; //these are for dynamic mode
 	 */
 
-	emptyTouchBuffer(); //XXX why do buttons still get pressed from the touch that loaded the menu?
+	emptyTouchBuffer();  //make sure touch buffer empty to prevent accidental button pushes
+
 	while (1) {
 		if (!(ts.bufferEmpty())) {
 			if (parseTouchBoilerPlate()) {
+
+				/** IMP update config file on SD card when user changes something in a menu
+				 * 	so it can be restored when the device reboots */
 
 				if (backBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
@@ -388,6 +383,42 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					#endif
 					backBtn.push();
 					break; //break out of this menu's touch loop and go back to previous control loop
+				}
+				else if (resetBtn.isPushed(touchX,touchY)) {
+					#ifdef DEBUG
+						if (Serial) {
+							Serial.println(F("resetBtn isPushed"));
+						}
+					#endif
+					resetBtn.push();
+					/** IMP prompt user to confirm, and whether they want to start a new log file
+
+					tft.fillScreen(BACKGROUNDCOLOUR);
+					//draw yes/no screen
+					 ________
+					| Cancel |
+					 --------
+					 _____________
+					| Reset graph |
+					 -------------
+					 _________________________________
+					| Reset graph & start new logfile |
+					 ---------------------------------
+
+					if (pushed>0) {
+						((SensorInput*)resetBtn.obj)->reset();
+					}
+					if (pushed>1) {
+						toggleLogging();
+						toggleLogging();
+					}
+					menu.draw(); //you'll have to add all the buttons for drawIndividualSensorMenu to a menu like the main menu to use this
+
+					remove ((SensorInput*)resetBtn.obj)->reset(); and resetBtn.draw(); currently being used below
+					kung fu level required, moderate */
+
+					((SensorInput*)resetBtn.obj)->reset();
+					resetBtn.draw();
 				}
 				else if (shortTermVizBtn->isPushed(touchX,touchY)) {
 					#ifdef DEBUG
@@ -427,16 +458,6 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					longTermVizBtn->push();
 					longTermVizBtn->draw();
 				}
-				else if (resetBtn.isPushed(touchX,touchY)) {
-					#ifdef DEBUG
-						if (Serial) {
-							Serial.println(F("resetBtn isPushed"));
-						}
-					#endif
-					resetBtn.push();
-					((SensorInput*)resetBtn.obj)->reset();
-					resetBtn.draw();
-				}
 				else if (filterSelect.isPushed(touchX, touchY)) {
 					#ifdef DEBUG
 						if (Serial) {
@@ -465,12 +486,9 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					intervalAdjust.draw();
 				}
 
-				//IMP implement touch isPushed code for all the SensorInput buttons
+				//IMP implement touch isPushed code for any new SensorInput buttons
 
-
-				emptyTouchBuffer(); //XXX some buttons seemed to get pushed again for some reason...
-
-			}
+			} //close if (parseTouchBoilerPlate())
 			else {
 				#ifdef DEBUG
 					if (Serial) {
@@ -478,8 +496,11 @@ void drawIndividualSensorMenu(SensorInput *si) {
 					}
 				#endif
 			}
-		}
-	}//end while
+
+			emptyTouchBuffer(); //make sure touch buffer empty to prevent accidental button pushes
+
+		} //close if (!(ts.bufferEmpty()))
+	} //close while
 }
 
 void drawMainMenu() {
@@ -517,6 +538,7 @@ void drawMainMenu() {
 	}
 
 	menu.draw();
+	emptyTouchBuffer(); //make sure touch buffer empty to prevent accidental button pushes
 
 	#ifdef DEBUG
 		if (Serial) {
@@ -527,6 +549,9 @@ void drawMainMenu() {
 	while (1) {
 		if (!(ts.bufferEmpty())) {
 			if (parseTouchBoilerPlate()) {
+
+				/** IMP update config file on SD card when user changes something in a menu
+				 * 	so it can be restored when the device reboots */
 
 				if (backBtn.isPushed(touchX,touchY)) {
 					#ifdef DEBUG
@@ -554,6 +579,33 @@ void drawMainMenu() {
 						}
 					#endif
 					resetAllBtn.push();
+
+					/** IMP prompt user to confirm, and whether they want to start a new log file
+
+					tft.fillScreen(BACKGROUNDCOLOUR);
+					//draw yes/no screen
+					 ________
+					| Cancel |
+					 --------
+					 ______________
+					| Reset graphs |
+					 --------------
+					 __________________________________
+					| Reset graphs & start new logfile |
+					 ----------------------------------
+
+					if (pushed>0) {
+						resetAll();
+					}
+					if (pushed>1) {
+						toggleLogging();
+						toggleLogging();
+					}
+					menu.draw();
+
+					remove resetAll(); and resetAllBtn.draw(); currently being used
+					kung fu level required, moderate */
+
 					resetAll();
 					resetAllBtn.draw();
 				}
@@ -576,10 +628,7 @@ void drawMainMenu() {
 					}
 				}
 
-				//some buttons seemed to get pushed again for some reason...
-				emptyTouchBuffer();
-
-			}
+			}//close if (parseTouchBoilerPlate())
 			else {
 				#ifdef DEBUG
 					if (Serial) {
@@ -587,7 +636,9 @@ void drawMainMenu() {
 					}
 				#endif
 			}
-		}
+
+			emptyTouchBuffer(); //make sure touch buffer empty to prevent accidental button pushes
+		} //close if (!(ts.bufferEmpty()))
 	} // close whiLe
 }
 
@@ -601,7 +652,14 @@ void pollSensors() {
 			short newReading = sensorInputs[i]->poll();
 			sensorInputs[i]->updateDataAndStats(newReading);
 
-			//XXX to move this to be called every x seconds, need to store last drawn state of graph
+			/** XXX to move this to be called every x seconds,
+			 * you'll need to store last drawn state of graph
+			 * or, how many new values have been added since
+			 * you last drew the graph, since assumptions
+			 * about previously drawn value being the previous
+			 * in the data structure is no longer correct for
+			 * the optimized GraphScrolling redraw algorithm,
+			 * kung fu level required, low to moderate */
 			sensorInputs[i]->redrawViz();
 		}
 	}
@@ -652,13 +710,22 @@ void setup() {
 			}
 		#endif
 	#endif
+
+	tft.fillScreen(BACKGROUNDCOLOUR);
+	tft.setTextColor(TEXTCOLOUR);
+	tft.setRotation(1);
+#ifdef DEBUG
+	if (Serial) {
+		Serial.println(F("tft background, textcolour, and rotation set"));
+	}
 	tft.fillScreen(YELLOW);
 	tft.fillScreen(GREEN);
 	tft.fillScreen(RED);
 	tft.fillScreen(MAGENTA);
-	tft.fillScreen(BACKGROUNDCOLOUR);
-	tft.setTextColor(TEXTCOLOUR);
-	tft.setRotation(1);
+	if (Serial) {
+		Serial.println(F("tft fillscreen test complete"));
+	}
+#endif
 
 	while(!ts.begin()){
 		#ifdef DEBUG
@@ -693,6 +760,18 @@ void setup() {
 	sensorInputs[1] = new LinearEncoder(5, 6);
 	sensorInputs[2] = new SensorInput(16, ANALOG);
 	sensorInputs[3] = new SensorInput(17, DIGITAL);
+
+	/** IMP recall last setup from config file on SD card,
+	 * config should contain:
+	 * 		- last configuration of sensorInputs added to display
+	 * 		- settings for each of every sensorInput's two sensorDisplays
+	 *
+	 * 	if no config file, then create one and do nothing
+	 * 	config file will be updated when user changes something in a menu
+	 *
+	 * 	this may help with the slow screen draw speed, as writing to the SD card resets
+	 * 	SPI to faster mode without the ghost touch event problem..
+	 * 	kung fu level required, moderate to high */
 
 	drawMainScreen();
 
@@ -762,7 +841,11 @@ void loop() {
 		parseTouch();
 	}
 
-	//TODO doing something on the SD card makes the spi for the screen switch back to a faster mode...
+	/** TODO doing something on the SD card makes the spi for drawing on screen
+	 *  switch back to a faster mode... figure out why and make it fast again,
+	 *  BUT beware ghost touch events that started showing up when the screen was
+	 *  using ILI9341 library, see IMP regarding saving setup to SD card
+	 *  kung-fu level required, moderate to high */
 
 	unsigned long nowTime = micros();
 	if(nowTime-lastStatUpdateTime > statRedrawThreshold) {
